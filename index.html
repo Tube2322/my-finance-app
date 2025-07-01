@@ -4,7 +4,46 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>เครื่องมือวางแผนการเงินอัจฉริยะ</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.tailwindcss.com">
+              // --- Online Status Management ---
+        function updateOnlineStatus() {
+            const statusIndicator = document.getElementById('status-indicator');
+            const statusDot = document.getElementById('status-dot');
+            const statusText = document.getElementById('status-text');
+            const aiButtons = [
+                document.getElementById('get-advice-btn'),
+                document.getElementById('analyze-expenses-btn'),
+                document.getElementById('get-plan-btn')
+            ];
+
+            if (navigator.onLine) {
+                statusIndicator.classList.remove('bg-gray-400', 'text-white');
+                statusIndicator.classList.add('bg-green-100', 'text-green-800');
+                statusDot.classList.remove('bg-gray-600');
+                statusDot.classList.add('bg-green-500');
+                statusText.textContent = 'ออนไลน์';
+                aiButtons.forEach(btn => btn.disabled = false);
+            } else {
+                statusIndicator.classList.remove('bg-green-100', 'text-green-800');
+                statusIndicator.classList.add('bg-gray-400', 'text-white');
+                statusDot.classList.remove('bg-green-500');
+                statusDot.classList.add('bg-gray-600');
+                statusText.textContent = 'ออฟไลน์';
+                aiButtons.forEach(btn => btn.disabled = true);
+            }
+        }
+
+        // --- ในฟังก์ชัน initializeApp ให้เพิ่มโค้ด 3 บรรทัดนี้เข้าไป ---
+        function initializeApp() {
+            // ... โค้ดเดิมในฟังก์ชันนี้ ...
+
+            // เพิ่ม 3 บรรทัดนี้เข้าไป
+            window.addEventListener('online', updateOnlineStatus);
+            window.addEventListener('offline', updateOnlineStatus);
+            updateOnlineStatus(); // เรียกใช้ครั้งแรกเพื่อตั้งค่าสถานะ
+        }
+
+    </script>
     <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
@@ -127,6 +166,25 @@
             width: 90%;
             max-width: 400px;
             text-align: center;
+        }
+        .status-indicator {
+            position: fixed;
+            bottom: 16px;
+            right: 16px;
+            padding: 6px 12px;
+            border-radius: 9999px;
+            display: flex;
+            align-items: center;
+            font-size: 0.875rem;
+            font-weight: 500;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            z-index: 40;
+        }
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            margin-right: 8px;
         }
     </style>
 </head>
@@ -765,5 +823,10 @@ ${finiteItemString || 'ไม่มี'}
         window.onload = initializeApp;
 
     </script>
+    <!-- Online Status Indicator -->
+    <div id="status-indicator" class="status-indicator">
+        <div id="status-dot" class="status-dot"></div>
+        <span id="status-text"></span>
+    </div>
 </body>
 </html>
