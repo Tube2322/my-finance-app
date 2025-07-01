@@ -606,20 +606,31 @@
         // --- Gemini API Functions ---
 
         async function callGemini(prompt) {
-            const apiKey = "AIzaSyB1-iPMRF9W2Vo7k_Cufy1FXg42YDmgPDg";
-            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
-            const response = await fetch(apiUrl, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
-            });
-            if (!response.ok) throw new Error(`API error! status: ${response.status}`);
-            const result = await response.json();
-            if (result.candidates && result.candidates[0]?.content?.parts[0]?.text) {
-                return result.candidates[0].content.parts[0].text;
-            }
-            return "ขออภัย ไม่สามารถสร้างคำตอบได้ในขณะนี้";
-        }
+    // --- ส่วนที่ต้องแก้ไข ---
+    const apiKey = AIzaSyB1-iPWRF9M2Vq7k_CvfY1FXg42YdmgPDg; 
+    // ----------------------
+
+    if (!apiKey || apiKey === "YOUR_API_KEY_HERE") {
+         console.error("API Key is missing!");
+         throw new Error("API Key is missing!");
+    }
+
+    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+    const response = await fetch(apiUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
+    });
+    if (!response.ok) {
+        console.error("API Response Error:", await response.text());
+        throw new Error(`API error! status: ${response.status}`);
+    }
+    const result = await response.json();
+    if (result.candidates && result.candidates[0]?.content?.parts[0]?.text) {
+        return result.candidates[0].content.parts[0].text;
+    }
+    return "ขออภัย ไม่สามารถสร้างคำตอบได้ในขณะนี้";
+}
 
         async function getFinancialAdvice() {
             const totalIncome = financialData.salary + financialData.otherIncomes.reduce((s, i) => s + i.amount, 0);
