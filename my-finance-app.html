@@ -1,0 +1,713 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>เครื่องมือวางแผนการเงินอัจฉริยะ</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Kanit', sans-serif;
+            background-color: #f0f2f5;
+        }
+        .card {
+            background-color: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            padding: 24px;
+            margin-bottom: 24px;
+            transition: all 0.3s ease;
+        }
+        .card:hover {
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+        }
+        .input-field {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+        .input-field:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.4);
+        }
+        .btn {
+            padding: 10px 16px;
+            border-radius: 8px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background-color 0.3s, transform 0.2s;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .btn-primary {
+            background-color: #3b82f6;
+            color: white;
+        }
+        .btn-primary:hover {
+            background-color: #2563eb;
+            transform: translateY(-1px);
+        }
+        .btn-secondary {
+            background: linear-gradient(135deg, #6d28d9, #4f46e5);
+            color: white;
+        }
+        .btn-secondary:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        .summary-card {
+            position: sticky;
+            top: 24px;
+        }
+        .summary-value {
+            font-size: 1.75rem;
+            font-weight: 600;
+        }
+        .list-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        .list-item:last-child {
+            border-bottom: none;
+        }
+        .delete-btn {
+            background: none;
+            border: none;
+            color: #9ca3af;
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+        .delete-btn:hover {
+            color: #ef4444;
+        }
+        .loader {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #6d28d9;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .ai-content {
+            white-space: pre-wrap;
+            line-height: 1.7;
+        }
+    </style>
+</head>
+<body class="p-4 md:p-8">
+
+    <div class="max-w-6xl mx-auto">
+        <header class="text-center mb-8">
+            <h1 class="text-3xl md:text-4xl font-bold text-gray-800">ตัวช่วยวางแผนการเงินอัจฉริยะ 💸</h1>
+            <p class="text-gray-500 mt-2">คำนวณรายรับ-รายจ่าย พร้อม AI และเครื่องมือจัดการหนี้สิน</p>
+        </header>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <!-- Input Column -->
+            <div class="lg:col-span-2">
+                <!-- Income Card -->
+                <div class="card">
+                    <h2 class="text-xl font-semibold text-green-600 mb-4">💰 รายรับ</h2>
+                    <div class="space-y-4">
+                        <div>
+                            <label for="salary" class="block text-sm font-medium text-gray-700 mb-1">เงินเดือน / รายรับหลัก</label>
+                            <input type="number" id="salary" class="input-field" placeholder="0.00" oninput="updateSummary()">
+                        </div>
+                        <div class="border-t pt-4">
+                            <h3 class="font-semibold text-gray-800 mb-2">รายรับอื่นๆ</h3>
+                            <div id="other-income-list" class="space-y-2 mb-4"></div>
+                            <div class="flex space-x-2">
+                                <input type="text" id="other-income-name" class="input-field" placeholder="ชื่อรายการ">
+                                <input type="number" id="other-income-amount" class="input-field" placeholder="จำนวนเงิน">
+                                <button onclick="addItem('income')" class="btn btn-primary flex-shrink-0">เพิ่ม</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Expenses Card -->
+                <div class="card">
+                    <h2 class="text-xl font-semibold text-red-600 mb-4">💳 รายจ่ายคงที่ (รายเดือน)</h2>
+                     <div class="space-y-4">
+                        <div>
+                            <p class="text-sm text-gray-500 mb-2">สำหรับรายจ่ายที่เกิดขึ้นทุกเดือน เช่น ค่าเช่าบ้าน, ค่าสมาชิก Netflix</p>
+                            <div id="fixed-expense-list" class="space-y-2 mb-4"></div>
+                            <div class="flex space-x-2">
+                                <input type="text" id="fixed-expense-name" class="input-field" placeholder="ชื่อรายการ">
+                                <input type="number" id="fixed-expense-amount" class="input-field" placeholder="จำนวนเงิน">
+                                <button onclick="addItem('fixed')" class="btn btn-primary flex-shrink-0">เพิ่ม</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Debts and Installments Card -->
+                <div class="card">
+                    <h2 class="text-xl font-semibold text-orange-600 mb-4">💸 หนี้สินและค่าผ่อนชำระ</h2>
+                    <p class="text-sm text-gray-500 mb-2">สำหรับรายจ่ายที่มีกำหนดสิ้นสุด เช่น หนี้บ้าน, ค่าผ่อนรถ, ค่าผ่อนโทรศัพท์</p>
+                    <div id="finite-item-list" class="space-y-3"></div>
+                    <div class="space-y-4 border-t pt-4 mt-4">
+                        <h3 class="font-semibold text-gray-800 mb-2">เพิ่มรายการใหม่</h3>
+                        <input type="text" id="finite-item-name" class="input-field" placeholder="ชื่อรายการ (เช่น หนี้บัตรเครดิต)">
+                        <input type="number" id="finite-item-total" class="input-field" placeholder="ยอดหนี้/ยอดทั้งหมด">
+                        <input type="number" id="finite-item-monthly" class="input-field" placeholder="จำนวนเงินที่จ่ายต่อเดือน">
+                        <button onclick="addFiniteItem()" class="btn btn-primary w-full">เพิ่มรายการ</button>
+                    </div>
+                </div>
+
+                <!-- Debt Payoff Strategy Card -->
+                <div class="card">
+                    <h2 class="text-xl font-semibold text-cyan-600 mb-4">🔮 กลยุทธ์การปลดหนี้ (Debt Payoff)</h2>
+                    <p class="text-gray-600 text-sm mb-4">ใช้เงินคงเหลือของคุณมาเร่งการชำระหนี้ให้เร็วขึ้น เลือกกลยุทธ์ที่ต้องการแล้วดูผลลัพธ์</p>
+                    
+                    <div class="space-y-2 mb-4">
+                        <label class="block text-sm font-medium text-gray-700">เลือกกลยุทธ์:</label>
+                        <div class="flex items-center space-x-4">
+                            <label class="flex items-center">
+                                <input type="radio" name="payoff-strategy" value="snowball" class="h-4 w-4 text-cyan-600 border-gray-300 focus:ring-cyan-500" checked>
+                                <span class="ml-2 text-sm text-gray-700">โปะหนี้ก้อนเล็กสุดก่อน (Snowball)</span>
+                            </label>
+                            <label class="flex items-center">
+                                <input type="radio" name="payoff-strategy" value="avalanche" class="h-4 w-4 text-cyan-600 border-gray-300 focus:ring-cyan-500">
+                                <span class="ml-2 text-sm text-gray-700">โปะหนี้ก้อนใหญ่สุดก่อน (Avalanche)</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <button id="calculate-payoff-btn" class="btn btn-secondary w-full">🚀 เริ่มวางแผนปลดหนี้</button>
+                    
+                    <div id="projection-card" class="mt-6 hidden">
+                        <h3 class="text-lg font-semibold text-cyan-600 mb-4 flex items-center"><i class="fas fa-chart-line mr-2"></i> แผนการปลดหนี้ของคุณ</h3>
+                        <div id="projection-content" class="text-gray-700 space-y-3"></div>
+                    </div>
+                </div>
+
+                <!-- AI Features Column -->
+                <!-- Expense Analysis Card -->
+                <div class="card">
+                    <h2 class="text-xl font-semibold text-amber-600 mb-4">🔍 วิเคราะห์รายจ่าย</h2>
+                    <p class="text-gray-600 text-sm mb-4">ให้ AI ช่วยค้นหาจุดที่สามารถประหยัดเงินได้มากขึ้นจากรายการใช้จ่ายของคุณ</p>
+                    <button id="analyze-expenses-btn" class="btn btn-secondary w-full">✨ วิเคราะห์และหาทางลดรายจ่าย</button>
+                    <div id="analysis-card" class="mt-6 hidden">
+                        <h3 class="text-lg font-semibold text-amber-600 mb-4 flex items-center"><i class="fas fa-search-dollar mr-2"></i> ผลการวิเคราะห์รายจ่าย</h3>
+                        <div id="analysis-loader" class="text-center py-4 hidden">
+                            <div class="loader"></div>
+                            <p class="text-gray-500 mt-2 text-sm">AI กำลังวิเคราะห์รายการใช้จ่ายของคุณ...</p>
+                        </div>
+                        <div id="analysis-content" class="text-gray-700 space-y-3 ai-content"></div>
+                    </div>
+                </div>
+
+                <!-- Savings Goal Card -->
+                <div class="card">
+                    <h2 class="text-xl font-semibold text-indigo-600 mb-4">🎯 เป้าหมายการออม</h2>
+                    <p class="text-gray-600 text-sm mb-4">หลังจากปลดหนี้หมดแล้ว เงินคงเหลือของคุณจะกลายเป็นเงินออมเต็มจำนวน</p>
+                    <div class="space-y-4">
+                        <div>
+                            <label for="goal-name" class="block text-sm font-medium text-gray-700 mb-1">อยากเก็บเงินเพื่ออะไร?</label>
+                            <input type="text" id="goal-name" class="input-field" placeholder="เช่น ไปเที่ยวญี่ปุ่น, ซื้อ Macbook">
+                        </div>
+                        <div>
+                            <label for="goal-amount" class="block text-sm font-medium text-gray-700 mb-1">จำนวนเงินที่ต้องการ (บาท)</label>
+                            <input type="number" id="goal-amount" class="input-field" placeholder="50000">
+                        </div>
+                        <button id="get-plan-btn" class="btn btn-secondary w-full mt-2">✨ สร้างแผนการออม</button>
+                    </div>
+                     <div id="plan-card" class="mt-6 hidden">
+                        <h3 class="text-lg font-semibold text-indigo-600 mb-4 flex items-center"><i class="fas fa-tasks mr-2"></i> แผนการออมสำหรับคุณ</h3>
+                        <div id="plan-loader" class="text-center py-4 hidden">
+                            <div class="loader"></div>
+                            <p class="text-gray-500 mt-2 text-sm">AI กำลังสร้างแผนให้คุณ...</p>
+                        </div>
+                        <div id="plan-content" class="text-gray-700 space-y-3 ai-content"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Summary and AI Column -->
+            <div class="lg:col-span-1">
+                <div class="summary-card">
+                    <div class="card">
+                        <h2 class="text-xl font-semibold text-blue-600 mb-6 text-center">📊 สรุปยอดรายเดือน</h2>
+                        <div class="space-y-6">
+                            <div class="flex justify-between items-center p-4 bg-green-50 rounded-lg">
+                                <span class="font-medium text-green-800">รายรับรวม</span>
+                                <span id="total-income" class="font-bold text-lg text-green-700">฿0.00</span>
+                            </div>
+                            <div class="flex justify-between items-center p-4 bg-red-50 rounded-lg">
+                                <span class="font-medium text-red-800">รายจ่ายรวม</span>
+                                <span id="total-expense" class="font-bold text-lg text-red-700">฿0.00</span>
+                            </div>
+                            <div class="text-center pt-4 border-t">
+                                <p class="text-gray-600 mb-2">คงเหลือสุทธิ (สำหรับโปะหนี้/ออม)</p>
+                                <p id="balance" class="summary-value text-gray-800">฿0.00</p>
+                            </div>
+                        </div>
+                         <button id="get-advice-btn" class="btn btn-secondary w-full mt-6">✨ ขอคำแนะนำการเงินภาพรวม</button>
+                    </div>
+
+                    <div id="advice-card" class="card mt-6 hidden">
+                        <h2 class="text-xl font-semibold text-purple-600 mb-4 flex items-center"><i class="fas fa-lightbulb mr-2"></i> คำแนะนำจาก AI</h2>
+                        <div id="advice-loader" class="text-center py-4 hidden">
+                            <div class="loader"></div>
+                            <p class="text-gray-500 mt-2 text-sm">กำลังวิเคราะห์ข้อมูล...</p>
+                        </div>
+                        <div id="advice-content" class="text-gray-700 space-y-3 ai-content"></div>
+                    </div>
+                    
+                    <!-- Advertisement Card -->
+                    <div class="card mt-6 p-4">
+                        <h3 class="text-xs text-gray-400 mb-2 text-center">พื้นที่โฆษณา</h3>
+                        <a href="#" target="_blank" rel="noopener noreferrer" title="คลิกเพื่อดูรายละเอียดเพิ่มเติม">
+                            <img src="https://placehold.co/300x100/e2e8f0/334155?text=Your+Ad+Here" 
+                                 alt="โฆษณา" 
+                                 class="w-full rounded-lg object-cover"
+                                 onerror="this.onerror=null;this.src='https://placehold.co/300x100/e2e8f0/334155?text=Ad+Error';">
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- Data Management ---
+
+        // Global state to store financial data
+        let financialData = {
+            salary: 0,
+            otherIncomes: [],
+            fixedExpenses: [],
+            finiteItems: []
+        };
+
+        // Save data to localStorage
+        function saveData() {
+            try {
+                localStorage.setItem('financialAppData', JSON.stringify(financialData));
+            } catch (e) {
+                console.error("Error saving data to localStorage", e);
+            }
+        }
+
+        // Load data from localStorage
+        function loadData() {
+            try {
+                const savedData = localStorage.getItem('financialAppData');
+                if (savedData) {
+                    financialData = JSON.parse(savedData);
+                }
+            } catch (e) {
+                console.error("Error loading data from localStorage", e);
+                // Reset to default if data is corrupted
+                financialData = { salary: 0, otherIncomes: [], fixedExpenses: [], finiteItems: [] };
+            }
+        }
+
+        // --- UI Rendering ---
+
+        // Format number as currency
+        function formatCurrency(num) {
+            return `฿${parseFloat(num).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+        }
+
+        // Render a generic list (income or fixed expense)
+        function renderList(type) {
+            const listId = type === 'income' ? 'other-income-list' : 'fixed-expense-list';
+            const dataArray = type === 'income' ? financialData.otherIncomes : financialData.fixedExpenses;
+            const listElement = document.getElementById(listId);
+            listElement.innerHTML = '';
+            
+            dataArray.forEach(item => {
+                const itemHtml = `
+                    <div id="${item.id}" class="list-item">
+                        <span>${item.name}</span>
+                        <div class="flex items-center space-x-3">
+                            <span class="font-medium text-gray-600">${formatCurrency(item.amount)}</span>
+                            <button onclick="removeItem('${item.id}', '${type}')" class="delete-btn">
+                                <i class="fas fa-trash-alt"></i>
+                            </button>
+                        </div>
+                    </div>
+                `;
+                listElement.insertAdjacentHTML('beforeend', itemHtml);
+            });
+        }
+        
+        // Render the list of finite items (debts/installments)
+        function renderFiniteItemList() {
+            const listElement = document.getElementById('finite-item-list');
+            listElement.innerHTML = '';
+            financialData.finiteItems.forEach(item => {
+                 const monthsToPayoff = Math.ceil(item.totalAmount / item.monthlyPayment);
+                 const itemHtml = `
+                    <div id="${item.id}" class="p-4 border border-gray-200 rounded-lg bg-gray-50">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <span class="font-semibold text-lg text-gray-800">${item.name}</span>
+                                <p class="text-sm text-gray-500">ยอดทั้งหมด: ${formatCurrency(item.totalAmount)}</p>
+                            </div>
+                            <button onclick="removeFiniteItem('${item.id}')" class="delete-btn text-gray-400 hover:text-red-500">
+                                <i class="fas fa-times-circle"></i>
+                            </button>
+                        </div>
+                        <div class="mt-3">
+                            <p class="text-sm text-gray-600">จ่ายเดือนละ: <span class="font-bold">${formatCurrency(item.monthlyPayment)}</span></p>
+                            <div class="mt-2 p-3 bg-orange-100 border border-orange-200 rounded-md text-center">
+                                <p class="text-sm text-orange-800">จะหมดใน (เบื้องต้น)</p>
+                                <p class="text-2xl font-bold text-orange-600">${monthsToPayoff} เดือน</p>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                listElement.insertAdjacentHTML('beforeend', itemHtml);
+            });
+        }
+        
+        // --- Data Manipulation ---
+
+        // Add a new income or fixed expense item
+        function addItem(type) {
+            const nameInputId = type === 'income' ? 'other-income-name' : 'fixed-expense-name';
+            const amountInputId = type === 'income' ? 'other-income-amount' : 'fixed-expense-amount';
+            
+            const nameInput = document.getElementById(nameInputId);
+            const amountInput = document.getElementById(amountInputId);
+            const name = nameInput.value.trim();
+            const amount = parseFloat(amountInput.value);
+
+            if (name && !isNaN(amount) && amount > 0) {
+                const newItem = { id: `item-${Date.now()}`, name, amount };
+                if (type === 'income') {
+                    financialData.otherIncomes.push(newItem);
+                } else {
+                    financialData.fixedExpenses.push(newItem);
+                }
+                renderList(type);
+                updateSummary();
+                nameInput.value = '';
+                amountInput.value = '';
+            } else {
+                alert('กรุณากรอกข้อมูลให้ครบถ้วนและถูกต้อง');
+            }
+        }
+
+        // Remove an income/expense item
+        function removeItem(itemId, type) {
+            if (type === 'income') {
+                financialData.otherIncomes = financialData.otherIncomes.filter(item => item.id !== itemId);
+            } else {
+                financialData.fixedExpenses = financialData.fixedExpenses.filter(item => item.id !== itemId);
+            }
+            renderList(type);
+            updateSummary();
+        }
+
+        // Add a new debt or finite expense item
+        function addFiniteItem() {
+            const nameInput = document.getElementById('finite-item-name');
+            const totalAmountInput = document.getElementById('finite-item-total');
+            const monthlyPaymentInput = document.getElementById('finite-item-monthly');
+            
+            const name = nameInput.value.trim();
+            const totalAmount = parseFloat(totalAmountInput.value);
+            const monthlyPayment = parseFloat(monthlyPaymentInput.value);
+
+            if (name && !isNaN(totalAmount) && totalAmount > 0 && !isNaN(monthlyPayment) && monthlyPayment > 0) {
+                const newItem = { id: `finite-${Date.now()}`, name, totalAmount, monthlyPayment };
+                financialData.finiteItems.push(newItem);
+                renderFiniteItemList();
+                updateSummary();
+                nameInput.value = '';
+                totalAmountInput.value = '';
+                monthlyPaymentInput.value = '';
+            } else {
+                alert('กรุณากรอกข้อมูลหนี้สิน/ค่าผ่อนชำระให้ครบถ้วนและถูกต้อง');
+            }
+        }
+        
+        // Remove a finite item
+        function removeFiniteItem(itemId) {
+            financialData.finiteItems = financialData.finiteItems.filter(item => item.id !== itemId);
+            renderFiniteItemList();
+            updateSummary();
+        }
+
+        // Main function to calculate and update the summary
+        function updateSummary() {
+            financialData.salary = parseFloat(document.getElementById('salary').value) || 0;
+
+            const otherIncomeTotal = financialData.otherIncomes.reduce((sum, item) => sum + item.amount, 0);
+            const totalIncome = financialData.salary + otherIncomeTotal;
+
+            const fixedExpenseTotal = financialData.fixedExpenses.reduce((sum, item) => sum + item.amount, 0);
+            const finiteItemPaymentsTotal = financialData.finiteItems.reduce((sum, item) => sum + item.monthlyPayment, 0);
+            const totalExpense = fixedExpenseTotal + finiteItemPaymentsTotal;
+            
+            const balance = totalIncome - totalExpense;
+
+            document.getElementById('total-income').textContent = formatCurrency(totalIncome);
+            document.getElementById('total-expense').textContent = formatCurrency(totalExpense);
+            const balanceElement = document.getElementById('balance');
+            balanceElement.textContent = formatCurrency(balance);
+
+            balanceElement.classList.remove('text-green-600', 'text-red-600', 'text-gray-800');
+            if (balance > 0) {
+                balanceElement.classList.add('text-green-600');
+            } else if (balance < 0) {
+                balanceElement.classList.add('text-red-600');
+            } else {
+                balanceElement.classList.add('text-gray-800');
+            }
+            
+            saveData();
+        }
+        
+        // --- Strategy and AI Functions ---
+        
+        // Function to calculate debt payoff strategy
+        function calculateDebtPayoff() {
+            const projectionCard = document.getElementById('projection-card');
+            const projectionContent = document.getElementById('projection-content');
+            projectionCard.classList.remove('hidden');
+
+            const balance = financialData.salary + financialData.otherIncomes.reduce((s, i) => s + i.amount, 0) - 
+                          (financialData.fixedExpenses.reduce((s, e) => s + e.amount, 0) + 
+                           financialData.finiteItems.reduce((s, i) => s + i.monthlyPayment, 0));
+
+            if (financialData.finiteItems.length === 0) {
+                projectionContent.innerHTML = '<p class="text-center text-gray-500">กรุณาเพิ่มรายการหนี้สิน/ค่าผ่อนชำระก่อน</p>';
+                return;
+            }
+
+            if (balance <= 0) {
+                projectionContent.innerHTML = '<p class="text-center text-red-500">คุณต้องมีเงินคงเหลือสุทธิเป็นบวกเพื่อใช้กลยุทธ์นี้</p>';
+                return;
+            }
+
+            let individualAnalysisHtml = `
+                <div class="mb-6">
+                    <h4 class="font-semibold text-gray-800 mb-2">💡 วิเคราะห์การโปะทีละตัว</h4>
+                    <p class="text-sm text-gray-500 mb-3">ถ้าคุณนำเงินคงเหลือทั้งหมดไปโปะหนี้ทีละก้อน จะใช้เวลาดังนี้:</p>
+                    <div class="space-y-2">
+            `;
+            financialData.finiteItems.forEach(debt => {
+                const focusedPayment = debt.monthlyPayment + balance;
+                const months = Math.ceil(debt.totalAmount / focusedPayment);
+                individualAnalysisHtml += `
+                    <div class="flex justify-between items-center p-2 bg-gray-100 rounded-md">
+                        <span class="text-sm font-medium text-gray-700">${debt.name}</span>
+                        <span class="text-sm font-bold text-cyan-700">${months} เดือน</span>
+                    </div>
+                `;
+            });
+            individualAnalysisHtml += `</div></div>`;
+
+            const strategy = document.querySelector('input[name="payoff-strategy"]:checked').value;
+            let simItems = JSON.parse(JSON.stringify(financialData.finiteItems));
+            let monthsPassed = 0;
+            let payoffLog = [];
+            let monthlySnowball = balance;
+
+            while (simItems.length > 0) {
+                monthsPassed++;
+                let paymentPower = monthlySnowball;
+                simItems.forEach(item => { item.totalAmount -= item.monthlyPayment; });
+                simItems.sort((a, b) => strategy === 'snowball' ? a.totalAmount - b.totalAmount : b.totalAmount - a.totalAmount);
+                
+                simItems.forEach(item => {
+                    if (paymentPower <= 0) return;
+                    const amountToPay = Math.min(paymentPower, item.totalAmount);
+                    item.totalAmount -= amountToPay;
+                    paymentPower -= amountToPay;
+                });
+
+                for (let i = simItems.length - 1; i >= 0; i--) {
+                    if (simItems[i].totalAmount <= 0) {
+                        const paidItem = simItems.splice(i, 1)[0];
+                        payoffLog.push(`✅ ${paidItem.name} (ปลดหนี้สำเร็จในเดือนที่ ${monthsPassed})`);
+                        monthlySnowball += paidItem.monthlyPayment;
+                    }
+                }
+                if (monthsPassed > 1200) { payoffLog.push("...คำนวณนานเกิน 100 ปี"); break; }
+            }
+
+            let overallStrategyHtml = `
+                <div class="p-4 bg-cyan-50 border border-cyan-200 rounded-lg">
+                    <p class="text-center font-semibold text-cyan-800">กลยุทธ์โดยรวม: <span class="capitalize">${strategy === 'snowball' ? 'โปะหนี้ก้อนเล็ก (Snowball)' : 'โปะหนี้ก้อนใหญ่ (Avalanche)'}</span></p>
+                    <div class="text-center my-4">
+                        <p class="text-cyan-800">คุณจะเป็นอิสระจากหนี้และค่าผ่อนทั้งหมดใน</p>
+                        <p class="text-4xl font-bold text-cyan-600 my-1">${monthsPassed} เดือน</p>
+                    </div>
+                    <div class="mt-4">
+                        <p class="font-semibold text-cyan-800 mb-2">ลำดับการปลดหนี้:</p>
+                        <ul class="list-none space-y-2">
+                            ${payoffLog.map(log => `<li class="text-sm text-gray-700">${log}</li>`).join('')}
+                        </ul>
+                    </div>
+                    <p class="text-xs text-gray-400 mt-4">*คำนวณจากการนำเงินคงเหลือสุทธิเริ่มต้น <span class="font-bold">${formatCurrency(balance)}</span> มาโปะ และเพิ่มพลังการโปะทุกครั้งที่ปิดรายการได้สำเร็จ</p>
+                </div>
+            `;
+            projectionContent.innerHTML = individualAnalysisHtml + overallStrategyHtml;
+        }
+
+
+        // --- Gemini API Functions ---
+
+        async function callGemini(prompt) {
+            const apiKey = ""; // API key will be injected by the environment
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+            const response = await fetch(apiUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
+            });
+            if (!response.ok) throw new Error(`API error! status: ${response.status}`);
+            const result = await response.json();
+            if (result.candidates && result.candidates[0]?.content?.parts[0]?.text) {
+                return result.candidates[0].content.parts[0].text;
+            }
+            return "ขออภัย ไม่สามารถสร้างคำตอบได้ในขณะนี้";
+        }
+
+        async function getFinancialAdvice() {
+            const adviceCard = document.getElementById('advice-card');
+            const adviceLoader = document.getElementById('advice-loader');
+            const adviceContent = document.getElementById('advice-content');
+            const adviceBtn = document.getElementById('get-advice-btn');
+            adviceCard.classList.remove('hidden');
+            adviceLoader.classList.remove('hidden');
+            adviceContent.innerHTML = '';
+            adviceBtn.disabled = true;
+            adviceBtn.classList.add('opacity-50', 'cursor-not-allowed');
+            const balance = financialData.salary + financialData.otherIncomes.reduce((s, i) => s + i.amount, 0) - financialData.totalExpense;
+            const prompt = `คุณคือที่ปรึกษาทางการเงินที่เป็นมิตรและเชี่ยวชาญในบริบทของประเทศไทย จากข้อมูลทางการเงินต่อไปนี้:
+- รายรับรวม: ${formatCurrency(financialData.salary + financialData.otherIncomes.reduce((s, i) => s + i.amount, 0))}
+- รายจ่ายรวม: ${formatCurrency(financialData.totalExpense)}
+- คงเหลือสุทธิ: ${formatCurrency(balance)}
+โปรดให้คำแนะนำทางการเงินภาพรวมที่นำไปใช้ได้จริง 3 ข้อสั้นๆ เป็นภาษาไทย หากยอดคงเหลือเป็นบวก ให้เน้นเรื่องการเร่งปลดหนี้หรือการออม หากยอดคงเหลือติดลบ ให้เน้นเรื่องกลยุทธ์การลดรายจ่ายหรือการหารายได้เสริม โปรดใช้โทนเสียงที่สนับสนุนและเข้าใจง่าย จัดรูปแบบคำตอบเป็นรายการโดยขึ้นต้นด้วย emoji ที่เหมาะสมในแต่ละข้อ`;
+            try {
+                adviceContent.innerHTML = await callGemini(prompt);
+            } catch (error) {
+                console.error("Error fetching financial advice:", error);
+                adviceContent.innerHTML = '<p class="text-red-500">เกิดข้อผิดพลาดในการขอคำแนะนำ กรุณาลองใหม่อีกครั้ง</p>';
+            } finally {
+                adviceLoader.classList.add('hidden');
+                adviceBtn.disabled = false;
+                adviceBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+            }
+        }
+        
+        async function generateSavingsPlan() {
+            const goalName = document.getElementById('goal-name').value;
+            const goalAmount = parseFloat(document.getElementById('goal-amount').value);
+            if (!goalName || isNaN(goalAmount) || goalAmount <= 0) {
+                alert('กรุณากรอกข้อมูลเป้าหมายการออมให้ครบถ้วนและถูกต้อง');
+                return;
+            }
+            const planCard = document.getElementById('plan-card');
+            const planLoader = document.getElementById('plan-loader');
+            const planContent = document.getElementById('plan-content');
+            const planBtn = document.getElementById('get-plan-btn');
+            planCard.classList.remove('hidden');
+            planLoader.classList.remove('hidden');
+            planContent.innerHTML = '';
+            planBtn.disabled = true;
+            planBtn.classList.add('opacity-50', 'cursor-not-allowed');
+            const balance = financialData.salary + financialData.otherIncomes.reduce((s, i) => s + i.amount, 0) - financialData.totalExpense;
+            const prompt = `คุณคือโค้ชการเงินที่สร้างสรรค์และให้กำลังใจในบริบทของประเทศไทย ผู้ใช้ต้องการบรรลุเป้าหมายการออมดังนี้:
+- เป้าหมาย: "${goalName}"
+- จำนวนเงินที่ต้องการ: ${formatCurrency(goalAmount)}
+- สถานะการเงินปัจจุบันของผู้ใช้: มีเงินคงเหลือสุทธิต่อเดือน ${formatCurrency(balance)} และมีหนี้สินที่ต้องชำระ
+- คำแนะนำเพิ่มเติม: ให้ AI แนะนำว่าควรเริ่มออมหลังจากปลดหนี้ทั้งหมดแล้ว โดยใช้เงินที่เคยจ่ายหนี้มาเป็นเงินออมแทน
+โปรดสร้างแผนการออมที่ทำได้จริงและสร้างแรงบันดาลใจ โดยมีองค์ประกอบต่อไปนี้:
+1.  **ลำดับความสำคัญ:** ย้ำเตือนให้ผู้ใช้จัดการหนี้สินให้หมดก่อนเป็นอันดับแรก
+2.  **ประเมินระยะเวลา:** คำนวณว่าจะใช้เวลากี่เดือนในการเก็บเงินให้ครบตามเป้าหมาย โดยอิงจากเงินคงเหลือสุทธิของผู้ใช้ **หลังจาก** ที่พวกเขาปลดหนี้ทั้งหมดแล้ว (ซึ่งเงินออมต่อเดือนจะเท่ากับ 'เงินคงเหลือสุทธิ' บวกกับ 'ยอดผ่อนหนี้ทั้งหมดต่อเดือน')
+3.  **แผนปฏิบัติการ (Action Plan):** แบ่งแผนออกเป็นขั้นตอนง่ายๆ คือ "ขั้นที่ 1: พิชิตหนี้" และ "ขั้นที่ 2: ทะยานสู่อิสรภาพทางการเงิน"
+4.  **คำให้กำลังใจ:** จบด้วยข้อความที่สร้างแรงบันดาลใจ
+โปรดเขียนคำตอบทั้งหมดเป็นภาษาไทย ใช้ emoji ประกอบเพื่อให้น่าอ่านและเป็นมิตร`;
+            try {
+                planContent.innerHTML = await callGemini(prompt);
+            } catch (error) {
+                console.error("Error generating savings plan:", error);
+                planContent.innerHTML = '<p class="text-red-500">เกิดข้อผิดพลาดในการสร้างแผน กรุณาลองใหม่อีกครั้ง</p>';
+            } finally {
+                planLoader.classList.add('hidden');
+                planBtn.disabled = false;
+                planBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+            }
+        }
+
+        async function analyzeExpenses() {
+            if (financialData.fixedExpenses.length === 0 && financialData.finiteItems.length === 0) {
+                alert('กรุณาเพิ่มรายการรายจ่ายก่อนทำการวิเคราะห์');
+                return;
+            }
+            const analysisCard = document.getElementById('analysis-card');
+            const analysisLoader = document.getElementById('analysis-loader');
+            const analysisContent = document.getElementById('analysis-content');
+            const analysisBtn = document.getElementById('analyze-expenses-btn');
+            analysisCard.classList.remove('hidden');
+            analysisLoader.classList.remove('hidden');
+            analysisContent.innerHTML = '';
+            analysisBtn.disabled = true;
+            analysisBtn.classList.add('opacity-50', 'cursor-not-allowed');
+            const fixedExpenseString = financialData.fixedExpenses.map(e => `- ${e.name}: ${formatCurrency(e.amount)}`).join('\n');
+            const finiteItemString = financialData.finiteItems.map(e => `- ${e.name} (ผ่อนเดือนละ ${formatCurrency(e.monthlyPayment)})`).join('\n');
+            const prompt = `คุณคือนักวิเคราะห์การเงินที่เฉียบแหลมและเป็นมิตรในบริบทของประเทศไทย จากรายการใช้จ่ายของผู้ใช้ต่อไปนี้:
+**รายจ่ายคงที่:**
+${fixedExpenseString || 'ไม่มี'}
+**หนี้สินและค่าผ่อนชำระ:**
+${finiteItemString || 'ไม่มี'}
+โปรดวิเคราะห์และให้คำแนะนำเพื่อลดรายจ่ายดังนี้:
+1.  **ระบุ 2-3 อันดับแรก:** ชี้เป้าหมวดหมู่รายจ่ายที่ใหญ่ที่สุดของผู้ใช้ (รวมทั้งสองประเภท)
+2.  **ให้คำแนะนำที่เจาะจง:** สำหรับแต่ละหมวดหมู่รายจ่ายใหญ่ ให้แนะนำกลยุทธ์หรือเทคนิคการลดรายจ่ายที่ทำได้จริงและสร้างสรรค์อย่างน้อย 2 ข้อ
+3.  **สรุปภาพรวม:** ให้ข้อคิดหรือกำลังใจสั้นๆ เพื่อให้ผู้ใช้เห็นโอกาสในการออมเงินเพิ่ม
+โปรดเขียนคำตอบทั้งหมดเป็นภาษาไทย ใช้โทนเสียงที่ชัดเจน เข้าใจง่าย และใช้ emoji ประกอบเพื่อให้น่าสนใจ`;
+            try {
+                analysisContent.innerHTML = await callGemini(prompt);
+            } catch (error) {
+                console.error("Error analyzing expenses:", error);
+                analysisContent.innerHTML = '<p class="text-red-500">เกิดข้อผิดพลาดในการวิเคราะห์ กรุณาลองใหม่อีกครั้ง</p>';
+            } finally {
+                analysisLoader.classList.add('hidden');
+                analysisBtn.disabled = false;
+                analysisBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+            }
+        }
+
+        // --- Initial Load ---
+        function initializeApp() {
+            loadData();
+            document.getElementById('salary').value = financialData.salary || '';
+            renderList('income');
+            renderList('fixed');
+            renderFiniteItemList();
+            updateSummary();
+
+            // Event Listeners
+            document.getElementById('get-advice-btn').addEventListener('click', getFinancialAdvice);
+            document.getElementById('get-plan-btn').addEventListener('click', generateSavingsPlan);
+            document.getElementById('analyze-expenses-btn').addEventListener('click', analyzeExpenses);
+            document.getElementById('calculate-payoff-btn').addEventListener('click', calculateDebtPayoff);
+        }
+
+        window.onload = initializeApp;
+
+    </script>
+</body>
+</html>
