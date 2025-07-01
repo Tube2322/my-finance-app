@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>เครื่องมือวางแผนการเงินอัจฉริยะ</title>
+    <title>เครื่องมือวางแผนการเงินส่วนบุคคล</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -54,7 +54,7 @@
             transform: translateY(-1px);
         }
         .btn-secondary {
-            background: linear-gradient(135deg, #6d28d9, #4f46e5);
+            background: linear-gradient(135deg, #0d9488, #0f766e);
             color: white;
         }
         .btn-secondary:hover {
@@ -89,23 +89,6 @@
         .delete-btn:hover {
             color: #ef4444;
         }
-        .loader {
-            border: 4px solid #f3f3f3;
-            border-top: 4px solid #6d28d9;
-            border-radius: 50%;
-            width: 30px;
-            height: 30px;
-            animation: spin 1s linear infinite;
-            margin: 0 auto;
-        }
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-        .ai-content {
-            white-space: pre-wrap;
-            line-height: 1.7;
-        }
         /* Custom Modal Styles */
         .modal-overlay {
             position: fixed;
@@ -134,8 +117,8 @@
 
     <div class="max-w-6xl mx-auto">
         <header class="text-center mb-8">
-            <h1 class="text-3xl md:text-4xl font-bold text-gray-800">ตัวช่วยวางแผนการเงินอัจฉริยะ 💸</h1>
-            <p class="text-gray-500 mt-2">คำนวณรายรับ-รายจ่าย พร้อม AI และเครื่องมือจัดการหนี้สิน</p>
+            <h1 class="text-3xl md:text-4xl font-bold text-gray-800">เครื่องมือวางแผนการเงินส่วนบุคคล 💸</h1>
+            <p class="text-gray-500 mt-2">คำนวณรายรับ-รายจ่าย และวางแผนปลดหนี้</p>
         </header>
 
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -217,50 +200,9 @@
                         <div id="projection-content" class="text-gray-700 space-y-3"></div>
                     </div>
                 </div>
-
-                <!-- AI Features Column -->
-                <!-- Expense Analysis Card -->
-                <div class="card">
-                    <h2 class="text-xl font-semibold text-amber-600 mb-4">🔍 วิเคราะห์รายจ่าย</h2>
-                    <p class="text-gray-600 text-sm mb-4">ให้ AI ช่วยค้นหาจุดที่สามารถประหยัดเงินได้มากขึ้นจากรายการใช้จ่ายของคุณ</p>
-                    <button id="analyze-expenses-btn" class="btn btn-secondary w-full">✨ วิเคราะห์และหาทางลดรายจ่าย</button>
-                    <div id="analysis-card" class="mt-6 hidden">
-                        <h3 class="text-lg font-semibold text-amber-600 mb-4 flex items-center"><i class="fas fa-search-dollar mr-2"></i> ผลการวิเคราะห์รายจ่าย</h3>
-                        <div id="analysis-loader" class="text-center py-4 hidden">
-                            <div class="loader"></div>
-                            <p class="text-gray-500 mt-2 text-sm">AI กำลังวิเคราะห์รายการใช้จ่ายของคุณ...</p>
-                        </div>
-                        <div id="analysis-content" class="text-gray-700 space-y-3 ai-content"></div>
-                    </div>
-                </div>
-
-                <!-- Savings Goal Card -->
-                <div class="card">
-                    <h2 class="text-xl font-semibold text-indigo-600 mb-4">🎯 เป้าหมายการออม</h2>
-                    <p class="text-gray-600 text-sm mb-4">หลังจากปลดหนี้หมดแล้ว เงินคงเหลือของคุณจะกลายเป็นเงินออมเต็มจำนวน</p>
-                    <div class="space-y-4">
-                        <div>
-                            <label for="goal-name" class="block text-sm font-medium text-gray-700 mb-1">อยากเก็บเงินเพื่ออะไร?</label>
-                            <input type="text" id="goal-name" class="input-field" placeholder="เช่น ไปเที่ยวญี่ปุ่น, ซื้อ Macbook">
-                        </div>
-                        <div>
-                            <label for="goal-amount" class="block text-sm font-medium text-gray-700 mb-1">จำนวนเงินที่ต้องการ (บาท)</label>
-                            <input type="number" id="goal-amount" class="input-field" placeholder="50000">
-                        </div>
-                        <button id="get-plan-btn" class="btn btn-secondary w-full mt-2">✨ สร้างแผนการออม</button>
-                    </div>
-                     <div id="plan-card" class="mt-6 hidden">
-                        <h3 class="text-lg font-semibold text-indigo-600 mb-4 flex items-center"><i class="fas fa-tasks mr-2"></i> แผนการออมสำหรับคุณ</h3>
-                        <div id="plan-loader" class="text-center py-4 hidden">
-                            <div class="loader"></div>
-                            <p class="text-gray-500 mt-2 text-sm">AI กำลังสร้างแผนให้คุณ...</p>
-                        </div>
-                        <div id="plan-content" class="text-gray-700 space-y-3 ai-content"></div>
-                    </div>
-                </div>
             </div>
 
-            <!-- Summary and AI Column -->
+            <!-- Summary Column -->
             <div class="lg:col-span-1">
                 <div class="summary-card">
                     <div class="card">
@@ -279,16 +221,6 @@
                                 <p id="balance" class="summary-value text-gray-800">฿0.00</p>
                             </div>
                         </div>
-                         <button id="get-advice-btn" class="btn btn-secondary w-full mt-6">✨ ขอคำแนะนำการเงินภาพรวม</button>
-                    </div>
-
-                    <div id="advice-card" class="card mt-6 hidden">
-                        <h2 class="text-xl font-semibold text-purple-600 mb-4 flex items-center"><i class="fas fa-lightbulb mr-2"></i> คำแนะนำจาก AI</h2>
-                        <div id="advice-loader" class="text-center py-4 hidden">
-                            <div class="loader"></div>
-                            <p class="text-gray-500 mt-2 text-sm">กำลังวิเคราะห์ข้อมูล...</p>
-                        </div>
-                        <div id="advice-content" class="text-gray-700 space-y-3 ai-content"></div>
                     </div>
                     
                     <!-- Advertisement Card -->
@@ -516,7 +448,7 @@
             saveData();
         }
         
-        // --- Strategy and AI Functions ---
+        // --- Strategy Function ---
         
         function calculateDebtPayoff() {
             const projectionCard = document.getElementById('projection-card');
@@ -602,148 +534,6 @@
             projectionContent.innerHTML = individualAnalysisHtml + overallStrategyHtml;
         }
 
-
-        // --- Gemini API Functions ---
-
-        async function callGemini(prompt) {
-    // --- ส่วนที่ต้องแก้ไข ---
-    const apiKey = AIzaSyB1-iPWRF9M2Vq7k_CvfY1FXg42YdmgPDg; 
-    // ----------------------
-
-    if (!apiKey || apiKey === "YOUR_API_KEY_HERE") {
-         console.error("API Key is missing!");
-         throw new Error("API Key is missing!");
-    }
-
-    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
-    const response = await fetch(apiUrl, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
-    });
-    if (!response.ok) {
-        console.error("API Response Error:", await response.text());
-        throw new Error(`API error! status: ${response.status}`);
-    }
-    const result = await response.json();
-    if (result.candidates && result.candidates[0]?.content?.parts[0]?.text) {
-        return result.candidates[0].content.parts[0].text;
-    }
-    return "ขออภัย ไม่สามารถสร้างคำตอบได้ในขณะนี้";
-}
-
-        async function getFinancialAdvice() {
-            const totalIncome = financialData.salary + financialData.otherIncomes.reduce((s, i) => s + i.amount, 0);
-            if (totalIncome === 0) {
-                showModal('ข้อมูลไม่ครบถ้วน', 'กรุณากรอกข้อมูล "รายรับ" ก่อนขอคำแนะนำจาก AI');
-                return;
-            }
-
-            const adviceCard = document.getElementById('advice-card');
-            const adviceLoader = document.getElementById('advice-loader');
-            const adviceContent = document.getElementById('advice-content');
-            const adviceBtn = document.getElementById('get-advice-btn');
-            adviceCard.classList.remove('hidden');
-            adviceLoader.classList.remove('hidden');
-            adviceContent.innerHTML = '';
-            adviceBtn.disabled = true;
-            adviceBtn.classList.add('opacity-50', 'cursor-not-allowed');
-            const balance = totalIncome - financialData.totalExpense;
-            const prompt = `คุณคือที่ปรึกษาทางการเงินที่เป็นมิตรและเชี่ยวชาญในบริบทของประเทศไทย จากข้อมูลทางการเงินต่อไปนี้:
-- รายรับรวม: ${formatCurrency(totalIncome)}
-- รายจ่ายรวม: ${formatCurrency(financialData.totalExpense)}
-- คงเหลือสุทธิ: ${formatCurrency(balance)}
-โปรดให้คำแนะนำทางการเงินภาพรวมที่นำไปใช้ได้จริง 3 ข้อสั้นๆ เป็นภาษาไทย หากยอดคงเหลือเป็นบวก ให้เน้นเรื่องการเร่งปลดหนี้หรือการออม หากยอดคงเหลือติดลบ ให้เน้นเรื่องกลยุทธ์การลดรายจ่ายหรือการหารายได้เสริม โปรดใช้โทนเสียงที่สนับสนุนและเข้าใจง่าย จัดรูปแบบคำตอบเป็นรายการโดยขึ้นต้นด้วย emoji ที่เหมาะสมในแต่ละข้อ`;
-            try {
-                adviceContent.innerHTML = await callGemini(prompt);
-            } catch (error) {
-                console.error("Error fetching financial advice:", error);
-                adviceContent.innerHTML = '<p class="text-red-500">เกิดข้อผิดพลาดในการขอคำแนะนำ กรุณาลองใหม่อีกครั้ง</p>';
-            } finally {
-                adviceLoader.classList.add('hidden');
-                adviceBtn.disabled = false;
-                adviceBtn.classList.remove('opacity-50', 'cursor-not-allowed');
-            }
-        }
-        
-        async function generateSavingsPlan() {
-            const goalName = document.getElementById('goal-name').value;
-            const goalAmount = parseFloat(document.getElementById('goal-amount').value);
-            if (!goalName || isNaN(goalAmount) || goalAmount <= 0) {
-                showModal('ข้อมูลไม่ถูกต้อง', 'กรุณากรอกข้อมูลเป้าหมายการออมให้ครบถ้วน');
-                return;
-            }
-            const planCard = document.getElementById('plan-card');
-            const planLoader = document.getElementById('plan-loader');
-            const planContent = document.getElementById('plan-content');
-            const planBtn = document.getElementById('get-plan-btn');
-            planCard.classList.remove('hidden');
-            planLoader.classList.remove('hidden');
-            planContent.innerHTML = '';
-            planBtn.disabled = true;
-            planBtn.classList.add('opacity-50', 'cursor-not-allowed');
-            const balance = (financialData.salary + financialData.otherIncomes.reduce((s, i) => s + i.amount, 0)) - financialData.totalExpense;
-            const prompt = `คุณคือโค้ชการเงินที่สร้างสรรค์และให้กำลังใจในบริบทของประเทศไทย ผู้ใช้ต้องการบรรลุเป้าหมายการออมดังนี้:
-- เป้าหมาย: "${goalName}"
-- จำนวนเงินที่ต้องการ: ${formatCurrency(goalAmount)}
-- สถานะการเงินปัจจุบันของผู้ใช้: มีเงินคงเหลือสุทธิต่อเดือน ${formatCurrency(balance)} และมีหนี้สินที่ต้องชำระ
-- คำแนะนำเพิ่มเติม: ให้ AI แนะนำว่าควรเริ่มออมหลังจากปลดหนี้ทั้งหมดแล้ว โดยใช้เงินที่เคยจ่ายหนี้มาเป็นเงินออมแทน
-โปรดสร้างแผนการออมที่ทำได้จริงและสร้างแรงบันดาลใจ โดยมีองค์ประกอบต่อไปนี้:
-1.  **ลำดับความสำคัญ:** ย้ำเตือนให้ผู้ใช้จัดการหนี้สินให้หมดก่อนเป็นอันดับแรก
-2.  **ประเมินระยะเวลา:** คำนวณว่าจะใช้เวลากี่เดือนในการเก็บเงินให้ครบตามเป้าหมาย โดยอิงจากเงินคงเหลือสุทธิของผู้ใช้ **หลังจาก** ที่พวกเขาปลดหนี้ทั้งหมดแล้ว (ซึ่งเงินออมต่อเดือนจะเท่ากับ 'เงินคงเหลือสุทธิ' บวกกับ 'ยอดผ่อนหนี้ทั้งหมดต่อเดือน')
-3.  **แผนปฏิบัติการ (Action Plan):** แบ่งแผนออกเป็นขั้นตอนง่ายๆ คือ "ขั้นที่ 1: พิชิตหนี้" และ "ขั้นที่ 2: ทะยานสู่อิสรภาพทางการเงิน"
-4.  **คำให้กำลังใจ:** จบด้วยข้อความที่สร้างแรงบันดาลใจ
-โปรดเขียนคำตอบทั้งหมดเป็นภาษาไทย ใช้ emoji ประกอบเพื่อให้น่าอ่านและเป็นมิตร`;
-            try {
-                planContent.innerHTML = await callGemini(prompt);
-            } catch (error) {
-                console.error("Error generating savings plan:", error);
-                planContent.innerHTML = '<p class="text-red-500">เกิดข้อผิดพลาดในการสร้างแผน กรุณาลองใหม่อีกครั้ง</p>';
-            } finally {
-                planLoader.classList.add('hidden');
-                planBtn.disabled = false;
-                planBtn.classList.remove('opacity-50', 'cursor-not-allowed');
-            }
-        }
-
-        async function analyzeExpenses() {
-            if (financialData.fixedExpenses.length === 0 && financialData.finiteItems.length === 0) {
-                showModal('ไม่มีข้อมูล', 'กรุณาเพิ่มรายการ "รายจ่ายคงที่" หรือ "หนี้สิน" ก่อนทำการวิเคราะห์');
-                return;
-            }
-            const analysisCard = document.getElementById('analysis-card');
-            const analysisLoader = document.getElementById('analysis-loader');
-            const analysisContent = document.getElementById('analysis-content');
-            const analysisBtn = document.getElementById('analyze-expenses-btn');
-            analysisCard.classList.remove('hidden');
-            analysisLoader.classList.remove('hidden');
-            analysisContent.innerHTML = '';
-            analysisBtn.disabled = true;
-            analysisBtn.classList.add('opacity-50', 'cursor-not-allowed');
-            const fixedExpenseString = financialData.fixedExpenses.map(e => `- ${e.name}: ${formatCurrency(e.amount)}`).join('\n');
-            const finiteItemString = financialData.finiteItems.map(e => `- ${e.name} (ผ่อนเดือนละ ${formatCurrency(e.monthlyPayment)})`).join('\n');
-            const prompt = `คุณคือนักวิเคราะห์การเงินที่เฉียบแหลมและเป็นมิตรในบริบทของประเทศไทย จากรายการใช้จ่ายของผู้ใช้ต่อไปนี้:
-**รายจ่ายคงที่:**
-${fixedExpenseString || 'ไม่มี'}
-**หนี้สินและค่าผ่อนชำระ:**
-${finiteItemString || 'ไม่มี'}
-โปรดวิเคราะห์และให้คำแนะนำเพื่อลดรายจ่ายดังนี้:
-1.  **ระบุ 2-3 อันดับแรก:** ชี้เป้าหมวดหมู่รายจ่ายที่ใหญ่ที่สุดของผู้ใช้ (รวมทั้งสองประเภท)
-2.  **ให้คำแนะนำที่เจาะจง:** สำหรับแต่ละหมวดหมู่รายจ่ายใหญ่ ให้แนะนำกลยุทธ์หรือเทคนิคการลดรายจ่ายที่ทำได้จริงและสร้างสรรค์อย่างน้อย 2 ข้อ
-3.  **สรุปภาพรวม:** ให้ข้อคิดหรือกำลังใจสั้นๆ เพื่อให้ผู้ใช้เห็นโอกาสในการออมเงินเพิ่ม
-โปรดเขียนคำตอบทั้งหมดเป็นภาษาไทย ใช้โทนเสียงที่ชัดเจน เข้าใจง่าย และใช้ emoji ประกอบเพื่อให้น่าสนใจ`;
-            try {
-                analysisContent.innerHTML = await callGemini(prompt);
-            } catch (error) {
-                console.error("Error analyzing expenses:", error);
-                analysisContent.innerHTML = '<p class="text-red-500">เกิดข้อผิดพลาดในการวิเคราะห์ กรุณาลองใหม่อีกครั้ง</p>';
-            } finally {
-                analysisLoader.classList.add('hidden');
-                analysisBtn.disabled = false;
-                analysisBtn.classList.remove('opacity-50', 'cursor-not-allowed');
-            }
-        }
-
         // --- Initial Load ---
         function initializeApp() {
             loadData();
@@ -754,9 +544,6 @@ ${finiteItemString || 'ไม่มี'}
             updateSummary();
 
             // Event Listeners
-            document.getElementById('get-advice-btn').addEventListener('click', getFinancialAdvice);
-            document.getElementById('get-plan-btn').addEventListener('click', generateSavingsPlan);
-            document.getElementById('analyze-expenses-btn').addEventListener('click', analyzeExpenses);
             document.getElementById('calculate-payoff-btn').addEventListener('click', calculateDebtPayoff);
         }
 
