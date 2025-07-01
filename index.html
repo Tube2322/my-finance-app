@@ -4,46 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>เครื่องมือวางแผนการเงินอัจฉริยะ</title>
-    <script src="https://cdn.tailwindcss.com">
-              // --- Online Status Management ---
-        function updateOnlineStatus() {
-            const statusIndicator = document.getElementById('status-indicator');
-            const statusDot = document.getElementById('status-dot');
-            const statusText = document.getElementById('status-text');
-            const aiButtons = [
-                document.getElementById('get-advice-btn'),
-                document.getElementById('analyze-expenses-btn'),
-                document.getElementById('get-plan-btn')
-            ];
-
-            if (navigator.onLine) {
-                statusIndicator.classList.remove('bg-gray-400', 'text-white');
-                statusIndicator.classList.add('bg-green-100', 'text-green-800');
-                statusDot.classList.remove('bg-gray-600');
-                statusDot.classList.add('bg-green-500');
-                statusText.textContent = 'ออนไลน์';
-                aiButtons.forEach(btn => btn.disabled = false);
-            } else {
-                statusIndicator.classList.remove('bg-green-100', 'text-green-800');
-                statusIndicator.classList.add('bg-gray-400', 'text-white');
-                statusDot.classList.remove('bg-green-500');
-                statusDot.classList.add('bg-gray-600');
-                statusText.textContent = 'ออฟไลน์';
-                aiButtons.forEach(btn => btn.disabled = true);
-            }
-        }
-
-        // --- ในฟังก์ชัน initializeApp ให้เพิ่มโค้ด 3 บรรทัดนี้เข้าไป ---
-        function initializeApp() {
-            // ... โค้ดเดิมในฟังก์ชันนี้ ...
-
-            // เพิ่ม 3 บรรทัดนี้เข้าไป
-            window.addEventListener('online', updateOnlineStatus);
-            window.addEventListener('offline', updateOnlineStatus);
-            updateOnlineStatus(); // เรียกใช้ครั้งแรกเพื่อตั้งค่าสถานะ
-        }
-
-    </script>
+    <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
@@ -79,7 +40,7 @@
             border-radius: 8px;
             font-weight: 500;
             cursor: pointer;
-            transition: background-color 0.3s, transform 0.2s;
+            transition: background-color 0.3s, transform 0.2s, opacity 0.3s;
             display: inline-flex;
             align-items: center;
             justify-content: center;
@@ -99,6 +60,12 @@
         .btn-secondary:hover {
             transform: translateY(-1px);
             box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
         }
         .summary-card {
             position: sticky;
@@ -145,7 +112,6 @@
             white-space: pre-wrap;
             line-height: 1.7;
         }
-        /* Custom Modal Styles */
         .modal-overlay {
             position: fixed;
             top: 0;
@@ -373,6 +339,12 @@
         </div>
     </div>
 
+    <!-- Online Status Indicator -->
+    <div id="status-indicator" class="status-indicator">
+        <div id="status-dot" class="status-dot"></div>
+        <span id="status-text"></span>
+    </div>
+
     <script>
         // --- Modal Functions ---
         const modal = document.getElementById('custom-modal');
@@ -577,13 +549,8 @@
         // --- Strategy Function ---
         
         function calculateDebtPayoff() {
-            const projectionCard = document.getElementById('projection-card');
-            const projectionContent = document.getElementById('projection-content');
-            
             const totalIncome = financialData.salary + financialData.otherIncomes.reduce((s, i) => s + i.amount, 0);
-            const totalFixedExpense = financialData.fixedExpenses.reduce((s, e) => s + e.amount, 0);
-            const totalFiniteItemPayments = financialData.finiteItems.reduce((s, i) => s + i.monthlyPayment, 0);
-            const totalExpense = totalFixedExpense + totalFiniteItemPayments;
+            const totalExpense = (financialData.fixedExpenses.reduce((s, e) => s + e.amount, 0)) + (financialData.finiteItems.reduce((s, i) => s + i.monthlyPayment, 0));
             const balance = totalIncome - totalExpense;
 
             if (financialData.finiteItems.length === 0) {
@@ -595,7 +562,9 @@
                 showModal('ไม่สามารถวางแผนได้', 'คุณต้องมีเงินคงเหลือสุทธิเป็นบวกเพื่อใช้กลยุทธ์นี้');
                 return;
             }
-
+            
+            const projectionCard = document.getElementById('projection-card');
+            const projectionContent = document.getElementById('projection-content');
             projectionCard.classList.remove('hidden');
             
             let individualAnalysisHtml = `
@@ -666,30 +635,31 @@
 
         // --- Gemini API Functions ---
         async function callGemini(prompt) {
-            // --- ส่วนที่ต้องแก้ไข ---
-            const apiKey = AIzaSyB1-iPWRF9M2Vq7k_CvfY1FXg42YdmgPDg; 
-            // ----------------------
-
-            if (!apiKey || apiKey === AIzaSyB1-iPWRF9M2Vq7k_CvfY1FXg42YdmgPDg) {
-                 console.error("API Key is missing!");
+            const apiKey = "AIzaSyB1-iPWRF9M2Vq7k_CvfY1FXg42YdmgPDg"; 
+            if (!apiKey || apiKey === "YOUR_API_KEY_HERE") {
+                 console.error("API Key is missing or placeholder is not replaced!");
                  throw new Error("API Key is missing!");
             }
-
             const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
-            const response = await fetch(apiUrl, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
-            });
-            if (!response.ok) {
-                console.error("API Response Error:", await response.text());
-                throw new Error(`API error! status: ${response.status}`);
+            try {
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
+                });
+                if (!response.ok) {
+                    console.error("API Response Error:", await response.text());
+                    throw new Error(`API error! status: ${response.status}`);
+                }
+                const result = await response.json();
+                if (result.candidates && result.candidates[0]?.content?.parts[0]?.text) {
+                    return result.candidates[0].content.parts[0].text;
+                }
+                return "ขออภัย ไม่สามารถสร้างคำตอบได้ในขณะนี้";
+            } catch (error) {
+                console.error("Fetch Error:", error);
+                throw error;
             }
-            const result = await response.json();
-            if (result.candidates && result.candidates[0]?.content?.parts[0]?.text) {
-                return result.candidates[0].content.parts[0].text;
-            }
-            return "ขออภัย ไม่สามารถสร้างคำตอบได้ในขณะนี้";
         }
 
         async function getFinancialAdvice() {
@@ -698,7 +668,6 @@
                 showModal('ข้อมูลไม่ครบถ้วน', 'กรุณากรอกข้อมูล "รายรับ" ก่อนขอคำแนะนำจาก AI');
                 return;
             }
-
             const adviceCard = document.getElementById('advice-card');
             const adviceLoader = document.getElementById('advice-loader');
             const adviceContent = document.getElementById('advice-content');
@@ -707,7 +676,7 @@
             adviceLoader.classList.remove('hidden');
             adviceContent.innerHTML = '';
             adviceBtn.disabled = true;
-            adviceBtn.classList.add('opacity-50', 'cursor-not-allowed');
+            adviceBtn.classList.add('opacity-50');
             const balance = totalIncome - financialData.totalExpense;
             const prompt = `คุณคือที่ปรึกษาทางการเงินที่เป็นมิตรและเชี่ยวชาญในบริบทของประเทศไทย จากข้อมูลทางการเงินต่อไปนี้:
 - รายรับรวม: ${formatCurrency(totalIncome)}
@@ -717,12 +686,11 @@
             try {
                 adviceContent.innerHTML = await callGemini(prompt);
             } catch (error) {
-                console.error("Error fetching financial advice:", error);
                 adviceContent.innerHTML = '<p class="text-red-500">เกิดข้อผิดพลาดในการขอคำแนะนำ กรุณาลองใหม่อีกครั้ง</p>';
             } finally {
                 adviceLoader.classList.add('hidden');
                 adviceBtn.disabled = false;
-                adviceBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+                adviceBtn.classList.remove('opacity-50');
             }
         }
         
@@ -741,7 +709,7 @@
             planLoader.classList.remove('hidden');
             planContent.innerHTML = '';
             planBtn.disabled = true;
-            planBtn.classList.add('opacity-50', 'cursor-not-allowed');
+            planBtn.classList.add('opacity-50');
             const balance = (financialData.salary + financialData.otherIncomes.reduce((s, i) => s + i.amount, 0)) - financialData.totalExpense;
             const prompt = `คุณคือโค้ชการเงินที่สร้างสรรค์และให้กำลังใจในบริบทของประเทศไทย ผู้ใช้ต้องการบรรลุเป้าหมายการออมดังนี้:
 - เป้าหมาย: "${goalName}"
@@ -757,12 +725,11 @@
             try {
                 planContent.innerHTML = await callGemini(prompt);
             } catch (error) {
-                console.error("Error generating savings plan:", error);
                 planContent.innerHTML = '<p class="text-red-500">เกิดข้อผิดพลาดในการสร้างแผน กรุณาลองใหม่อีกครั้ง</p>';
             } finally {
                 planLoader.classList.add('hidden');
                 planBtn.disabled = false;
-                planBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+                planBtn.classList.remove('opacity-50');
             }
         }
 
@@ -779,7 +746,7 @@
             analysisLoader.classList.remove('hidden');
             analysisContent.innerHTML = '';
             analysisBtn.disabled = true;
-            analysisBtn.classList.add('opacity-50', 'cursor-not-allowed');
+            analysisBtn.classList.add('opacity-50');
             const fixedExpenseString = financialData.fixedExpenses.map(e => `- ${e.name}: ${formatCurrency(e.amount)}`).join('\n');
             const finiteItemString = financialData.finiteItems.map(e => `- ${e.name} (ผ่อนเดือนละ ${formatCurrency(e.monthlyPayment)})`).join('\n');
             const prompt = `คุณคือนักวิเคราะห์การเงินที่เฉียบแหลมและเป็นมิตรในบริบทของประเทศไทย จากรายการใช้จ่ายของผู้ใช้ต่อไปนี้:
@@ -795,12 +762,39 @@ ${finiteItemString || 'ไม่มี'}
             try {
                 analysisContent.innerHTML = await callGemini(prompt);
             } catch (error) {
-                console.error("Error analyzing expenses:", error);
                 analysisContent.innerHTML = '<p class="text-red-500">เกิดข้อผิดพลาดในการวิเคราะห์ กรุณาลองใหม่อีกครั้ง</p>';
             } finally {
                 analysisLoader.classList.add('hidden');
                 analysisBtn.disabled = false;
-                analysisBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+                analysisBtn.classList.remove('opacity-50');
+            }
+        }
+
+        // --- Online Status Management ---
+        function updateOnlineStatus() {
+            const statusIndicator = document.getElementById('status-indicator');
+            const statusDot = document.getElementById('status-dot');
+            const statusText = document.getElementById('status-text');
+            const aiButtons = [
+                document.getElementById('get-advice-btn'),
+                document.getElementById('analyze-expenses-btn'),
+                document.getElementById('get-plan-btn')
+            ];
+
+            if (navigator.onLine) {
+                statusIndicator.classList.remove('bg-gray-400', 'text-white');
+                statusIndicator.classList.add('bg-green-100', 'text-green-800');
+                statusDot.classList.remove('bg-gray-600');
+                statusDot.classList.add('bg-green-500');
+                statusText.textContent = 'ออนไลน์';
+                aiButtons.forEach(btn => btn.disabled = false);
+            } else {
+                statusIndicator.classList.remove('bg-green-100', 'text-green-800');
+                statusIndicator.classList.add('bg-gray-400', 'text-white');
+                statusDot.classList.remove('bg-green-500');
+                statusDot.classList.add('bg-gray-600');
+                statusText.textContent = 'ออฟไลน์';
+                aiButtons.forEach(btn => btn.disabled = true);
             }
         }
 
@@ -814,19 +808,19 @@ ${finiteItemString || 'ไม่มี'}
             updateSummary();
 
             // Event Listeners
+            document.getElementById('calculate-payoff-btn').addEventListener('click', calculateDebtPayoff);
             document.getElementById('get-advice-btn').addEventListener('click', getFinancialAdvice);
             document.getElementById('get-plan-btn').addEventListener('click', generateSavingsPlan);
             document.getElementById('analyze-expenses-btn').addEventListener('click', analyzeExpenses);
-            document.getElementById('calculate-payoff-btn').addEventListener('click', calculateDebtPayoff);
+            window.addEventListener('online', updateOnlineStatus);
+            window.addEventListener('offline', updateOnlineStatus);
+            
+            // Set initial online status
+            updateOnlineStatus();
         }
 
         window.onload = initializeApp;
 
     </script>
-    <!-- Online Status Indicator -->
-    <div id="status-indicator" class="status-indicator">
-        <div id="status-dot" class="status-dot"></div>
-        <span id="status-text"></span>
-    </div>
 </body>
 </html>
