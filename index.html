@@ -678,7 +678,7 @@
             adviceBtn.disabled = true;
             adviceBtn.classList.add('opacity-50');
             const balance = totalIncome - financialData.totalExpense;
-            const prompt = `คุณคือที่ปรึกษาทางการเงินที่เป็นมิตรและเชี่ยวชาญในบริบทของประเทศไทย จากข้อมูลทางการเงินต่อไปนี้:
+            const prompt = `คุณคือเพื่อนซี้ของฉันที่เก่งเรื่องเงินๆ ทองๆ สุดๆ ช่วยดูสถานะการเงินของฉันที แล้วบ่น เอ้ย! แนะนำแบบขำๆ แต่มีสาระมา 3 ข้อหน่อยสิเพื่อน จากข้อมูลนี้:
 - รายรับรวม: ${formatCurrency(totalIncome)}
 - รายจ่ายรวม: ${formatCurrency(financialData.totalExpense)}
 - คงเหลือสุทธิ: ${formatCurrency(balance)}
@@ -711,7 +711,7 @@
             planBtn.disabled = true;
             planBtn.classList.add('opacity-50');
             const balance = (financialData.salary + financialData.otherIncomes.reduce((s, i) => s + i.amount, 0)) - financialData.totalExpense;
-            const prompt = `คุณคือโค้ชการเงินที่สร้างสรรค์และให้กำลังใจในบริบทของประเทศไทย ผู้ใช้ต้องการบรรลุเป้าหมายการออมดังนี้:
+            const prompt = `คุณคือเพื่อนซี้ของฉันที่เก่งเรื่องเงินๆ ทองๆ สุดๆ ช่วยดูสถานะการเงินของฉันที แล้วบ่น เอ้ย! แนะนำแบบขำๆ แต่มีสาระมา 3 ข้อหน่อยสิเพื่อน จากข้อมูลนี้:
 - เป้าหมาย: "${goalName}"
 - จำนวนเงินที่ต้องการ: ${formatCurrency(goalAmount)}
 - สถานะการเงินปัจจุบันของผู้ใช้: มีเงินคงเหลือสุทธิต่อเดือน ${formatCurrency(balance)} และมีหนี้สินที่ต้องชำระ
@@ -749,7 +749,7 @@
             analysisBtn.classList.add('opacity-50');
             const fixedExpenseString = financialData.fixedExpenses.map(e => `- ${e.name}: ${formatCurrency(e.amount)}`).join('\n');
             const finiteItemString = financialData.finiteItems.map(e => `- ${e.name} (ผ่อนเดือนละ ${formatCurrency(e.monthlyPayment)})`).join('\n');
-            const prompt = `คุณคือนักวิเคราะห์การเงินที่เฉียบแหลมและเป็นมิตรในบริบทของประเทศไทย จากรายการใช้จ่ายของผู้ใช้ต่อไปนี้:
+            const prompt = `คุณคือเพื่อนซี้ของฉันที่เก่งเรื่องเงินๆ ทองๆ สุดๆ ช่วยดูสถานะการเงินของฉันที แล้วบ่น เอ้ย! แนะนำแบบขำๆ แต่มีสาระมา 3 ข้อหน่อยสิเพื่อน จากข้อมูลนี้:
 **รายจ่ายคงที่:**
 ${fixedExpenseString || 'ไม่มี'}
 **หนี้สินและค่าผ่อนชำระ:**
