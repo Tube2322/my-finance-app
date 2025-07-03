@@ -299,7 +299,7 @@
                         </h2>
                     </div>
                     <p class="text-sm text-gray-500 mb-2">สำหรับรายจ่ายที่เกิดขึ้นทุกเดือน เช่น ค่าเช่าบ้าน, ค่าสมาชิก Netflix</p>
-                    <p class="text-sm text-gray-500 mb-4">**เคล็ดลับ:** หากไม่มีรายจ่ายคงที่ สามารถปล่อยว่างไว้ได้เลย ไม่ไม่ต้องกรอกข้อมูล!</p>
+                    <p class="text-sm text-gray-500 mb-4">**เคล็ดลับ:** หากไม่มีรายจ่ายคงที่ สามารถปล่อยว่างไว้ได้เลย ไม่ต้องกรอกข้อมูล!</p>
                     <div class="space-y-4">
                         <div>
                             <div id="fixed-expense-list" class="space-y-2 mb-4"></div>
@@ -324,8 +324,8 @@
                     <div class="space-y-4 border-t pt-4 mt-4">
                         <h3 class="font-semibold text-gray-800 mb-2">เพิ่มรายการใหม่</h3>
                         <input type="text" id="finite-item-name" class="input-field" placeholder="ชื่อรายการ (เช่น หนี้บัตรเครดิต)">
-                        <input type="number" id="finite-item-total" class="input-field" placeholder="ยอดหนี้/ยอดทั้งหมด">
-                        <input type="number" id="finite-item-monthly" class="input-field" placeholder="จำนวนเงินที่จ่ายต่อเดือน">
+                        <input type="number" id="finite-item-total" class="input-field" placeholder="ยอดหนี้/ยอดทั้งหมด (ต้องมากกว่า 0)">
+                        <input type="number" id="finite-item-monthly" class="input-field" placeholder="จำนวนเงินที่จ่ายต่อเดือน (ต้องมากกว่า 0)">
                         <button id="add-finite-item-btn" class="btn btn-primary w-full">เพิ่มรายการ</button>
                             </div>
                 </div>
@@ -479,7 +479,6 @@
                         </div>
                     </div>
 
-                    <!-- New: Custom Savings Plan Card -->
                     <div class="card mt-6">
                         <div class="flex flex-col md:flex-row md:justify-between md:items-center mb-2">
                             <h2 class="text-xl font-semibold text-purple-500 text-left flex items-center mb-2 md:mb-0">
@@ -815,9 +814,9 @@
 
             // Greeting for Fixed Expenses Card
             if (fixedExpenseTotal === 0) {
-                expenseGreetingText = 'ยังไม่มีรายจ่ายคงที่เลย! สบายใจไปเปราะนึง! 🥳';
+                expenseGreetingText = 'ยังไม่มีรายจ่ายคงที่เลย! สบายใจไปเปราะนึง! �';
             } else if (fixedExpenseTotal > 0 && fixedExpenseTotal <= 5000) {
-                expenseGreetingText = 'รายจ่ายคงที่กำลังดีเลยนะ! จัดการได้สบายๆ! �';
+                expenseGreetingText = 'รายจ่ายคงที่กำลังดีเลยนะ! จัดการได้สบายๆ! 👍';
             } else if (fixedExpenseTotal > 5000 && fixedExpenseTotal <= 15000) {
                 expenseGreetingText = 'รายจ่ายคงที่เริ่มเยอะแล้วนะ 😮 ไหวอยู่ป่าวเพื่อน?';
             } else { // fixedExpenseTotal > 15000
@@ -1065,7 +1064,7 @@
             const totalAmount = parseFloat(totalAmountInput.value);
             const monthlyPayment = parseFloat(monthlyPaymentInput.value);
 
-            if (name && !isNaN(totalAmount) && amount > 0 && !isNaN(monthlyPayment) && monthlyPayment > 0) {
+            if (name && !isNaN(totalAmount) && totalAmount > 0 && !isNaN(monthlyPayment) && monthlyPayment > 0) {
                 const newItem = { id: `finite-${Date.now()}`, name, totalAmount, monthlyPayment };
                 financialData.finiteItems.push(newItem);
                 debouncedNongNgernThink(createNongNgernPrompt(`รับทราบ! หนี้ "${name}" (${formatCurrency(totalAmount)}) ผ่อนเดือนละ ${formatCurrency(monthlyPayment)} ใช่มั้ย? สู้ๆ นะ! 💖`), `เจ้าเหมียวรับทราบรายการหนี้แล้วนะ!`, 'addItem'); // Debounced call
@@ -1075,7 +1074,15 @@
                 totalAmountInput.value = '';
                 monthlyPaymentInput.value = '';
             } else {
-                showModal('ข้อมูลไม่ถูกต้อง', 'กรุณากรอกข้อมูลหนี้สิน/ค่าผ่อนชำระให้ครบถ้วน');
+                let errorMessage = '';
+                if (!name) {
+                    errorMessage = 'กรุณากรอกชื่อรายการหนี้สิน/ค่าผ่อนชำระด้วยนะคะ 📝';
+                } else if (isNaN(totalAmount) || totalAmount <= 0) {
+                    errorMessage = 'ยอดหนี้/ยอดทั้งหมดต้องเป็นตัวเลขที่มากกว่า 0 นะคะ 🔢';
+                } else if (isNaN(monthlyPayment) || monthlyPayment <= 0) {
+                    errorMessage = 'จำนวนเงินที่จ่ายต่อเดือนต้องเป็นตัวเลขที่มากกว่า 0 นะคะ 🔢';
+                }
+                showModal('ข้อมูลไม่ถูกต้อง', errorMessage);
             }
         }
         
@@ -1119,8 +1126,8 @@
          * คำนวณและแสดงแผนการปลดหนี้ตามกลยุทธ์ที่เลือก (Snowball หรือ Avalanche)
          */
         function calculateDebtPayoff() {
-            const totalIncome = financialData.salary + financialData.otherIncomes.reduce((s, i) => s + i.amount, 0);
-            const totalExpense = financialData.fixedExpenses.reduce((s, e) => s + e.amount, 0) + financialData.finiteItems.reduce((s, i) => s + i.monthlyPayment, 0);
+            const totalIncome = financialData.totalIncome; // ใช้ค่าจาก financialData
+            const totalExpense = financialData.totalExpense; // ใช้ค่าจาก financialData
             const balance = totalIncome - totalExpense;
 
             if (!isAiActive) { // Check AI active status first for API-dependent functions
@@ -1713,5 +1720,3 @@ ${finiteItemString || 'ไม่มี'}
     </script>
 </body>
 </html>
-```
-I made some changes. The `totalData.totalExpense` reference in the `getFinancialAdvice` function has been corrected to `financialData.totalExpense` to resolve the `ReferenceErro�
