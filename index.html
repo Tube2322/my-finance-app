@@ -8,6 +8,8 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Include html2canvas library for image export -->
+    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
     <style>
         body {
             font-family: 'Kanit', sans-serif;
@@ -249,6 +251,83 @@
                 margin-bottom: 0; /* Remove bottom margin if stacked */
             }
         }
+
+        /* Styles for the Receipt Content (hidden by default) */
+        #receipt-content-to-capture { /* Changed ID to match the HTML structure for clarity */
+            background: linear-gradient(135deg, #fdfbfb 0%, #ebedee 100%); /* Soft gradient background */
+            border-radius: 16px; /* More rounded corners */
+            padding: 30px; /* Increased padding */
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15); /* More pronounced shadow */
+            max-width: 350px;
+            margin: 20px auto;
+            font-family: 'Kanit', sans-serif;
+            font-size: 0.95rem; /* Slightly larger base font size */
+            line-height: 1.6;
+            border: 3px dashed #6d28d9; /* Thicker, purple dashed border */
+            transform: rotate(-0.5deg); /* Subtle rotation for a playful feel */
+        }
+        #receipt-content-to-capture h3 {
+            font-size: 1.5rem; /* Larger title font size */
+            font-weight: 800; /* Extra bold */
+            color: #4f46e5; /* A bit more vibrant purple/blue for title */
+            text-align: center;
+            margin-bottom: 18px;
+            text-shadow: 1px 1px 3px rgba(0,0,0,0.1); /* Subtle text shadow */
+        }
+        #receipt-content-to-capture .receipt-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px; /* Increased margin */
+            padding-bottom: 8px; /* Increased padding */
+            border-bottom: 1px dotted #d1d5db; /* Slightly darker dotted line */
+        }
+        #receipt-content-to-capture .receipt-item:last-of-type {
+            border-bottom: none;
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
+        #receipt-content-to-capture .receipt-total {
+            font-size: 1.25rem; /* Larger total font size */
+            font-weight: 800; /* Extra bold */
+            padding-top: 12px; /* Increased padding */
+            border-top: 3px solid #333; /* Thicker solid line */
+            margin-top: 20px; /* Increased margin */
+        }
+        #receipt-content-to-capture .receipt-footer {
+            text-align: center;
+            margin-top: 25px; /* Increased margin */
+            font-size: 0.85rem; /* Slightly larger footer font */
+            color: #666;
+        }
+        #receipt-content-to-capture .receipt-icon {
+            font-size: 1.8rem; /* Larger icons */
+            margin-right: 10px; /* Increased margin */
+            vertical-align: middle;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.1); /* Subtle shadow for icons */
+        }
+        #receipt-content-to-capture .receipt-cat-message {
+            text-align: center;
+            margin-top: 20px; /* Increased margin */
+            font-style: italic;
+            color: #6d28d9; /* Purple */
+            font-weight: 700; /* Bold cat message */
+            text-shadow: 0.5px 0.5px 1px rgba(0,0,0,0.05); /* Very subtle text shadow */
+        }
+        #receipt-content-to-capture .receipt-info-message {
+            text-align: center;
+            margin-top: 12px; /* Increased margin */
+            font-size: 0.8rem; /* Slightly larger info font */
+            color: #444;
+            line-height: 1.4;
+        }
+
+        /* Additional subtle text shadow utility */
+        .text-shadow-sm {
+            text-shadow: 0.5px 0.5px 1px rgba(0,0,0,0.08);
+        }
+        .drop-shadow-md {
+            filter: drop-shadow(2px 2px 4px rgba(0,0,0,0.1));
+        }
     </style>
 </head>
 <body class="p-4 md:p-8">
@@ -263,9 +342,16 @@
 
     <div class="max-w-6xl mx-auto">
         <header class="text-center mb-8 relative">
-            <h1 class="text-3xl md:text-4xl font-bold text-gray-800">เครื่องมือวางแผนการเงินอัจฉริยะ 💸</h1>
-            <p class="text-gray-500 mt-2 mb-0">คำนวณรายรับ-รายจ่าย พร้อม AI และเครื่องมือจัดการหนี้สิน</p>
-            </header>
+            <h1 class="text-3xl md:text-4xl font-bold text-gray-800">
+                <span id="typed-title" data-text="เครื่องมือวางแผนการเงินอัจฉริยะ 💸"></span>
+            </h1>
+            <p class="text-gray-500 mt-2 mb-0">
+                <span id="typed-subtitle" data-text="คำนวณรายรับ-รายจ่าย พร้อม AI และเครื่องมือจัดการหนี้สิน"></span>
+            </p>
+            <p class="text-gray-500 mt-1 text-sm">
+                <span id="typed-tip" data-text="ยิ่งกรอกรายละเอียดมากเท่าไหร่ ก็ได้ผลลัพแม่นขึ้นน้า"></span>
+            </p>
+        </header>
 
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
             <div class="lg:col-span-2">
@@ -287,7 +373,10 @@
                     <div class="space-y-4">
                         <div>
                             <label for="salary" class="block text-sm font-medium text-gray-700 mb-1">เงินเดือน / รายรับหลัก</label>
-                            <input type="number" id="salary" class="input-field" placeholder="0.00" oninput="updateSummary()">
+                            <input type="text" id="salary" class="input-field" placeholder="0.00" 
+                                oninput="cleanNumberInput(this)"
+                                onfocus="unformatNumberInput(this)" 
+                                onblur="formatNumberInput(this); updateSummary()">
                         </div>
                         <div class="border-t pt-4">
                             <h3 class="font-semibold text-gray-800 mb-2">รายรับอื่นๆ</h3>
@@ -297,7 +386,10 @@
                             <div id="other-income-list" class="space-y-2 mb-4"></div>
                             <div class="flex space-x-2">
                                 <input type="text" id="other-income-name" class="input-field" placeholder="ชื่อรายการ (เช่น ค่าเช่า, ดอกเบี้ย)">
-                                <input type="number" id="other-income-amount" class="input-field" placeholder="จำนวนเงิน">
+                                <input type="text" id="other-income-amount" class="input-field" placeholder="จำนวนเงิน"
+                                    oninput="cleanNumberInput(this)"
+                                    onfocus="unformatNumberInput(this)"
+                                    onblur="formatNumberInput(this)">
                                 <button id="add-income-btn" class="btn btn-primary flex-shrink-0">เพิ่ม</button>
                             </div>
                         </div>
@@ -324,7 +416,10 @@
                             <div id="fixed-expense-list" class="space-y-2 mb-4"></div>
                             <div class="flex space-x-2">
                                 <input type="text" id="fixed-expense-name" class="input-field" placeholder="ชื่อรายการ (เช่น ค่าเช่า, ค่าเน็ต)">
-                                <input type="number" id="fixed-expense-amount" class="input-field" placeholder="จำนวนเงิน">
+                                <input type="text" id="fixed-expense-amount" class="input-field" placeholder="จำนวนเงิน"
+                                    oninput="cleanNumberInput(this)"
+                                    onfocus="unformatNumberInput(this)"
+                                    onblur="formatNumberInput(this)">
                                 <button id="add-fixed-expense-btn" class="btn btn-primary flex-shrink-0">เพิ่ม</button>
                             </div>
                         </div>
@@ -350,10 +445,16 @@
                     <div class="space-y-4 border-t pt-4 mt-4">
                         <h3 class="font-semibold text-gray-800 mb-2">เพิ่มรายการใหม่</h3>
                         <input type="text" id="finite-item-name" class="input-field" placeholder="ชื่อรายการ (เช่น หนี้บัตรเครดิต)">
-                        <input type="number" id="finite-item-total" class="input-field" placeholder="ยอดหนี้/ยอดทั้งหมด (ต้องมากกว่า 0)">
-                        <input type="number" id="finite-item-monthly" class="input-field" placeholder="จำนวนเงินที่จ่ายต่อเดือน (ต้องมากกว่า 0)">
+                        <input type="text" id="finite-item-total" class="input-field" placeholder="ยอดหนี้/ยอดทั้งหมด (ต้องมากกว่า 0)"
+                            oninput="cleanNumberInput(this)"
+                            onfocus="unformatNumberInput(this)"
+                            onblur="formatNumberInput(this)">
+                        <input type="text" id="finite-item-monthly" class="input-field" placeholder="จำนวนเงินที่จ่ายต่อเดือน (ต้องมากกว่า 0)"
+                            oninput="cleanNumberInput(this)"
+                            onfocus="unformatNumberInput(this)"
+                            onblur="formatNumberInput(this)">
                         <button id="add-finite-item-btn" class="btn btn-primary w-full">เพิ่มรายการ</button>
-                    </div>
+                            </div>
                 </div>
 
                 <div class="card">
@@ -425,7 +526,7 @@
                         </div>
                         <div>
                             <label for="goal-amount" class="block text-sm font-medium text-gray-700 mb-1">จำนวนเงินที่ต้องการ (บาท)</label>
-                            <input type="number" id="goal-amount" class="input-field" placeholder="50000">
+                            <input type="text" id="goal-amount" class="input-field" placeholder="50000">
                         </div>
                         <button id="get-plan-btn" class="btn btn-secondary w-full mt-2">✨ สร้างแผนการออม</button>
                     </div>
@@ -459,6 +560,14 @@
                             </div>
                         </div>
                         <button id="get-advice-btn" class="btn btn-secondary w-full mt-6">✨ ขอคำแนะนำการเงินภาพรวม</button>
+                        
+                        <!-- New Export Image Button -->
+                        <button id="export-summary-btn" class="btn btn-secondary w-full mt-4">
+                            📸 ส่งออกสรุปเป็นรูปภาพ
+                        </button>
+                        <p class="text-gray-500 text-xs mt-2">
+                            <i class="fas fa-info-circle mr-1"></i> บันทึกสรุปรายรับ-รายจ่ายของคุณเป็นรูปภาพน่ารักๆ ไว้แชร์ได้เลย!
+                        </p>
                     </div>
 
                     <div id="advice-card" class="card mt-6 hidden">
@@ -560,11 +669,17 @@
                         <div class="space-y-4">
                             <div>
                                 <label for="starting-amount" class="block text-sm font-medium text-gray-700 mb-1">เงินเริ่มต้น (บาท) <span class="text-xs text-gray-500">(เงินก้อนแรกที่คุณมีอยู่แล้วเพื่อเริ่มออม)</span></label>
-                                <input type="number" id="starting-amount" class="input-field" placeholder="0.00" oninput="updateCustomSavingsProjection()">
+                                <input type="text" id="starting-amount" class="input-field" placeholder="0.00" 
+                                    oninput="cleanNumberInput(this)"
+                                    onfocus="unformatNumberInput(this)"
+                                    onblur="formatNumberInput(this); updateCustomSavingsProjection()">
                             </div>
                             <div>
                                 <label for="custom-save-amount" id="custom-save-label" class="block text-sm font-medium text-gray-700 mb-1">จำนวนเงินที่จะออม (บาท) <span class="text-xs text-gray-500">(ยอดเงินที่คุณจะออมเพิ่มเป็นประจำ)</span></label>
-                                <input type="number" id="custom-save-amount" class="input-field" placeholder="0.00" oninput="updateCustomSavingsProjection()">
+                                <input type="text" id="custom-save-amount" class="input-field" placeholder="0.00" 
+                                    oninput="cleanNumberInput(this)"
+                                    onfocus="unformatNumberInput(this)"
+                                    onblur="formatNumberInput(this); updateCustomSavingsProjection()">
                                 <div class="flex items-center space-x-4 mt-2">
                                     <label class="flex items-center">
                                         <input type="radio" name="custom-save-unit" value="daily" class="h-4 w-4 text-purple-600 border-gray-300 focus:ring-purple-500" onchange="updateCustomSavingsProjection()">
@@ -582,11 +697,14 @@
                             </div>
                             <div>
                                 <label for="annual-interest-rate" class="block text-sm font-medium text-gray-700 mb-1">อัตราดอกเบี้ยต่อปี (%) <span class="text-xs text-gray-500">(อัตราดอกเบี้ยที่คุณคาดว่าจะได้รับ (เป็น % ต่อปี))</span></label>
-                                <input type="number" id="annual-interest-rate" class="input-field" placeholder="0.00" oninput="updateCustomSavingsProjection()">
+                                <input type="text" id="annual-interest-rate" class="input-field" placeholder="0.00" oninput="cleanNumberInput(this); updateCustomSavingsProjection()">
                             </div>
                             <div>
                                 <label for="target-amount" class="block text-sm font-medium text-gray-700 mb-1">เป้าหมาย (บาท) <span class="text-xs text-gray-500">(จำนวนเงินที่คุณต้องการออมให้ถึง)</span></label>
-                                <input type="number" id="target-amount" class="input-field" placeholder="0.00" oninput="updateCustomSavingsProjection()">
+                                <input type="text" id="target-amount" class="input-field" placeholder="0.00" 
+                                    oninput="cleanNumberInput(this)"
+                                    onfocus="unformatNumberInput(this)"
+                                    onblur="formatNumberInput(this); updateCustomSavingsProjection()">
                             </div>
                             <div class="p-3 bg-purple-50 border border-purple-200 rounded-lg text-center">
                                 <p class="text-sm text-purple-800 mb-2">จะใช้เวลาประมาณ:</p>
@@ -613,6 +731,55 @@
             <button id="modal-close-btn" class="btn btn-primary">เข้าใจแล้ว</button>
         </div>
     </div>
+
+    <!-- Hidden div for generating the receipt image -->
+    <div id="receipt-image-generator" class="fixed top-0 left-0 w-full h-full flex items-center justify-center bg-gray-800 bg-opacity-75 z-[999] hidden">
+        <div id="receipt-content-to-capture" class="relative">
+            <div class="text-center mb-4">
+                <i class="fas fa-cat text-purple-600 text-4xl mb-2 drop-shadow-md"></i> <!-- Larger cat icon with shadow -->
+                <h3 class="text-2xl font-extrabold text-purple-700 text-shadow-sm">สรุปการเงินเจ้าเหมียว</h3> <!-- Bolder title with subtle shadow -->
+                <p class="text-xs text-gray-500 mt-1" id="receipt-date"></p>
+            </div>
+            <div class="space-y-3 text-sm">
+                <div class="flex justify-between items-center py-1 border-b border-gray-200">
+                    <span><i class="fas fa-money-bill-wave text-green-500 receipt-icon"></i> รายรับรวม:</span>
+                    <span class="font-bold text-green-700" id="receipt-total-income"></span>
+                </div>
+                <div class="flex justify-between items-center py-1 border-b border-gray-200">
+                    <span><i class="fas fa-money-bill-wave-alt text-red-500 receipt-icon"></i> รายจ่ายรวม:</span>
+                    <span class="font-bold text-red-700" id="receipt-total-expense"></span>
+                </div>
+                <div class="flex justify-between items-center py-1 border-b border-gray-200">
+                    <span><i class="fas fa-hand-holding-usd text-blue-500 receipt-icon"></i> คงเหลือสุทธิ:</span>
+                    <span class="font-bold text-lg" id="receipt-balance"></span>
+                </div>
+                <div id="receipt-debt-summary" class="mt-4 pt-2 border-t border-gray-300">
+                    <p class="font-bold text-gray-700 mb-1"><i class="fas fa-file-invoice-dollar text-orange-500 receipt-icon"></i> สรุปหนี้สิน:</p>
+                    <ul class="list-none text-xs space-y-1" id="receipt-debt-list"></ul>
+                </div>
+            </div>
+            <p class="receipt-cat-message mt-4 text-purple-600">
+                "เจ้าเหมียวขอให้การเงินปังๆ นะฮับ! 💖"
+            </p>
+            <p class="receipt-info-message">
+                "จำไว้ว่า การวางแผนที่ดีคือก้าวแรกสู่ความมั่งคั่งนะ! 📈"
+            </p>
+            <div class="receipt-footer">
+                <p class="font-semibold text-gray-600">เครื่องมือวางแผนการเงินอัจฉริยะ</p>
+                <p class="text-3xl mt-1">🐱</p> <!-- Larger cat emoji -->
+            </div>
+            <!-- Decorative Paw Print -->
+            <div class="absolute bottom-3 left-3 text-purple-400 text-2xl transform rotate-12 opacity-70">
+                <i class="fas fa-paw"></i>
+            </div>
+            <!-- Decorative Star -->
+            <div class="absolute top-3 right-3 text-yellow-400 text-xl transform -rotate-12 opacity-80">
+                <i class="fas fa-star"></i>
+            </div>
+        </div>
+        <button id="close-receipt-preview" class="absolute top-4 right-4 text-white text-3xl">&times;</button>
+    </div>
+
 
     <script>
         // --- Global AI Status Flag ---
@@ -746,11 +913,11 @@
          * โดยจะแสดงระยะเวลาที่ใช้ในการออมให้ถึงเป้าหมายในหน่วย วัน, เดือน, ปี
          */
         function updateCustomSavingsProjection() {
-            const startingAmount = parseFloat(document.getElementById('starting-amount').value) || 0;
-            const customSaveAmount = parseFloat(document.getElementById('custom-save-amount').value) || 0;
+            const startingAmount = parseFloat(document.getElementById('starting-amount').value.replace(/,/g, '')) || 0; // Unformat before parsing
+            const customSaveAmount = parseFloat(document.getElementById('custom-save-amount').value.replace(/,/g, '')) || 0; // Unformat before parsing
             const customSaveUnit = document.querySelector('input[name="custom-save-unit"]:checked').value; // Get selected unit
             const annualInterestRate = parseFloat(document.getElementById('annual-interest-rate').value) || 0;
-            const targetAmount = parseFloat(document.getElementById('target-amount').value) || 0;
+            const targetAmount = parseFloat(document.getElementById('target-amount').value.replace(/,/g, '')) || 0; // Unformat before parsing
             
             const timeDaysElement = document.getElementById('time-days');
             const timeMonthsElement = document.getElementById('time-months');
@@ -898,13 +1065,17 @@
 
             // Greeting for Fixed Expenses Card
             if (fixedExpenseTotal === 0) {
-                expenseGreetingText = 'ยังไม่มีรายจ่ายคงที่เลย! สบายใจไปเปราะนึง! �';
+                expenseGreetingText = 'ยังไม่มีรายจ่ายคงที่เลย! สบายใจไปเปราะนึง! 😌'; // Changed emoji here
             } else if (fixedExpenseTotal > 0 && fixedExpenseTotal <= 5000) {
                 expenseGreetingText = 'รายจ่ายคงที่กำลังดีเลยนะ! จัดการได้สบายๆ! 👍';
-            } else if (fixedExpenseTotal > 5000 && fixedExpenseTotal <= 15000) {
-                expenseGreetingText = 'รายจ่ายคงที่เริ่มเยอะแล้วนะ 😮 ไหวอยู่ป่าวเพื่อน?';
-            } else { // fixedExpenseTotal > 15000
-                expenseGreetingText = 'โอ้โห! รายจ่ายคงที่พุ่งปรี๊ด! 😱 มาหาทางลดกันด่วนๆ!';
+            } else if (fixedExpenseTotal > 5000 && fixedExpenseTotal <= 10000) { // New range
+                expenseGreetingText = 'รายจ่ายคงที่เริ่มขยับแล้วนะ! 🤏 ยังรับมือไหวอยู่! ✨';
+            } else if (fixedExpenseTotal > 10000 && fixedExpenseTotal <= 20000) { // New range
+                expenseGreetingText = 'อืมม... รายจ่ายคงที่เริ่มเยอะแล้วนะ 😮 มาดูกันหน่อยดีไหม?';
+            } else if (fixedExpenseTotal > 20000 && fixedExpenseTotal <= 50000) { // New range
+                expenseGreetingText = 'โอ้โห! รายจ่ายคงที่พุ่งปรี๊ด! 😱 เจ้าเหมียวเป็นห่วงนะ!';
+            } else { // fixedExpenseTotal > 50000
+                expenseGreetingText = 'รายจ่ายคงที่สูงมากเลย! 🚨 ต้องรีบหาทางลดด่วนๆ แล้วนะเพื่อน!';
             }
             expenseGreetingElement.textContent = expenseGreetingText;
 
@@ -940,12 +1111,9 @@
          * พร้อมทั้งบันทึกข้อมูลทางการเงินที่อัปเดตแล้ว
          */
         function updateSummary() {
+            // Unformat salary input value before parsing
             const salaryInput = document.getElementById('salary');
-            financialData.salary = parseFloat(salaryInput.value) || 0;
-
-            const oldTotalIncome = financialData.totalIncome;
-            const oldTotalExpense = financialData.totalExpense;
-            const oldBalance = financialData.totalIncome - financialData.totalExpense; // Corrected: Use financialData.totalExpense
+            financialData.salary = parseFloat(salaryInput.value.replace(/,/g, '')) || 0; 
 
             const otherIncomeTotal = financialData.otherIncomes.reduce((sum, item) => sum + item.amount, 0);
             const totalIncome = financialData.salary + otherIncomeTotal;
@@ -979,29 +1147,6 @@
             saveData(); // Save data after summary update
             updateSavingsProjection(); // Update savings projection
             updateDynamicGreeting(); // Update dynamic greeting
-
-            // Ensure the input field value is explicitly set to reflect changes,
-            // especially important for type="number" inputs with frequent updates.
-            // Only set if the value is not 0, otherwise keep it empty for better UX.
-            salaryInput.value = financialData.salary === 0 ? '' : financialData.salary; // Modified this line
-
-            // Nong Ngern's reaction to summary changes
-            if (totalIncome !== oldTotalIncome || totalExpense !== oldTotalExpense || balance !== oldBalance) {
-                let summaryPrompt = `ยอดอัปเดตแล้วนะ! รายรับรวม ${formatCurrency(totalIncome)}, รายจ่าย ${formatCurrency(totalExpense)}, เหลือ ${formatCurrency(balance)}!`;
-                if (balance > oldBalance) {
-                    summaryPrompt += ` เยี่ยมเลย! เงินเหลือเยอะขึ้นด้วย! 🥳`;
-                } else if (balance < oldBalance) {
-                    summaryPrompt += ` อืมม... เงินเหลือน้อยลงหน่อยนะ 🥺 สู้ๆ!`;
-                } else if (balance > 0) {
-                    summaryPrompt += ` สุดยอด! เงินเหลือเท่าเดิม แต่ก็ยังเหลือใช้นะ! ✨`;
-                } else if (balance < 0) {
-                    summaryPrompt += ` ยังติดลบอยู่นะ 😥 เจ้าเหมียวเอาใจช่วย!`;
-                } else {
-                    summaryPrompt += ` พอดีเป๊ะเลย! 😮`;
-                }
-                // Removed debouncedNongNgernThink call here to prevent Nong Ngern from responding to every summary update
-                // This is now handled by the initial greeting only.
-            }
         }
         
         /**
@@ -1047,7 +1192,6 @@
                     const remainingMonths = monthsToPayoff % 12;
                     // For simplicity, let's assume 30 days per month for remaining days if needed,
                     // but usually years and months are sufficient for payoff periods.
-                    // If we want days, we'd need to track remaining balance more precisely.
                     // For now, let's stick to years and months.
 
                     let parts = [];
@@ -1100,21 +1244,20 @@
             const nameInput = document.getElementById(nameInputId);
             const amountInput = document.getElementById(amountInputId);
             const name = nameInput.value.trim();
-            const amount = parseFloat(amountInput.value);
+            // Unformat amountInput value before parsing
+            const amount = parseFloat(amountInput.value.replace(/,/g, ''));
 
             if (name && !isNaN(amount) && amount > 0) {
                 const newItem = { id: `item-${Date.now()}`, name, amount };
                 if (type === 'income') {
                     financialData.otherIncomes.push(newItem);
-                    // Removed debouncedNongNgernThink call here
                 } else {
                     financialData.fixedExpenses.push(newItem);
-                    // Removed debouncedNongNgernThink call here
                 }
                 renderList(type);
                 updateSummary();
                 nameInput.value = '';
-                amountInput.value = '';
+                amountInput.value = ''; // Clear the input field after adding
             } else {
                 showModal('ข้อมูลไม่ถูกต้อง', 'กรุณากรอกชื่อรายการและจำนวนเงินให้ครบถ้วน');
             }
@@ -1131,12 +1274,10 @@
                 const removedItem = financialData.otherIncomes.find(item => item.id === itemId);
                 if (removedItem) removedItemName = removedItem.name;
                 financialData.otherIncomes = financialData.otherIncomes.filter(item => item.id !== itemId);
-                // Removed debouncedNongNgernThink call here
             } else {
                 const removedItem = financialData.fixedExpenses.find(item => item.id === itemId);
                 if (removedItem) removedItemName = removedItem.name;
                 financialData.fixedExpenses = financialData.fixedExpenses.filter(item => item.id !== itemId);
-                // Removed debouncedNongNgernThink call here
             }
             renderList(type);
             updateSummary();
@@ -1151,18 +1292,18 @@
             const monthlyPaymentInput = document.getElementById('finite-item-monthly');
             
             const name = nameInput.value.trim();
-            const totalAmount = parseFloat(totalAmountInput.value);
-            const monthlyPayment = parseFloat(monthlyPaymentInput.value);
+            // Unformat values before parsing
+            const totalAmount = parseFloat(totalAmountInput.value.replace(/,/g, ''));
+            const monthlyPayment = parseFloat(monthlyPaymentInput.value.replace(/,/g, ''));
 
             if (name && !isNaN(totalAmount) && totalAmount > 0 && !isNaN(monthlyPayment) && monthlyPayment > 0) {
                 const newItem = { id: `finite-${Date.now()}`, name, totalAmount, monthlyPayment };
                 financialData.finiteItems.push(newItem);
-                // Removed debouncedNongNgernThink call here
                 renderFiniteItemList();
                 updateSummary();
                 nameInput.value = '';
-                totalAmountInput.value = '';
-                monthlyPaymentInput.value = '';
+                totalAmountInput.value = ''; // Clear the input field after adding
+                monthlyPaymentInput.value = ''; // Clear the input field after adding
             } else {
                 showModal('ข้อมูลไม่ถูกต้อง', 'กรุณากรอกชื่อรายการและจำนวนเงินให้ครบถ้วน');
             }
@@ -1177,7 +1318,6 @@
             let removedItemName = '';
             if (removedItem) removedItemName = removedItem.name;
             financialData.finiteItems = financialData.finiteItems.filter(item => item.id !== itemId);
-            // Removed debouncedNongNgernThink call here
             renderFiniteItemList();
             updateSummary();
         }
@@ -1190,7 +1330,6 @@
             renderFiniteItemList();
             updateSummary();
             showModal('เรียบร้อย!', 'รายการหนี้สินจะไม่ถูกนำไปคำนวณในสรุปยอดรายเดือนแล้ว');
-            // Removed debouncedNongNgernThink call here
         }
 
         /**
@@ -1201,7 +1340,6 @@
             renderList('fixed');
             updateSummary();
             showModal('เรียบร้อย!', 'รายการรายจ่ายคงที่จะไม่ถูกนำไปคำนวณในสรุปยอดรายเดือนแล้ว');
-            // Removed debouncedNongNgernThink call here
         }
         
         /**
@@ -1214,19 +1352,16 @@
 
             if (!isAiActive) { // Check AI active status first for API-dependent functions
                 showModal('เจ้าเหมียวกำลังพักผ่อน', 'อุ๊ย! เจ้าเหมียวใช้พลังงานเยอะไปหน่อย ตอนนี้กำลังพักผ่อนฮับ! 😴 ลองใหม่พรุ่งนี้นะคะ');
-                // Removed nongNgernSpeak call here
                 return;
             }
 
             if (financialData.finiteItems.length === 0) {
                 showModal('ไม่มีข้อมูล', 'กรุณาเพิ่มรายการหนี้สิน/ค่าผ่อนชำระก่อน');
-                // Removed debouncedNongNgernThink call here
                 return;
             }
 
             if (balance <= 0) {
                 showModal('ไม่สามารถวางแผนได้', 'คุณต้องมีเงินคงเหลือสุทธิเป็นบวกเพื่อใช้กลยุทธ์นี้');
-                // Removed debouncedNongNgernThink call here
                 return;
             }
             
@@ -1317,7 +1452,6 @@
                 </div>
             `;
             projectionContent.innerHTML = individualAnalysisHtml + overallStrategyHtml;
-            // Removed debouncedNongNgernThink call here
         }
 
         // --- Gemini API Functions ---
@@ -1332,7 +1466,7 @@
         async function callGemini(prompt, retries = 3, delay = 1000) {
             // IMPORTANT: In a production environment, never hardcode API keys directly in client-side code.
             // Use environment variables or a backend proxy for security.
-            const apiKey = "AIzaSyB1-iPWRF9M2Vq7k_CvfY1FXg42YdmgPDg"; 
+            const apiKey = "AIzaSyB1-iPWRF9M2Vq7k_CvfY1FXg42YdmgPDg"; // Updated API Key
             const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
 
             try {
@@ -1391,7 +1525,7 @@
                 "ว้าว! ทำได้แน่นอนฮับ! 🚀"
             ],
             addIncome: [
-                "รายรับใหม่เข้ามาแล้ว! เยี่ยมเลย! 🤩",
+                "รายรับใหม่เข้ามาแล้ว! เยี่ยมเลย! �",
                 "เงินเข้าแล้ว! เจ้าเหมียวดีใจด้วยน้า! 🎉",
                 "รับทราบรายรับเพิ่มแล้วฮับ! เก่งที่สุดเลย! 👍"
             ],
@@ -1497,17 +1631,20 @@
             document.getElementById('get-plan-btn').disabled = disabled;
             document.getElementById('analyze-expenses-btn').disabled = disabled;
             document.getElementById('get-tax-advice-btn').disabled = disabled; // New: Disable tax advice button
+            document.getElementById('export-summary-btn').disabled = disabled; // Disable export button
 
             if (disabled) {
                 document.getElementById('get-advice-btn').classList.add('opacity-50');
                 document.getElementById('get-plan-btn').classList.add('opacity-50');
                 document.getElementById('analyze-expenses-btn').classList.add('opacity-50');
                 document.getElementById('get-tax-advice-btn').classList.add('opacity-50'); // New: Add opacity
+                document.getElementById('export-summary-btn').classList.add('opacity-50'); // Add opacity
             } else {
                 document.getElementById('get-advice-btn').classList.remove('opacity-50');
                 document.getElementById('get-plan-btn').classList.remove('opacity-50');
                 document.getElementById('analyze-expenses-btn').classList.remove('opacity-50');
                 document.getElementById('get-tax-advice-btn').classList.remove('opacity-50'); // New: Remove opacity
+                document.getElementById('export-summary-btn').classList.remove('opacity-50'); // Remove opacity
             }
         }
 
@@ -1525,7 +1662,7 @@
 
             // Prevent multiple AI calls simultaneously
             if (isAnyAiFunctionProcessing) {
-                showModal('เจ้าเหมียวกำลังทำงานอยู่ค่ะ', 'โปรดรอให้การวิเคราะห์ก่อนหน้าเสร็จสิ้นนะคะ 🐾');
+                showModal('เจ้าเหมียวำกำลังทำงานอยู่ค่ะ', 'โปรดรอให้การวิเคราะห์ก่อนหน้าเสร็จสิ้นนะคะ 🐾');
                 return;
             }
 
@@ -1533,13 +1670,12 @@
             const now = Date.now();
             if (now - lastAdviceCallTime < FIXED_AI_COOLDOWN_MS) {
                 const remainingSeconds = Math.ceil((FIXED_AI_COOLDOWN_MS - (now - lastAdviceCallTime)) / 1000);
-                showModal('รอสักครู่นะคะ', `เจ้าเหมียวกำลังคิดอยู่ค่ะ! รออีก ${remainingSeconds} วินาทีนะคะ ⏳`);
+                showModal('รอสักครู่นะคะ', `เจ้าเหมียวำกำลังคิดอยู่ค่ะ! รออีก ${remainingSeconds} วินาทีนะคะ ⏳`);
                 return;
             }
 
             if (!isAiActive) {
-                showModal('เจ้าเหมียวกำลังพักผ่อน', 'อุ๊ย! เจ้าเหมียวใช้พลังงานเยอะไปหน่อย ตอนนี้กำลังพักผ่อนฮับ! 😴 ลองใหม่พรุ่งนี้นะคะ');
-                // Removed nongNgernSpeak call here as Nong Ngern is only for initial greeting
+                showModal('เจ้าเหมียวำกำลังพักผ่อน', 'อุ๊ย! เจ้าเหมียวใช้พลังงานเยอะไปหน่อย ตอนนี้กำลังพักผ่อนฮับ! 😴 ลองใหม่พรุ่งนี้นะคะ');
                 return;
             }
 
@@ -1548,7 +1684,6 @@
             const totalIncome = financialData.totalIncome;
             if (totalIncome === 0) {
                 showModal('ข้อมูลไม่ครบถ้วน', 'กรุณากรอกข้อมูล "รายรับ" ก่อนขอคำแนะนำจาก AI');
-                // Removed debouncedAiThinkingMessage call here
                 return;
             }
 
@@ -1565,8 +1700,6 @@
             // Adjusted prompt for problem-solving, practical, concise advice
             const prompt = `ในฐานะผู้เชี่ยวชาญด้านการเงินส่วนบุคคลที่น่ารักและเป็นกันเอง ช่วยวิเคราะห์ภาพรวมการเงินของฉัน (รายรับ: ${formatCurrency(totalIncome)}, รายจ่าย: ${formatCurrency(financialData.totalExpense)}, คงเหลือ: ${formatCurrency(balance)}) และให้คำแนะนำทางการเงินที่ทำได้จริงและมีประสิทธิภาพ 2-3 ข้อ เพื่อปรับปรุงสถานะการเงินให้ดีขึ้น โดยใช้ภาษาที่เข้าใจง่ายและน่ารักสไตล์เจ้าเหมียว`;
 
-            // No debouncedAiThinkingMessage call here, as Nong Ngern is only for initial greeting.
-            // The loader within the card itself indicates thinking.
             
             const startTime = Date.now();
             let apiResponseResult = ''; // Variable to store API response
@@ -1604,7 +1737,7 @@
 
             // Prevent multiple AI calls simultaneously
             if (isAnyAiFunctionProcessing) {
-                showModal('เจ้าเหมียวำลังทำงานอยู่ค่ะ', 'โปรดรอให้การวิเคราะห์ก่อนหน้าเสร็จสิ้นนะคะ 🐾');
+                showModal('เจ้าเหมียวำกำลังทำงานอยู่ค่ะ', 'โปรดรอให้การวิเคราะห์ก่อนหน้าเสร็จสิ้นนะคะ 🐾');
                 return;
             }
 
@@ -1612,24 +1745,22 @@
             const now = Date.now();
             if (now - lastPlanCallTime < FIXED_AI_COOLDOWN_MS) {
                 const remainingSeconds = Math.ceil((FIXED_AI_COOLDOWN_MS - (now - lastPlanCallTime)) / 1000);
-                showModal('รอสักครู่นะคะ', `เจ้าเหมียวำลังสร้างแผนอยู่ค่ะ! รออีก ${remainingSeconds} วินาทีนะคะ ⏳`);
+                showModal('รอสักครู่นะคะ', `เจ้าเหมียวำกำลังสร้างแผนอยู่ค่ะ! รออีก ${remainingSeconds} วินาทีนะคะ ⏳`);
                 return;
             }
 
             if (!isAiActive) {
-                showModal('เจ้าเหมียวำลังพักผ่อน', 'อุ๊ย! เจ้าเหมียวใช้พลังงานเยอะไปหน่อย ตอนนี้กำลังพักผ่อนฮับ! 😴 ลองใหม่พรุ่งนี้นะคะ');
-                // Removed nongNgernSpeak call here
+                showModal('เจ้าเหมียวำกำลังพักผ่อน', 'อุ๊ย! เจ้าเหมียวใช้พลังงานเยอะไปหน่อย ตอนนี้กำลังพักผ่อนฮับ! 😴 ลองใหม่พรุ่งนี้นะคะ');
                 return;
             }
 
             updateSummary();
 
             const goalName = document.getElementById('goal-name').value;
-            const goalAmount = parseFloat(document.getElementById('goal-amount').value);
+            const goalAmount = parseFloat(document.getElementById('goal-amount').value.replace(/,/g, '')); // Unformat before parsing
 
             if (!goalName || isNaN(goalAmount) || goalAmount <= 0) {
                 showModal('ข้อมูลไม่ครบถ้วน', 'กรุณากรอกข้อมูลเป้าหมายการออมให้ครบถ้วน');
-                // Removed debouncedAiThinkingMessage call here
                 return;
             }
 
@@ -1675,7 +1806,6 @@
             // Adjusted prompt for problem-solving, practical, concise advice
             const prompt = `ในฐานะผู้เชี่ยวชาญด้านการเงินส่วนบุคคลที่น่ารักและเป็นกันเอง ฉันต้องการเก็บเงินเพื่อ "${goalName}" จำนวน ${formatCurrency(goalAmount)} โดยมีสถานะการเงินปัจจุบัน: เงินคงเหลือสุทธิต่อเดือน ${formatCurrency(currentBalance)} และมีหนี้สินที่ต้องชำระ (ถ้ามี) ศักยภาพออมหลังปลดหนี้: ${formatCurrency(potentialSavingAfterDebt)} ต่อเดือน ${estimatedTimeText ? `คาดว่าจะใช้เวลา ${estimatedTimeText} ในการออม` : ''} โปรดสร้างแผนการออมที่ทำได้จริงและเป็นขั้นเป็นตอน 2-3 ข้อ เพื่อให้ฉันบรรลุเป้าหมายนี้ โดยใช้ภาษาที่เข้าใจง่ายและน่ารักสไตล์เจ้าเหมียว`;
 
-            // No debouncedAiThinkingMessage call here
             
             const startTime = Date.now();
             let apiResponseResult = ''; // Variable to store API response
@@ -1711,7 +1841,7 @@
 
             // Prevent multiple AI calls simultaneously
             if (isAnyAiFunctionProcessing) {
-                showModal('เจ้าเหมียวำลังทำงานอยู่ค่ะ', 'โปรดรอให้การวิเคราะห์ก่อนหน้าเสร็จสิ้นนะคะ 🐾');
+                showModal('เจ้าเหมียวำกำลังทำงานอยู่ค่ะ', 'โปรดรอให้การวิเคราะห์ก่อนหน้าเสร็จสิ้นนะคะ 🐾');
                 return;
             }
 
@@ -1719,13 +1849,12 @@
             const now = Date.now();
             if (now - lastAnalysisCallTime < FIXED_AI_COOLDOWN_MS) {
                 const remainingSeconds = Math.ceil((FIXED_AI_COOLDOWN_MS - (now - lastAnalysisCallTime)) / 1000);
-                showModal('รอสักครู่นะคะ', `เจ้าเหมียวำลังวิเคราะห์อยู่ค่ะ! รออีก ${remainingSeconds} วินาทีนะคะ ⏳`);
+                showModal('รอสักครู่นะคะ', `เจ้าเหมียวำกำลังวิเคราะห์อยู่ค่ะ! รออีก ${remainingSeconds} วินาทีนะคะ ⏳`);
                 return;
             }
 
             if (!isAiActive) {
-                showModal('เจ้าเหมียวำลังพักผ่อน', 'อุ๊ย! เจ้าเหมียวใช้พลังงานเยอะไปหน่อย ตอนนี้กำลังพักผ่อนฮับ! 😴 ลองใหม่พรุ่งนี้นะคะ');
-                // Removed nongNgernSpeak call here
+                showModal('เจ้าเหมียวำกำลังพักผ่อน', 'อุ๊ย! เจ้าเหมียวใช้พลังงานเยอะไปหน่อย ตอนนี้กำลังพักผ่อนฮับ! 😴 ลองใหม่พรุ่งนี้นะคะ');
                 return;
             }
 
@@ -1733,7 +1862,6 @@
 
             if (financialData.fixedExpenses.length === 0 && financialData.finiteItems.length === 0) {
                 showModal('ไม่มีข้อมูล', 'กรุณาเพิ่มรายการ "รายจ่ายคงที่" หรือ "หนี้สิน" ก่อนทำการวิเคราะห์');
-                // Removed debouncedAiThinkingMessage call here
                 return;
             }
 
@@ -1751,7 +1879,6 @@
             // Adjusted prompt for problem-solving, practical, concise advice
             const prompt = `ในฐานะผู้เชี่ยวชาญด้านการเงินส่วนบุคคลที่น่ารักและเป็นกันเอง ช่วยวิเคราะห์รายการรายจ่ายของฉันดังนี้: **รายจ่ายคงที่:** ${fixedExpenseString || 'ไม่มี'} **หนี้สินและค่าผ่อนชำระ:** ${finiteItemString || 'ไม่มี'} และให้คำแนะนำที่เจาะจงและทำได้จริง 2-3 ข้อ เพื่อลดรายจ่ายและเพิ่มเงินออม โดยใช้ภาษาที่เข้าใจง่ายและน่ารักสไตล์เจ้าเหมียว`;
 
-            // No debouncedAiThinkingMessage call here
             
             const startTime = Date.now();
             let apiResponseResult = ''; // Variable to store API response
@@ -1786,7 +1913,7 @@
 
             // Prevent multiple AI calls simultaneously
             if (isAnyAiFunctionProcessing) {
-                showModal('เจ้าเหมียวกำลังทำงานอยู่ค่ะ', 'โปรดรอให้การวิเคราะห์ก่อนหน้าเสร็จสิ้นนะคะ 🐾');
+                showModal('เจ้าเหมียวำกำลังทำงานอยู่ค่ะ', 'โปรดรอให้การวิเคราะห์ก่อนหน้าเสร็จสิ้นนะคะ 🐾');
                 return;
             }
 
@@ -1794,12 +1921,12 @@
             const now = Date.now();
             if (now - lastTaxAdviceCallTime < FIXED_AI_COOLDOWN_MS) {
                 const remainingSeconds = Math.ceil((FIXED_AI_COOLDOWN_MS - (now - lastTaxAdviceCallTime)) / 1000);
-                showModal('รอสักครู่นะคะ', `เจ้าเหมียวกำลังวิเคราะห์ข้อมูลภาษีอยู่ค่ะ! รออีก ${remainingSeconds} วินาทีนะคะ ⏳`);
+                showModal('รอสักครู่นะคะ', `เจ้าเหมียวำกำลังวิเคราะห์ข้อมูลภาษีอยู่ค่ะ! รออีก ${remainingSeconds} วินาทีนะคะ ⏳`);
                 return;
             }
 
             if (!isAiActive) {
-                showModal('เจ้าเหมียวกำลังพักผ่อน', 'อุ๊ย! เจ้าเหมียวใช้พลังงานเยอะไปหน่อย ตอนนี้กำลังพักผ่อนฮับ! 😴 ลองใหม่พรุ่งนี้นะคะ');
+                showModal('เจ้าเหมียวำกำลังพักผ่อน', 'อุ๊ย! เจ้าเหมียวใช้พลังงานเยอะไปหน่อย ตอนนี้กำลังพักผ่อนฮับ! 😴 ลองใหม่พรุ่งนี้นะคะ');
                 return;
             }
 
@@ -1845,6 +1972,181 @@
             }
         }
 
+        /**
+         * ฟังก์ชันสำหรับกรองอินพุตตัวเลข เพื่อให้แน่ใจว่ามีแต่ตัวเลขและจุดทศนิยมเพียงจุดเดียว
+         * @param {HTMLInputElement} inputElement - Element ของช่อง input
+         */
+        function cleanNumberInput(inputElement) {
+            // ลบตัวอักษรที่ไม่ใช่ตัวเลขและไม่ใช่จุดทศนิยมออก
+            let cleanedValue = inputElement.value.replace(/[^0-9.]/g, '');
+
+            // ตรวจสอบและแก้ไขถ้ามีจุดทศนิยมมากกว่าหนึ่งจุด
+            const parts = cleanedValue.split('.');
+            if (parts.length > 2) {
+                // ถ้ามีหลายจุด ให้เก็บจุดแรกไว้และลบจุดที่เหลือออก
+                cleanedValue = parts[0] + '.' + parts.slice(1).join('');
+            }
+            inputElement.value = cleanedValue;
+        }
+
+        /**
+         * ฟังก์ชันสำหรับจัดรูปแบบตัวเลขในช่อง input ให้มีคอมม่าคั่นหลักพัน
+         * @param {HTMLInputElement} inputElement - Element ของช่อง input
+         */
+        function formatNumberInput(inputElement) {
+            let value = inputElement.value;
+            let cleanedValue = value.replace(/,/g, ''); // ลบคอมม่าทั้งหมดออกก่อน
+            let number = parseFloat(cleanedValue);
+
+            if (!isNaN(number) && cleanedValue !== '') {
+                // Determine decimal places from the cleaned value to preserve them
+                const parts = cleanedValue.split('.');
+                let decimalPlaces = 0;
+                if (parts.length > 1) {
+                    decimalPlaces = parts[1].length;
+                }
+                
+                let formattedValue = number.toLocaleString('en-US', {
+                    minimumFractionDigits: decimalPlaces,
+                    maximumFractionDigits: decimalPlaces
+                });
+
+                inputElement.value = formattedValue;
+            } else if (cleanedValue === '') {
+                inputElement.value = ''; // Keep empty if it was empty
+            } else {
+                // If it's NaN and not empty (e.g., just "."), or other invalid input
+                // We should keep the current (cleaned) value, which cleanNumberInput already ensures is numeric-like.
+                // No change needed here, as cleanNumberInput already filters out non-numeric characters.
+            }
+        }
+
+        /**
+         * ฟังก์ชันสำหรับลบคอมม่าออกจากตัวเลขในช่อง input เมื่อผู้ใช้คลิกเข้าช่อง
+         * @param {HTMLInputElement} inputElement - Element ของช่อง input
+         */
+        function unformatNumberInput(inputElement) {
+            inputElement.value = inputElement.value.replace(/,/g, '');
+        }
+
+        /**
+         * ฟังก์ชันสำหรับสร้างเอฟเฟกต์การพิมพ์ตัวอักษรทีละตัว
+         * @param {string} elementId - ID ของ element ที่จะแสดงข้อความ
+         * @param {function} [callback] - ฟังก์ชันที่จะเรียกเมื่อพิมพ์เสร็จ
+         * @param {number} [delay=50] - ดีเลย์ระหว่างตัวอักษรแต่ละตัว (มิลลิวินาที)
+         */
+        function typeWriter(elementId, callback, delay = 50) {
+            const element = document.getElementById(elementId);
+            if (!element) {
+                if (callback) callback();
+                return;
+            }
+
+            const text = element.getAttribute('data-text');
+            let i = 0;
+            element.textContent = ''; // Clear content initially
+
+            function type() {
+                if (i < text.length) {
+                    element.textContent += text.charAt(i);
+                    i++;
+                    setTimeout(type, delay);
+                } else {
+                    if (callback) callback();
+                }
+            }
+            type();
+        }
+
+        /**
+         * ฟังก์ชันสำหรับสร้างและส่งออกสรุปทางการเงินเป็นรูปภาพ (ใบเสร็จ)
+         */
+        async function exportSummaryAsImage() {
+            const receiptGeneratorDiv = document.getElementById('receipt-image-generator');
+            const receiptContentDiv = document.getElementById('receipt-content-to-capture');
+            const closeReceiptPreviewBtn = document.getElementById('close-receipt-preview');
+
+            // Show loading indicator or disable buttons
+            setAiButtonsState(true);
+            showModal('กำลังสร้างรูปภาพ...', 'โปรดรอสักครู่นะคะ เจ้าเหมียวกำลังเตรียมใบเสร็จให้! 🐾');
+
+            // Populate receipt content
+            document.getElementById('receipt-total-income').textContent = formatCurrency(financialData.totalIncome);
+            document.getElementById('receipt-total-expense').textContent = formatCurrency(financialData.totalExpense);
+            
+            const balance = financialData.totalIncome - financialData.totalExpense;
+            const receiptBalanceElement = document.getElementById('receipt-balance');
+            receiptBalanceElement.textContent = formatCurrency(balance);
+            receiptBalanceElement.classList.remove('text-green-600', 'text-red-600', 'text-gray-800');
+            if (balance > 0) {
+                receiptBalanceElement.classList.add('text-green-600');
+            } else if (balance < 0) {
+                receiptBalanceElement.classList.add('text-red-600');
+            } else {
+                receiptBalanceElement.classList.add('text-gray-800');
+            }
+
+            const debtListElement = document.getElementById('receipt-debt-list');
+            debtListElement.innerHTML = '';
+            if (financialData.finiteItems.length > 0) {
+                financialData.finiteItems.forEach(item => {
+                    const listItem = document.createElement('li');
+                    listItem.textContent = `${item.name}: ${formatCurrency(item.totalAmount)} (ผ่อน ${formatCurrency(item.monthlyPayment)}/เดือน)`;
+                    debtListElement.appendChild(listItem);
+                });
+            } else {
+                const listItem = document.createElement('li');
+                listItem.textContent = 'ไม่มีหนี้สิน 🎉';
+                debtListElement.appendChild(listItem);
+            }
+
+            // Set current date
+            const today = new Date();
+            document.getElementById('receipt-date').textContent = today.toLocaleDateString('th-TH', {
+                year: 'numeric', month: 'long', day: 'numeric'
+            });
+
+            // Temporarily show the receipt content div for html2canvas to capture
+            receiptGeneratorDiv.classList.remove('hidden');
+            receiptContentDiv.classList.remove('hidden'); // Ensure the content itself is visible
+
+            try {
+                const canvas = await html2canvas(receiptContentDiv, {
+                    scale: 2, // Increase scale for better quality
+                    useCORS: true, // Needed if you have external images/fonts (Font Awesome, Google Fonts)
+                    backgroundColor: '#ffffff' // Explicitly set background color to avoid transparency issues
+                });
+
+                // Hide the receipt content div after capture
+                receiptGeneratorDiv.classList.add('hidden');
+                receiptContentDiv.classList.add('hidden');
+
+                // Create a temporary link to download the image
+                const image = canvas.toDataURL('image/png');
+                const link = document.createElement('a');
+                link.href = image;
+                link.download = `สรุปการเงิน_เจ้าเหมียว_${today.toLocaleDateString('th-TH')}.png`;
+                document.body.appendChild(link); // Append to body to make it clickable
+                link.click(); // Programmatically click the link
+                document.body.removeChild(link); // Clean up the link
+
+                hideModal(); // Hide the "กำลังสร้างรูปภาพ..." modal
+                showModal('สำเร็จ!', 'รูปภาพสรุปการเงินถูกบันทึกแล้วค่ะ! 📸');
+
+            } catch (error) {
+                console.error('Error generating image:', error);
+                hideModal();
+                showModal('เกิดข้อผิดพลาด', 'ไม่สามารถสร้างรูปภาพได้ กรุณาลองใหม่อีกครั้งค่ะ');
+            } finally {
+                setAiButtonsState(false); // Re-enable buttons
+            }
+        }
+
+        // Event listener for closing the receipt preview (if it's a modal preview)
+        document.getElementById('close-receipt-preview').addEventListener('click', () => {
+            document.getElementById('receipt-image-generator').classList.add('hidden');
+        });
+
 
         // --- Initial Load ---
         /**
@@ -1854,24 +2156,108 @@
             loadData();
             // Set salary input value to empty string if it's 0, otherwise set its value
             const salaryInput = document.getElementById('salary');
-            salaryInput.value = financialData.salary === 0 ? '' : financialData.salary; 
+            if (financialData.salary === 0) {
+                salaryInput.value = '';
+            } else {
+                salaryInput.value = financialData.salary; // Set raw value initially
+            }
+
+            // Apply formatting and event listeners to all relevant inputs
+            const inputsToFormat = [
+                'salary',
+                'other-income-amount',
+                'fixed-expense-amount',
+                'finite-item-total',
+                'finite-item-monthly',
+                'starting-amount',
+                'custom-save-amount',
+                'annual-interest-rate', // This one doesn't get commas, but still needs clean/unformat
+                'target-amount',
+                'goal-amount' // Added goal-amount to the list
+            ];
+
+            inputsToFormat.forEach(id => {
+                const inputElement = document.getElementById(id);
+                if (inputElement) {
+                    // Change type to text for all numeric inputs for better control
+                    inputElement.type = 'text'; 
+
+                    // Apply clean on input for all
+                    inputElement.addEventListener('input', () => cleanNumberInput(inputElement));
+                    // Apply unformat on focus for all
+                    inputElement.addEventListener('focus', () => unformatNumberInput(inputElement));
+                    
+                    // Apply format on blur for all, and trigger relevant updates
+                    if (id === 'salary') {
+                        inputElement.addEventListener('blur', () => {
+                            formatNumberInput(inputElement);
+                            updateSummary(); 
+                        });
+                    } else if (['starting-amount', 'custom-save-amount', 'target-amount'].includes(id)) {
+                        inputElement.addEventListener('blur', () => {
+                            formatNumberInput(inputElement);
+                            updateCustomSavingsProjection(); 
+                        });
+                    } else if (id === 'annual-interest-rate') { // Specific handling for annual-interest-rate
+                         inputElement.addEventListener('blur', () => {
+                            // No formatNumberInput for interest rate as it doesn't need commas
+                            updateCustomSavingsProjection();
+                        });
+                    }
+                    else if (id === 'goal-amount') { // Specific handling for goal-amount
+                        inputElement.addEventListener('blur', () => {
+                            formatNumberInput(inputElement);
+                            // updateCustomSavingsProjection is not directly tied to this blur
+                            // The 'สร้างแผนการออม' button will trigger the AI function
+                        });
+                    } else {
+                        // For other income/expense inputs, only format on blur.
+                        // updateSummary will be called when 'add' button is clicked.
+                        inputElement.addEventListener('blur', () => formatNumberInput(inputElement));
+                    }
+
+                    // Format initial values on load if they are not empty
+                    if (inputElement.value !== '') {
+                        // Only format if it's not annual-interest-rate, as it doesn't need commas
+                        if (id !== 'annual-interest-rate') {
+                            formatNumberInput(inputElement);
+                        }
+                    }
+                }
+            });
 
             renderList('income');
             renderList('fixed');
             renderFiniteItemList();
-            updateSummary();
+            updateSummary(); // Initial summary update after loading data and before any user interaction
 
-            document.getElementById('add-income-btn').addEventListener('click', () => addItem('income'));
-            document.getElementById('add-fixed-expense-btn').addEventListener('click', () => addItem('fixed'));
-            document.getElementById('add-finite-item-btn').addEventListener('click', addFiniteItem);
+            document.getElementById('add-income-btn').addEventListener('click', () => {
+                addItem('income');
+                // The input fields are cleared after adding, so no need to format them here.
+            });
+            document.getElementById('add-fixed-expense-btn').addEventListener('click', () => {
+                addItem('fixed');
+                // The input fields are cleared after adding, so no need to format them here.
+            });
+            document.getElementById('add-finite-item-btn').addEventListener('click', () => {
+                addFiniteItem();
+                // The input fields are cleared after adding, so no need to format them here.
+            });
             document.getElementById('calculate-payoff-btn').addEventListener('click', calculateDebtPayoff);
             document.getElementById('get-advice-btn').addEventListener('click', getFinancialAdvice);
             document.getElementById('get-plan-btn').addEventListener('click', generateSavingsPlan);
             document.getElementById('analyze-expenses-btn').addEventListener('click', analyzeExpenses);
-            document.getElementById('get-tax-advice-btn').addEventListener('click', getTaxAdvice); // New: Event listener for tax advice button
+            document.getElementById('get-tax-advice-btn').addEventListener('click', getTaxAdvice);
+            document.getElementById('export-summary-btn').addEventListener('click', exportSummaryAsImage); // New event listener for export button
             
-            // This call will show the assistant for the first time
             nongNgernSpeak(getRandomOfflineResponse('initialGreeting'));
+
+            // Start typing animation for header text
+            typeWriter('typed-title', () => {
+                typeWriter('typed-subtitle', () => {
+                    typeWriter('typed-tip');
+                });
+            });
         }
 
         window.onload = initializeApp;
