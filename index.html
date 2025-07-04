@@ -97,14 +97,14 @@
         .delete-btn:hover {
             color: #ef4444;
         }
+        /* Updated Loader for cute icon */
         .loader {
-            border: 4px solid #f3f3f3;
-            border-top: 4px solid #6d28d9;
-            border-radius: 50%;
-            width: 30px;
-            height: 30px;
-            animation: spin 1s linear infinite;
+            text-align: center;
+            font-size: 3rem; /* Larger icon */
+            color: #6d28d9; /* Purple color */
+            animation: spin 1s linear infinite; /* Keep spin animation */
             margin: 0 auto;
+            display: block; /* Ensure it's block to center */
         }
         @keyframes spin {
             0% { transform: rotate(0deg); }
@@ -113,6 +113,8 @@
         .ai-content {
             white-space: pre-wrap;
             line-height: 1.7;
+            max-height: 300px; /* Added max-height */
+            overflow-y: auto; /* Added scrollbar for overflow */
         }
         .modal-overlay {
             position: fixed;
@@ -273,8 +275,15 @@
                             💰 รายรับ <span id="dynamic-income-greeting" class="text-gray-600 text-sm ml-2"></span>
                         </h2>
                     </div>
-                    <p class="text-sm text-gray-500 mb-2">กรอกเงินเดือนและรายรับอื่นๆ ที่คุณได้รับเป็นประจำทุกเดือน</p>
-                    <p class="text-sm text-gray-500 mb-4">**เคล็ดลับ:** ยิ่งกรอกรายรับละเอียดเท่าไหร่ เจ้าเหมียวก็ยิ่งช่วยวางแผนให้เป๊ะขึ้นเท่านั้นนะ! 💰</p>
+                    <p class="text-sm text-gray-500 mb-2">
+                        กรอกเงินเดือนและรายรับอื่นๆ ที่คุณได้รับเป็นประจำทุกเดือน
+                        <span class="block mt-1 text-xs text-gray-400">
+                            (เช่น ค่าคอมมิชชั่น, รายได้เสริม)
+                        </span>
+                    </p>
+                    <p class="text-sm text-gray-500 mb-4">
+                        **เคล็ดลับจากเจ้าเหมียว:** ยิ่งกรอกรายรับละเอียดเท่าไหร่ เจ้าเหมียวก็ยิ่งช่วยวางแผนให้เป๊ะขึ้นเท่านั้นนะ! 💰
+                    </p>
                     <div class="space-y-4">
                         <div>
                             <label for="salary" class="block text-sm font-medium text-gray-700 mb-1">เงินเดือน / รายรับหลัก</label>
@@ -282,9 +291,12 @@
                         </div>
                         <div class="border-t pt-4">
                             <h3 class="font-semibold text-gray-800 mb-2">รายรับอื่นๆ</h3>
+                            <p class="text-sm text-gray-500 mb-2">
+                                เพิ่มรายรับยิบย่อยอื่นๆ ที่คุณมีเป็นประจำ เพื่อให้การคำนวณแม่นยำขึ้นค่ะ
+                            </p>
                             <div id="other-income-list" class="space-y-2 mb-4"></div>
                             <div class="flex space-x-2">
-                                <input type="text" id="other-income-name" class="input-field" placeholder="ชื่อรายการ">
+                                <input type="text" id="other-income-name" class="input-field" placeholder="ชื่อรายการ (เช่น ค่าเช่า, ดอกเบี้ย)">
                                 <input type="number" id="other-income-amount" class="input-field" placeholder="จำนวนเงิน">
                                 <button id="add-income-btn" class="btn btn-primary flex-shrink-0">เพิ่ม</button>
                             </div>
@@ -298,13 +310,20 @@
                             💳 รายจ่ายคงที่ (รายเดือน) <span id="dynamic-expense-greeting" class="text-gray-600 text-sm ml-2"></span>
                         </h2>
                     </div>
-                    <p class="text-sm text-gray-500 mb-2">สำหรับรายจ่ายที่เกิดขึ้นทุกเดือน เช่น ค่าเช่าบ้าน, ค่าสมาชิก Netflix</p>
-                    <p class="text-sm text-gray-500 mb-4">**เคล็ดลับ:** หากไม่มีรายจ่ายคงที่ สามารถปล่อยว่างไว้ได้เลย ไม่ไม่ต้องกรอกข้อมูล!</p>
+                    <p class="text-sm text-gray-500 mb-2">
+                        สำหรับรายจ่ายที่เกิดขึ้นทุกเดือนและมีจำนวนค่อนข้างคงที่
+                        <span class="block mt-1 text-xs text-gray-400">
+                            (เช่น ค่าเช่าบ้าน, ค่าสมาชิก Netflix, ค่าโทรศัพท์รายเดือน)
+                        </span>
+                    </p>
+                    <p class="text-sm text-gray-500 mb-4">
+                        **เคล็ดลับจากเจ้าเหมียว:** หากไม่มีรายจ่ายคงที่ สามารถปล่อยว่างไว้ได้เลย ไม่ต้องกรอกข้อมูลนะ! สบายใจไปเปราะนึง! 😉
+                    </p>
                     <div class="space-y-4">
                         <div>
                             <div id="fixed-expense-list" class="space-y-2 mb-4"></div>
                             <div class="flex space-x-2">
-                                <input type="text" id="fixed-expense-name" class="input-field" placeholder="ชื่อรายการ">
+                                <input type="text" id="fixed-expense-name" class="input-field" placeholder="ชื่อรายการ (เช่น ค่าเช่า, ค่าเน็ต)">
                                 <input type="number" id="fixed-expense-amount" class="input-field" placeholder="จำนวนเงิน">
                                 <button id="add-fixed-expense-btn" class="btn btn-primary flex-shrink-0">เพิ่ม</button>
                             </div>
@@ -318,21 +337,33 @@
                             💸 หนี้สินและค่าผ่อนชำระ <span id="dynamic-finite-greeting" class="text-gray-600 text-sm ml-2"></span>
                         </h2>
                     </div>
-                    <p class="text-sm text-gray-500 mb-2">สำหรับรายจ่ายที่มีกำหนดสิ้นสุด เช่น หนี้บ้าน, ค่าผ่อนรถ, ค่าผ่อนโทรศัพท์</p>
-                    <p class="text-sm text-gray-500 mb-4">**เคล็ดลับ:** หากไม่มีหนี้สิน สามารถปล่อยว่างไว้ได้เลย ไม่ต้องกรอกข้อมูล!</p>
+                    <p class="text-sm text-gray-500 mb-2">
+                        สำหรับรายจ่ายที่มีกำหนดสิ้นสุด หรือเป็นยอดหนี้ที่ต้องผ่อนชำระ
+                        <span class="block mt-1 text-xs text-gray-400">
+                            (เช่น หนี้บ้าน, ค่าผ่อนรถ, ค่าผ่อนโทรศัพท์, หนี้บัตรเครดิต)
+                        </span>
+                    </p>
+                    <p class="text-sm text-gray-500 mb-4">
+                        **เคล็ดลับจากเจ้าเหมียว:** หากไม่มีหนี้สิน สามารถปล่อยว่างไว้ได้เลย ไม่ต้องกรอกข้อมูลนะ! สุดยอดไปเลย! 🎉
+                    </p>
                     <div id="finite-item-list" class="space-y-3"></div>
                     <div class="space-y-4 border-t pt-4 mt-4">
                         <h3 class="font-semibold text-gray-800 mb-2">เพิ่มรายการใหม่</h3>
                         <input type="text" id="finite-item-name" class="input-field" placeholder="ชื่อรายการ (เช่น หนี้บัตรเครดิต)">
-                        <input type="number" id="finite-item-total" class="input-field" placeholder="ยอดหนี้/ยอดทั้งหมด">
-                        <input type="number" id="finite-item-monthly" class="input-field" placeholder="จำนวนเงินที่จ่ายต่อเดือน">
+                        <input type="number" id="finite-item-total" class="input-field" placeholder="ยอดหนี้/ยอดทั้งหมด (ต้องมากกว่า 0)">
+                        <input type="number" id="finite-item-monthly" class="input-field" placeholder="จำนวนเงินที่จ่ายต่อเดือน (ต้องมากกว่า 0)">
                         <button id="add-finite-item-btn" class="btn btn-primary w-full">เพิ่มรายการ</button>
-                            </div>
+                    </div>
                 </div>
 
                 <div class="card">
                     <h2 class="text-xl font-semibold text-cyan-600 mb-4">🔮 กลยุทธ์การปลดหนี้ (Debt Payoff)</h2>
-                    <p class="text-gray-600 text-sm mb-4">ใช้เงินคงเหลือของคุณมาเร่งการชำระหนี้ให้เร็วขึ้น เลือกกลยุทธ์ที่ต้องการแล้วดูผลลัพธ์</p>
+                    <p class="text-gray-600 text-sm mb-4">
+                        ใช้เงินคงเหลือของคุณมาเร่งการชำระหนี้ให้เร็วขึ้น เลือกกลยุทธ์ที่ต้องการแล้วดูผลลัพธ์
+                        <span class="block mt-1 text-xs text-gray-400">
+                            (ฟังก์ชันนี้จะทำงานได้เมื่อคุณมีเงินคงเหลือสุทธิเป็นบวก)
+                        </span>
+                    </p>
                     
                     <div class="space-y-2 mb-4">
                         <label class="block text-sm font-medium text-gray-700">เลือกกลยุทธ์:</label>
@@ -358,12 +389,17 @@
 
                 <div class="card">
                     <h2 class="text-xl font-semibold text-amber-600 mb-4">🔍 วิเคราะห์รายจ่าย</h2>
-                    <p class="text-gray-600 text-sm mb-4">ให้ AI ช่วยค้นหาจุดที่สามารถประหยัดเงินได้มากขึ้นจากรายการใช้จ่ายของคุณ</p>
+                    <p class="text-gray-600 text-sm mb-4">
+                        ให้ AI ช่วยค้นหาจุดที่สามารถประหยัดเงินได้มากขึ้นจากรายการใช้จ่ายของคุณ
+                        <span class="block mt-1 text-xs text-gray-400">
+                            (AI จะวิเคราะห์จากข้อมูลรายจ่ายคงที่และหนี้สินที่คุณกรอก)
+                        </span>
+                    </p>
                     <button id="analyze-expenses-btn" class="btn btn-secondary w-full">✨ วิเคราะห์และหาทางลดรายจ่าย</button>
                     <div id="analysis-card" class="mt-6 hidden">
                         <h3 class="text-lg font-semibold text-amber-600 mb-4 flex items-center"><i class="fas fa-search-dollar mr-2"></i> ผลการวิเคราะห์รายจ่าย</h3>
                         <div id="analysis-loader" class="text-center py-4 hidden">
-                            <div class="loader"></div>
+                            <i class="fas fa-paw loader"></i> <!-- Cute paw loader -->
                             <p class="text-gray-500 mt-2 text-sm">AI กำลังวิเคราะห์ข้อมูล...</p>
                         </div>
                         <div id="analysis-content" class="text-gray-700 space-y-3 ai-content"></div>
@@ -376,7 +412,12 @@
                             🎯 เป้าหมายการออม <span id="dynamic-goal-greeting" class="text-gray-600 text-sm ml-2"></span>
                         </h2>
                     </div>
-                    <p class="text-gray-600 text-sm mb-4">หลังจากปลดหนี้หมดแล้ว เงินคงเหลือของคุณจะกลายเป็นเงินออมเต็มจำนวน</p>
+                    <p class="text-gray-600 text-sm mb-4">
+                        หลังจากปลดหนี้หมดแล้ว เงินคงเหลือของคุณจะกลายเป็นเงินออมเต็มจำนวน
+                        <span class="block mt-1 text-xs text-gray-400">
+                            (AI จะช่วยสร้างแผนการออมตามเป้าหมายที่คุณกำหนด)
+                        </span>
+                    </p>
                     <div class="space-y-4">
                         <div>
                             <label for="goal-name" class="block text-sm font-medium text-gray-700 mb-1">อยากเก็บเงินเพื่ออะไร?</label>
@@ -391,7 +432,7 @@
                     <div id="plan-card" class="mt-6 hidden">
                         <h3 class="text-lg font-semibold text-indigo-600 mb-4 flex items-center"><i class="fas fa-tasks mr-2"></i> แผนการออมสำหรับคุณ</h3>
                         <div id="plan-loader" class="text-center py-4 hidden">
-                            <div class="loader"></div>
+                            <i class="fas fa-paw loader"></i> <!-- Cute paw loader -->
                             <p class="text-gray-500 mt-2 text-sm">AI กำลังสร้างแผนให้คุณ...</p>
                         </div>
                         <div id="plan-content" class="text-gray-700 space-y-3 ai-content"></div>
@@ -423,15 +464,40 @@
                     <div id="advice-card" class="card mt-6 hidden">
                         <h2 class="text-xl font-semibold text-purple-600 mb-4 flex items-center"><i class="fas fa-lightbulb mr-2"></i> คำแนะนำจาก AI</h2>
                         <div id="advice-loader" class="text-center py-4 hidden">
-                            <div class="loader"></div>
+                            <i class="fas fa-paw loader"></i> <!-- Cute paw loader -->
                             <p class="text-gray-500 mt-2 text-sm">กำลังวิเคราะห์ข้อมูล...</p>
                         </div>
                         <div id="advice-content" class="text-gray-700 space-y-3 ai-content"></div>
                     </div>
                     
+                    <!-- Moved Tax Advice Card here -->
+                    <div class="card mt-6">
+                        <h2 class="text-xl font-semibold text-lime-600 mb-4">📄 คำแนะนำภาษี</h2>
+                        <p class="text-gray-600 text-sm mb-4">
+                            เจ้าเหมียวจะช่วยแนะนำเรื่องภาษีเงินได้บุคคลธรรมดาให้คุณเอง! 💰
+                            <span class="block mt-1 text-xs text-gray-400">
+                                (AI จะวิเคราะห์จากรายรับรวมต่อเดือนของคุณ)
+                            </span>
+                        </p>
+                        <button id="get-tax-advice-btn" class="btn btn-secondary w-full">✨ ขอคำแนะนำภาษี</button>
+                        <div id="tax-advice-card" class="mt-6 hidden">
+                            <h3 class="text-lg font-semibold text-lime-600 mb-4 flex items-center"><i class="fas fa-file-invoice-dollar mr-2"></i> คำแนะนำภาษีจาก AI</h3>
+                            <div id="tax-advice-loader" class="text-center py-4 hidden">
+                                <i class="fas fa-paw loader"></i> <!-- Cute paw loader -->
+                                <p class="text-gray-500 mt-2 text-sm">AI กำลังวิเคราะห์ข้อมูลภาษี...</p>
+                            </div>
+                            <div id="tax-advice-content" class="text-gray-700 space-y-3 ai-content"></div>
+                        </div>
+                    </div>
+
                     <div class="card mt-6">
                         <h2 class="text-xl font-semibold text-blue-500 mb-4">📈 แผนการออมเงินในอนาคต</h2>
-                        <p class="text-gray-600 text-sm mb-4">จากเงินคงเหลือสุทธิต่อเดือนของคุณ ลองมาดูกันว่าคุณจะออมได้เท่าไหร่ในอนาคต!</p>
+                        <p class="text-gray-600 text-sm mb-4">
+                            จากเงินคงเหลือสุทธิต่อเดือนของคุณ ลองมาดูกันว่าคุณจะออมได้เท่าไหร่ในอนาคต!
+                            <span class="block mt-1 text-xs text-gray-400">
+                                (คำนวณจากเงินคงเหลือสุทธิปัจจุบันของคุณ)
+                            </span>
+                        </p>
                         
                         <div class="space-y-3">
                             <div class="flex justify-between items-center p-3 bg-blue-50 rounded-lg">
@@ -479,15 +545,18 @@
                         </div>
                     </div>
 
-                    <!-- New: Custom Savings Plan Card -->
                     <div class="card mt-6">
                         <div class="flex flex-col md:flex-row md:justify-between md:items-center mb-2">
                             <h2 class="text-xl font-semibold text-purple-500 text-left flex items-center mb-2 md:mb-0">
                                 🔮 วางแผนออมเงินเอง <span id="dynamic-custom-savings-greeting" class="text-gray-600 text-sm ml-2"></span>
                             </h2>
                         </div>
-                        <p class="text-gray-600 text-sm mb-4">มาคำนวณเป้าหมายการออมของคุณกัน!</p>
-                        <p class="text-sm text-gray-500 mb-4">**เคล็ดลับ:** กรอกข้อมูลให้ครบทุกช่องเพื่อดูว่าต้องใช้เวลาเท่าไหร่ในการออม! 🎯</p>
+                        <p class="text-gray-600 text-sm mb-4">
+                            มาคำนวณเป้าหมายการออมที่คุณกำหนดเองกัน!
+                        </p>
+                        <p class="text-sm text-gray-500 mb-4">
+                            **เคล็ดลับจากเจ้าเหมียว:** กรอกข้อมูลให้ครบทุกช่องเพื่อดูว่าต้องใช้เวลาเท่าไหร่ในการออมให้ถึงเป้าหมายนะ! 🎯
+                        </p>
                         <div class="space-y-4">
                             <div>
                                 <label for="starting-amount" class="block text-sm font-medium text-gray-700 mb-1">เงินเริ่มต้น (บาท) <span class="text-xs text-gray-500">(เงินก้อนแรกที่คุณมีอยู่แล้วเพื่อเริ่มออม)</span></label>
@@ -548,6 +617,18 @@
     <script>
         // --- Global AI Status Flag ---
         let isAiActive = true; // Initially AI is active
+        let hasInitialGreetingBeenShown = false; // New flag to track initial greeting
+        let isAnyAiFunctionProcessing = false; // New flag to track if any AI function is currently processing
+
+        // --- Constants for AI Cooldown ---
+        const FIXED_AI_COOLDOWN_MS = 20000; // 20 seconds cooldown
+
+        // --- Last call times for each AI function ---
+        let lastAdviceCallTime = 0;
+        let lastPlanCallTime = 0;
+        let lastAnalysisCallTime = 0;
+        let lastTaxAdviceCallTime = 0; // New: Last call time for tax advice function
+
 
         // --- Modal Functions ---
         const modal = document.getElementById('custom-modal');
@@ -732,16 +813,13 @@
             let monthsPassed = 0;
             const MAX_MONTHS = 1200; // Limit to 100 years to prevent infinite loops
 
-            // Check if target is impossible to reach (e.g., negative saving rate)
-            // This condition needs to be careful: if monthlyContribution is 0 but startingAmount is less than target, it's impossible.
-            // If monthlyContribution is positive, but interest rate is negative and pulls it down, it could also be impossible.
-            // For simplicity, check if contribution is non-positive and target is not reached by starting amount.
+            // Check if target is impossible to reach (e.g., non-positive saving rate)
             if (monthlyContribution <= 0 && startingAmount < targetAmount) {
-                impossibleToReachMessage.classList.add('hidden'); // Ensure it's hidden if condition not met
+                impossibleToReachMessage.classList.remove('hidden');
                 timeToTargetResults.classList.add('hidden');
-                timeDaysElement.textContent = 'คำนวณไม่ได้';
-                timeMonthsElement.textContent = 'คำนวณไม่ได้';
-                timeYearsElement.textContent = 'คำนวณไม่ได้';
+                timeDaysElement.textContent = 'เป็นไปไม่ได้';
+                timeMonthsElement.textContent = 'เป็นไปไม่ได้';
+                timeYearsElement.textContent = 'เป็นไปไม่ได้';
                 return;
             }
 
@@ -762,21 +840,26 @@
             } else {
                 const totalDaysNeeded = monthsPassed * 30.44; // Convert months to days for finer display
 
-                const years = Math.floor(totalDaysNeeded / 365.25);
-                const remainingDaysAfterYears = totalDaysNeeded % 365.25;
-                const months = Math.floor(remainingDaysAfterYears / 30.44);
-                const days = Math.round(remainingDaysAfterYears % 30.44);
+                const years = Math.floor(monthsPassed / 12);
+                const remainingMonths = monthsPassed % 12;
+                const days = Math.round((totalDaysNeeded % 30.44)); // Calculate remaining days within the last month
 
-                timeDaysElement.textContent = `${Math.round(totalDaysNeeded)} วัน`;
-                timeMonthsElement.textContent = `${monthsPassed} เดือน`; // Use raw months passed for accuracy
-                timeYearsElement.textContent = `${years} ปี ${months > 0 ? months + ' เดือน' : ''}`; // Combine years and months for years display
-                
-                // If only days or months are significant, adjust display for better readability
-                if (years === 0 && months === 0 && days > 0) {
-                    timeMonthsElement.textContent = ''; // Clear months if only days are significant
-                    timeYearsElement.textContent = ''; // Clear years if only days are significant
-                } else if (years === 0 && months > 0) {
-                    timeYearsElement.textContent = ''; // Clear years if only months are significant
+                // Clear previous content
+                timeDaysElement.textContent = '';
+                timeMonthsElement.textContent = '';
+                timeYearsElement.textContent = '';
+
+                // Display based on significance
+                if (years > 0) {
+                    timeYearsElement.textContent = `${years} ปี ${remainingMonths > 0 ? remainingMonths + ' เดือน' : ''}`;
+                } else if (remainingMonths > 0) {
+                    timeMonthsElement.textContent = `${remainingMonths} เดือน ${days > 0 ? days + ' วัน' : ''}`;
+                } else if (days > 0) {
+                    timeDaysElement.textContent = `${days} วัน`;
+                } else {
+                    // If all are zero, it means target was reached immediately (e.g., startingAmount >= targetAmount)
+                    targetReachedMessage.classList.remove('hidden');
+                    timeToTargetResults.classList.add('hidden');
                 }
             }
         }
@@ -815,9 +898,9 @@
 
             // Greeting for Fixed Expenses Card
             if (fixedExpenseTotal === 0) {
-                expenseGreetingText = 'ยังไม่มีรายจ่ายคงที่เลย! สบายใจไปเปราะนึง! 🥳';
+                expenseGreetingText = 'ยังไม่มีรายจ่ายคงที่เลย! สบายใจไปเปราะนึง! �';
             } else if (fixedExpenseTotal > 0 && fixedExpenseTotal <= 5000) {
-                expenseGreetingText = 'รายจ่ายคงที่กำลังดีเลยนะ! จัดการได้สบายๆ! �';
+                expenseGreetingText = 'รายจ่ายคงที่กำลังดีเลยนะ! จัดการได้สบายๆ! 👍';
             } else if (fixedExpenseTotal > 5000 && fixedExpenseTotal <= 15000) {
                 expenseGreetingText = 'รายจ่ายคงที่เริ่มเยอะแล้วนะ 😮 ไหวอยู่ป่าวเพื่อน?';
             } else { // fixedExpenseTotal > 15000
@@ -916,7 +999,8 @@
                 } else {
                     summaryPrompt += ` พอดีเป๊ะเลย! 😮`;
                 }
-                debouncedNongNgernThink(createNongNgernPrompt(summaryPrompt), `เจ้าเหมียวอัปเดตตัวเลขให้แล้วนะ!`, 'updateSummary');
+                // Removed debouncedNongNgernThink call here to prevent Nong Ngern from responding to every summary update
+                // This is now handled by the initial greeting only.
             }
         }
         
@@ -954,6 +1038,32 @@
             listElement.innerHTML = ''; // ล้างรายการที่มีอยู่เดิม
             financialData.finiteItems.forEach(item => {
                 const monthsToPayoff = item.monthlyPayment > 0 ? Math.ceil(item.totalAmount / item.monthlyPayment) : 0;
+                
+                let payoffTimeText = '';
+                if (monthsToPayoff === 0) {
+                    payoffTimeText = 'หมดแล้ว!';
+                } else {
+                    const years = Math.floor(monthsToPayoff / 12);
+                    const remainingMonths = monthsToPayoff % 12;
+                    // For simplicity, let's assume 30 days per month for remaining days if needed,
+                    // but usually years and months are sufficient for payoff periods.
+                    // If we want days, we'd need to track remaining balance more precisely.
+                    // For now, let's stick to years and months.
+
+                    let parts = [];
+                    if (years > 0) {
+                        parts.push(`${years} ปี`);
+                    }
+                    if (remainingMonths > 0) {
+                        parts.push(`${remainingMonths} เดือน`);
+                    }
+                    if (parts.length === 0 && monthsToPayoff > 0) { // If less than a month, show as 1 month
+                        parts.push(`น้อยกว่า 1 เดือน`);
+                    }
+                    payoffTimeText = parts.join(' ');
+                }
+
+
                 const itemHtml = `
                     <div id="${item.id}" class="p-4 border border-gray-200 rounded-lg bg-gray-50">
                         <div class="flex justify-between items-start">
@@ -961,7 +1071,7 @@
                                 <span class="font-semibold text-lg text-gray-800">${item.name}</span>
                                 <p class="text-sm text-gray-500">ยอดทั้งหมด: ${formatCurrency(item.totalAmount)}</p>
                             </div>
-                            <button onclick="removeFiniteItem('${item.id}')" class="delete-btn text-gray-400 hover:text-red-500">
+                            <button onclick="removeFiniteItem('${item.id}')" class="delete-btn">
                                 <i class="fas fa-times-circle"></i>
                             </button>
                         </div>
@@ -969,34 +1079,13 @@
                             <p class="text-sm text-gray-600">จ่ายเดือนละ: <span class="font-bold">${formatCurrency(item.monthlyPayment)}</span></p>
                             <div class="mt-2 p-3 bg-orange-100 border border-orange-200 rounded-md text-center">
                                 <p class="text-sm text-orange-800">จะหมดใน (เบื้องต้น)</p>
-                                <p class="text-2xl font-bold text-orange-600">${monthsToPayoff} เดือน</p>
+                                <p class="text-2xl font-bold text-orange-600">${payoffTimeText}</p>
                             </div>
                         </div>
                     </div>
                 `;
                 listElement.insertAdjacentHTML('beforeend', itemHtml);
             });
-        }
-
-        /**
-         * อัปเดตสถานะ UI ของปุ่มล้างรายการ (เช่น "ล้างรายการหนี้ทั้งหมด" หรือ "ล้างรายจ่ายคงที่ทั้งหมด")
-         * โดยจะเปลี่ยนข้อความ, ไอคอน และสีของปุ่มตามสถานะของข้อมูล
-         * @param {'fixed'|'finite'} type - ประเภทของรายการที่เกี่ยวข้อง ('fixed' สำหรับรายจ่ายคงที่, 'finite' สำหรับหนี้สิน)
-         */
-        function updateClearButtonUI(type) {
-            // These buttons are removed from HTML, so this function is no longer directly used for them.
-            // Keeping the function body as a placeholder or if it's used elsewhere.
-            let button;
-            let dataArray;
-            let activeText;
-            let clearedText;
-            let activeIconClass;
-            let clearedIconClass;
-            let activeColorClass;
-
-            // The buttons clearFixedExpensesBtn and clearFiniteItemsBtn are removed from HTML.
-            // This function might be vestigial or intended for other elements.
-            // If these buttons are re-added, ensure they have IDs and this function is called.
         }
         
         // --- Data Manipulation ---
@@ -1017,10 +1106,10 @@
                 const newItem = { id: `item-${Date.now()}`, name, amount };
                 if (type === 'income') {
                     financialData.otherIncomes.push(newItem);
-                    debouncedNongNgernThink(createNongNgernPrompt(`ว้าว! รายรับใหม่ "${name}" (${formatCurrency(amount)}) เข้ามาแล้ว! สุดยอดไปเลย! 🤩`), `เจ้าเหมียวดีใจจัง! มีรายรับเพิ่มแล้ว!`, 'addIncome'); // Debounced call
+                    // Removed debouncedNongNgernThink call here
                 } else {
                     financialData.fixedExpenses.push(newItem);
-                    debouncedNongNgernThink(createNongNgernPrompt(`โอ้โห! รายจ่ายคงที่ "${name}" (${formatCurrency(amount)}) มาแล้ว! เจ้าเหมียวขอเป็นกำลังใจให้นะ! 💪`), `เจ้าเหมียวรับทราบรายจ่ายแล้วจ้า!`, 'addItem'); // Debounced call
+                    // Removed debouncedNongNgernThink call here
                 }
                 renderList(type);
                 updateSummary();
@@ -1042,12 +1131,12 @@
                 const removedItem = financialData.otherIncomes.find(item => item.id === itemId);
                 if (removedItem) removedItemName = removedItem.name;
                 financialData.otherIncomes = financialData.otherIncomes.filter(item => item.id !== itemId);
-                debouncedNongNgernThink(createNongNgernPrompt(`โอเค! ลบรายรับ "${removedItemName}" ออกไปแล้วนะ! 🚮`), `เจ้าเหมียวลบรายการให้แล้วนะ!`, 'removeItem'); // Debounced call
+                // Removed debouncedNongNgernThink call here
             } else {
                 const removedItem = financialData.fixedExpenses.find(item => item.id === itemId);
                 if (removedItem) removedItemName = removedItem.name;
                 financialData.fixedExpenses = financialData.fixedExpenses.filter(item => item.id !== itemId);
-                debouncedNongNgernThink(createNongNgernPrompt(`ลบรายจ่าย "${removedItemName}" เรียบร้อยแล้ว! เยี่ยมเลย! 👍`), `เจ้าเหมียวลบรายการให้แล้วนะ!`, 'removeItem'); // Debounced call
+                // Removed debouncedNongNgernThink call here
             }
             renderList(type);
             updateSummary();
@@ -1065,17 +1154,17 @@
             const totalAmount = parseFloat(totalAmountInput.value);
             const monthlyPayment = parseFloat(monthlyPaymentInput.value);
 
-            if (name && !isNaN(totalAmount) && amount > 0 && !isNaN(monthlyPayment) && monthlyPayment > 0) {
+            if (name && !isNaN(totalAmount) && totalAmount > 0 && !isNaN(monthlyPayment) && monthlyPayment > 0) {
                 const newItem = { id: `finite-${Date.now()}`, name, totalAmount, monthlyPayment };
                 financialData.finiteItems.push(newItem);
-                debouncedNongNgernThink(createNongNgernPrompt(`รับทราบ! หนี้ "${name}" (${formatCurrency(totalAmount)}) ผ่อนเดือนละ ${formatCurrency(monthlyPayment)} ใช่มั้ย? สู้ๆ นะ! 💖`), `เจ้าเหมียวรับทราบรายการหนี้แล้วนะ!`, 'addItem'); // Debounced call
+                // Removed debouncedNongNgernThink call here
                 renderFiniteItemList();
                 updateSummary();
                 nameInput.value = '';
                 totalAmountInput.value = '';
                 monthlyPaymentInput.value = '';
             } else {
-                showModal('ข้อมูลไม่ถูกต้อง', 'กรุณากรอกข้อมูลหนี้สิน/ค่าผ่อนชำระให้ครบถ้วน');
+                showModal('ข้อมูลไม่ถูกต้อง', 'กรุณากรอกชื่อรายการและจำนวนเงินให้ครบถ้วน');
             }
         }
         
@@ -1088,7 +1177,7 @@
             let removedItemName = '';
             if (removedItem) removedItemName = removedItem.name;
             financialData.finiteItems = financialData.finiteItems.filter(item => item.id !== itemId);
-            debouncedNongNgernThink(createNongNgernPrompt(`เย้! ลบหนี้ "${removedItemName}" ออกไปแล้ว! เบาไปเยอะเลยใช่ไหมล่ะ? ✨`), `เจ้าเหมียวลบรายการหนี้ให้แล้วนะ!`, 'removeItem'); // Debounced call
+            // Removed debouncedNongNgernThink call here
             renderFiniteItemList();
             updateSummary();
         }
@@ -1101,7 +1190,7 @@
             renderFiniteItemList();
             updateSummary();
             showModal('เรียบร้อย!', 'รายการหนี้สินจะไม่ถูกนำไปคำนวณในสรุปยอดรายเดือนแล้ว');
-            debouncedNongNgernThink(createNongNgernPrompt(`ว้าว! เคลียร์หนี้หมดแล้วเหรอเนี่ย! สุดยอดไปเลย! 🎉 ตอนนี้เจ้าเหมียวพร้อมช่วยวางแผนออมเงินเต็มที่เลยนะ!`), `เคลียร์หนี้แล้ว! เยี่ยมเลย!`, 'removeItem'); // Debounced call
+            // Removed debouncedNongNgernThink call here
         }
 
         /**
@@ -1112,32 +1201,32 @@
             renderList('fixed');
             updateSummary();
             showModal('เรียบร้อย!', 'รายการรายจ่ายคงที่จะไม่ถูกนำไปคำนวณในสรุปยอดรายเดือนแล้ว');
-            debouncedNongNgernThink(createNongNgernPrompt(`รายจ่ายคงที่หายไปหมดแล้ว! เยี่ยมมาก! 🥳 ทีนี้ก็เหลือเงินไปทำอะไรสนุกๆ ได้เยอะเลย!`), `เคลียร์รายจ่ายคงที่แล้ว!`, 'removeItem'); // Debounced call
+            // Removed debouncedNongNgernThink call here
         }
         
         /**
          * คำนวณและแสดงแผนการปลดหนี้ตามกลยุทธ์ที่เลือก (Snowball หรือ Avalanche)
          */
         function calculateDebtPayoff() {
-            const totalIncome = financialData.salary + financialData.otherIncomes.reduce((s, i) => s + i.amount, 0);
-            const totalExpense = financialData.fixedExpenses.reduce((s, e) => s + e.amount, 0) + financialData.finiteItems.reduce((s, i) => s + i.monthlyPayment, 0);
+            const totalIncome = financialData.totalIncome; // ใช้ค่าจาก financialData
+            const totalExpense = financialData.totalExpense; // ใช้ค่าจาก financialData
             const balance = totalIncome - totalExpense;
 
             if (!isAiActive) { // Check AI active status first for API-dependent functions
                 showModal('เจ้าเหมียวกำลังพักผ่อน', 'อุ๊ย! เจ้าเหมียวใช้พลังงานเยอะไปหน่อย ตอนนี้กำลังพักผ่อนฮับ! 😴 ลองใหม่พรุ่งนี้นะคะ');
-                nongNgernSpeak(getRandomOfflineResponse('calculateDebt'));
+                // Removed nongNgernSpeak call here
                 return;
             }
 
             if (financialData.finiteItems.length === 0) {
                 showModal('ไม่มีข้อมูล', 'กรุณาเพิ่มรายการหนี้สิน/ค่าผ่อนชำระก่อน');
-                debouncedNongNgernThink(createNongNgernPrompt('โอ๊ะโอ! ยังไม่มีหนี้ให้ปลดเลยนะเพื่อน! 🥳 ลองเพิ่มรายการหนี้ก่อนสิ!'), 'ยังไม่มีหนี้ให้ปลดนะ!', 'general');
+                // Removed debouncedNongNgernThink call here
                 return;
             }
 
             if (balance <= 0) {
                 showModal('ไม่สามารถวางแผนได้', 'คุณต้องมีเงินคงเหลือสุทธิเป็นบวกเพื่อใช้กลยุทธ์นี้');
-                debouncedNongNgernThink(createNongNgernPrompt('อืม... ตอนนี้เงินคงเหลือสุทธิยังไม่พอโปะหนี้เลย 😥 ลองเพิ่มรายรับหรือลดรายจ่ายดูก่อนนะ!'), 'เงินไม่พอโปะหนี้!', 'general');
+                // Removed debouncedNongNgernThink call here
                 return;
             }
             
@@ -1147,13 +1236,15 @@
             
             let individualAnalysisHtml = `
                 <div class="mb-6">
-                    <h4 class="font-semibold text-gray-800 mb-2">💡 วิเคราะห์การโปะทีละตัว</h4>
-                    <p class="text-sm text-gray-500 mb-3">ถ้าคุณนำเงินคงเหลือทั้งหมดไปโปะหนี้ทีละก้อน จะใช้เวลาดังนี้:</p>
+                    <h4 class="font-semibold text-gray-800 mb-2">💡 วิเคราะห์การโปะทีละตัว (ถ้าโปะด้วยเงินคงเหลือทั้งหมด)</h4>
+                    <p class="text-sm text-gray-500 mb-3">ถ้าคุณนำเงินคงเหลือสุทธิ ${formatCurrency(balance)} ไปโปะหนี้แต่ละก้อนเพิ่มเติมจากยอดผ่อนปกติ จะใช้เวลาดังนี้:</p>
                     <div class="space-y-2">
             `;
             financialData.finiteItems.forEach(debt => {
+                // Calculate time to pay off this specific debt if all 'balance' is put towards it,
+                // in addition to its regular monthly payment.
                 const focusedPayment = debt.monthlyPayment + balance;
-                const months = focusedPayment > 0 ? Math.ceil(debt.totalAmount / focusedPayment) : 'N/A'; 
+                const months = focusedPayment > 0 ? Math.ceil(debt.totalAmount / focusedPayment) : 'ไม่สามารถคำนวณได้'; // Handle division by zero
                 individualAnalysisHtml += `
                     <div class="flex justify-between items-center p-2 bg-gray-100 rounded-md">
                         <span class="text-sm font-medium text-gray-700">${debt.name}</span>
@@ -1164,43 +1255,49 @@
             individualAnalysisHtml += `</div></div>`;
 
             const strategy = document.querySelector('input[name="payoff-strategy"]:checked').value;
-            let simItems = JSON.parse(JSON.stringify(financialData.finiteItems)); 
+            let simItems = JSON.parse(JSON.stringify(financialData.finiteItems)); // Deep copy to simulate without altering original data
             let monthsPassed = 0;
             let payoffLog = [];
-            let monthlySnowball = balance;
+            let monthlySnowball = balance; // This is the extra amount available to throw at debts
 
-            while (simItems.length > 0) {
+            while (simItems.length > 0 && monthsPassed < 1200) { // Add max months to prevent infinite loops
                 monthsPassed++;
-                let paymentPower = monthlySnowball;
+                let paymentPower = monthlySnowball; // Start with the available extra payment
 
-                simItems.forEach(item => { item.totalAmount -= item.monthlyPayment; });
+                // First, pay minimums for all remaining debts
+                simItems.forEach(item => {
+                    item.totalAmount -= item.monthlyPayment;
+                });
 
+                // Sort based on strategy
                 if (strategy === 'snowball') {
-                    simItems.sort((a, b) => a.totalAmount - b.totalAmount);
-                } else {
-                    simItems.sort((a, b) => b.totalAmount - a.totalAmount);
+                    simItems.sort((a, b) => a.totalAmount - b.totalAmount); // Smallest balance first
+                } else { // avalanche
+                    simItems.sort((a, b) => b.totalAmount - a.totalAmount); // Largest balance first (or highest interest, but we don't have interest rates here, so total amount is proxy)
                 }
                 
+                // Apply remaining payment power to the targeted debt
                 for (let i = 0; i < simItems.length; i++) {
                     const item = simItems[i];
-                    if (paymentPower <= 0) break;
+                    if (paymentPower <= 0) break; // No more extra money to apply
 
-                    const amountToPay = Math.min(paymentPower, item.totalAmount);
+                    const amountToPay = Math.min(paymentPower, Math.max(0, item.totalAmount)); // Ensure we don't overpay or pay negative
                     item.totalAmount -= amountToPay;
                     paymentPower -= amountToPay;
                 }
 
+                // Check for paid off debts and roll over their minimum payments
                 for (let i = simItems.length - 1; i >= 0; i--) {
                     if (simItems[i].totalAmount <= 0) {
                         const paidItem = simItems.splice(i, 1)[0];
                         payoffLog.push(`✅ ${paidItem.name} (ปลดหนี้สำเร็จในเดือนที่ ${monthsPassed})`);
-                        monthlySnowball += paidItem.monthlyPayment;
+                        monthlySnowball += paidItem.monthlyPayment; // Add minimum payment of cleared debt to snowball
                     }
                 }
-                if (monthsPassed > 1200) {
-                    payoffLog.push("...คำนวณนานเกิน 100 ปี (อาจมีหนี้จำนวนมากหรือเงินคงเหลือน้อย)");
-                    break; 
-                }
+            }
+
+            if (monthsPassed >= 1200 && simItems.length > 0) {
+                payoffLog.push("...คำนวณนานเกิน 100 ปี (อาจมีหนี้จำนวนมากหรือเงินคงเหลือน้อยมาก)");
             }
 
             let overallStrategyHtml = `
@@ -1220,7 +1317,7 @@
                 </div>
             `;
             projectionContent.innerHTML = individualAnalysisHtml + overallStrategyHtml;
-            debouncedNongNgernThink(createNongNgernPrompt(`ว้าว! แผนปลดหนี้พร้อมแล้ว! เจ้าเหมียวตื่นเต้นแทนเลย! 🚀 ใช้เวลาแค่ ${monthsPassed} เดือนเอง! สู้ๆ นะ!`), `แผนปลดหนี้พร้อมแล้ว!`, 'calculateDebt');
+            // Removed debouncedNongNgernThink call here
         }
 
         // --- Gemini API Functions ---
@@ -1233,6 +1330,8 @@
          * @returns {Promise<string>} Promise ที่จะคืนค่าข้อความตอบกลับจาก AI
          */
         async function callGemini(prompt, retries = 3, delay = 1000) {
+            // IMPORTANT: In a production environment, never hardcode API keys directly in client-side code.
+            // Use environment variables or a backend proxy for security.
             const apiKey = "AIzaSyB1-iPWRF9M2Vq7k_CvfY1FXg42YdmgPDg"; 
             const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
 
@@ -1349,46 +1448,14 @@
             };
         }
 
-        // Create a debounced version of nongNgernThink for frequent actions
-        const debouncedNongNgernThink = debounce(async (prompt, fallbackMessage, actionType) => {
-            if (!isAiActive) {
-                if (!quotaExceededModalShown) {
-                    showModal('เจ้าเหมียวกำลังพักผ่อน', 'อุ๊ย! เจ้าเหมียวใช้พลังงานเยอะไปหน่อย ตอนนี้กำลังพักผ่อนฮับ! 😴 ลองใหม่พรุ่งนี้นะคะ');
-                    quotaExceededModalShown = true;
-                }
-                nongNgernSpeak(getRandomOfflineResponse(actionType));
-                return;
-            }
-
-            clearTimeout(hideAssistantTimeout);
-            nongNgernAssistantElement.classList.remove('hidden');
-            nongNgernLoaderElement.classList.add('active');
-            nongNgernMessageElement.textContent = ''; // Clear message while thinking
-            try {
-                const response = await callGemini(prompt);
-                if (!isAiActive) {
-                     if (!quotaExceededModalShown) {
-                        showModal('เจ้าเหมียวกำลังพักผ่อน', 'อุ๊ย! เจ้าเหมียวใช้พลังงานเยอะไปหน่อย ตอนนี้กำลังพักผ่อนฮับ! 😴 ลองใหม่พรุ่งนี้นะคะ');
-                        quotaExceededModalShown = true;
-                    }
-                     nongNgernSpeak(getRandomOfflineResponse(actionType));
-                     return;
-                }
-                nongNgernSpeak(response);
-            } catch (error) {
-                console.error("Nong Ngern AI Error:", error);
-                if (error.message.includes("401 Unauthorized")) {
-                    nongNgernSpeak('โอ๊ะโอ! 😱 เจ้าเหมียวคุยกับ AI ไม่ได้เลย! เหมือน API Key จะมีปัญหานะคะ ลองตรวจสอบดูอีกทีน้า~');
-                } else if (error.message.includes("429 Quota Exceeded")) {
-                    // Handled by the isAiActive check at the beginning of the function
-                }
-                else {
-                    nongNgernSpeak(fallbackMessage || 'อุ๊ย! เจ้าเหมียวงงไปหมดเลย ลองใหม่นะ! 😅');
-                }
-            } finally {
-                nongNgernLoaderElement.classList.remove('active');
-            }
-        }, 700); // 700ms debounce delay
+        // This debounced function is now ONLY for displaying "AI is thinking..."
+        // and does NOT interact with nongNgernAssistantElement directly.
+        // It's effectively unused for AI responses now, as AI responses are directly tied to loaders.
+        const debouncedAiThinkingMessage = debounce((message) => {
+            // This function is no longer responsible for showing/hiding the main assistant.
+            // It just updates the loader text for the specific AI sections.
+            // The AI sections themselves will show/hide their specific loaders.
+        }, 700); // 700ms debounce delay (can be adjusted if needed, but not critical for this new flow)
 
         /**
          * Helper function to get a random offline response based on action type.
@@ -1401,92 +1468,46 @@
         }
 
         /**
-         * Helper function to create a prompt for Nong Ngern AI with persona instructions.
-         * @param {string} userPrompt - The main prompt content.
-         * @returns {string} The full prompt including persona instructions.
-         */
-        function createNongNgernPrompt(userPrompt) {
-            return `คุณคือเจ้าเหมียว AI ผู้ช่วยวางแผนการเงินผู้หญิงที่น่ารัก สดใส เป็นกันเอง ตอบสั้นๆ ไม่เกิน 2 บรรทัด และใช้ emoji. ${userPrompt}`;
-        }
-
-        /**
          * แสดงข้อความจากเจ้าเหมียวและจัดการการซ่อนอัตโนมัติ
+         * THIS FUNCTION IS NOW ONLY FOR THE INITIAL GREETING.
          * @param {string} message - ข้อความที่เจ้าเหมียวจะพูด
          */
         function nongNgernSpeak(message) {
-            clearTimeout(hideAssistantTimeout);
-            nongNgernAssistantElement.classList.remove('hidden');
-            nongNgernMessageElement.textContent = message;
+            // Only execute if the initial greeting hasn't been shown yet
+            if (!hasInitialGreetingBeenShown) {
+                clearTimeout(hideAssistantTimeout); // Clear any previous timeout (shouldn't be one on first load)
+                nongNgernAssistantElement.classList.remove('hidden'); // Show the assistant
+                nongNgernMessageElement.textContent = message; // Set the message
+                hasInitialGreetingBeenShown = true; // Mark as shown
 
-            hideAssistantTimeout = setTimeout(() => {
-                nongNgernAssistantElement.classList.add('hidden');
-            }, MESSAGE_DISPLAY_DURATION);
-        }
-
-        // Original nongNgernThink is now replaced by debouncedNongNgernThink in most calls.
-        // This non-debounced version is kept for specific cases where immediate response is needed
-        // or for the initial greeting.
-        async function nongNgernThinkImmediate(prompt, fallbackMessage, actionType = 'general') {
-             if (!isAiActive) {
-                if (!quotaExceededModalShown) {
-                    showModal('เจ้าเหมียวกำลังพักผ่อน', 'อุ๊ย! เจ้าเหมียวใช้พลังงานเยอะไปหน่อย ตอนนี้กำลังพักผ่อนฮับ! 😴 ลองใหม่พรุ่งนี้นะคะ');
-                    quotaExceededModalShown = true;
-                }
-                nongNgernSpeak(getRandomOfflineResponse(actionType));
-                return;
+                // Set a timeout to hide the assistant after MESSAGE_DISPLAY_DURATION
+                hideAssistantTimeout = setTimeout(() => {
+                    nongNgernAssistantElement.classList.add('hidden');
+                }, MESSAGE_DISPLAY_DURATION);
             }
-
-            clearTimeout(hideAssistantTimeout);
-            nongNgernAssistantElement.classList.remove('hidden');
-            nongNgernLoaderElement.classList.add('active');
-            nongNgernMessageElement.textContent = ''; // Clear message while thinking
-            try {
-                const response = await callGemini(prompt);
-                if (!isAiActive) {
-                     if (!quotaExceededModalShown) {
-                        showModal('เจ้าเหมียวกำลังพักผ่อน', 'อุ๊ย! เจ้าเหมียวใช้พลังงานเยอะไปหน่อย ตอนนี้กำลังพักผ่อนฮับ! 😴 ลองใหม่พรุ่งนี้นะคะ');
-                        quotaExceededModalShown = true;
-                    }
-                     nongNgernSpeak(getRandomOfflineResponse(actionType));
-                     return;
-                }
-                nongNgernSpeak(response);
-            } catch (error) {
-                console.error("Nong Ngern AI Error:", error);
-                if (error.message.includes("401 Unauthorized")) {
-                    nongNgernSpeak('โอ๊ะโอ! 😱 เจ้าเหมียวคุยกับ AI ไม่ได้เลย! เหมือน API Key จะมีปัญหานะคะ ลองตรวจสอบดูอีกทีน้า~');
-                } else if (error.message.includes("429 Quota Exceeded")) {
-                    // Handled by the isAiActive check at the beginning of the function
-                }
-                else {
-                    nongNgernSpeak(fallbackMessage || 'อุ๊ย! เจ้าเหมียวงงไปหมดเลย ลองใหม่นะ! 😅');
-                }
-            } finally {
-                nongNgernLoaderElement.classList.remove('active');
-            }
+            // If hasInitialGreetingBeenShown is true, this function does nothing.
         }
-
 
         /**
-         * อัปเดตวันที่และเวลาจริงบนโลก
+         * Sets the disabled state for all AI-related buttons.
+         * @param {boolean} disabled - True to disable buttons, false to enable.
          */
-        function updateRealTimeClock() {
-            const now = new Date();
-            const options = {
-                weekday: 'long',
-                year: 'numeric',
-                month: 'long',
-                day: 'numeric',
-                hour: '2-digit',
-                minute: '2-digit',
-                second: '2-digit',
-                hour12: false
-            };
-            const formattedDateTime = now.toLocaleDateString('th-TH', options);
-            // Check if the element exists before trying to update its textContent
-            const clockElement = document.getElementById('real-time-clock');
-            if (clockElement) {
-                clockElement.textContent = formattedDateTime;
+        function setAiButtonsState(disabled) {
+            document.getElementById('get-advice-btn').disabled = disabled;
+            document.getElementById('get-plan-btn').disabled = disabled;
+            document.getElementById('analyze-expenses-btn').disabled = disabled;
+            document.getElementById('get-tax-advice-btn').disabled = disabled; // New: Disable tax advice button
+
+            if (disabled) {
+                document.getElementById('get-advice-btn').classList.add('opacity-50');
+                document.getElementById('get-plan-btn').classList.add('opacity-50');
+                document.getElementById('analyze-expenses-btn').classList.add('opacity-50');
+                document.getElementById('get-tax-advice-btn').classList.add('opacity-50'); // New: Add opacity
+            } else {
+                document.getElementById('get-advice-btn').classList.remove('opacity-50');
+                document.getElementById('get-plan-btn').classList.remove('opacity-50');
+                document.getElementById('analyze-expenses-btn').classList.remove('opacity-50');
+                document.getElementById('get-tax-advice-btn').classList.remove('opacity-50'); // New: Remove opacity
             }
         }
 
@@ -1497,9 +1518,28 @@
          * โดยใช้ภาษาที่น่ารักและเป็นกันเอง สไตล์วัยรุ่น
          */
         async function getFinancialAdvice() {
+            const adviceBtn = document.getElementById('get-advice-btn');
+            const adviceLoader = document.getElementById('advice-loader');
+            const adviceContent = document.getElementById('advice-content');
+            const adviceCard = document.getElementById('advice-card');
+
+            // Prevent multiple AI calls simultaneously
+            if (isAnyAiFunctionProcessing) {
+                showModal('เจ้าเหมียวกำลังทำงานอยู่ค่ะ', 'โปรดรอให้การวิเคราะห์ก่อนหน้าเสร็จสิ้นนะคะ 🐾');
+                return;
+            }
+
+            // Cooldown check
+            const now = Date.now();
+            if (now - lastAdviceCallTime < FIXED_AI_COOLDOWN_MS) {
+                const remainingSeconds = Math.ceil((FIXED_AI_COOLDOWN_MS - (now - lastAdviceCallTime)) / 1000);
+                showModal('รอสักครู่นะคะ', `เจ้าเหมียวกำลังคิดอยู่ค่ะ! รออีก ${remainingSeconds} วินาทีนะคะ ⏳`);
+                return;
+            }
+
             if (!isAiActive) {
                 showModal('เจ้าเหมียวกำลังพักผ่อน', 'อุ๊ย! เจ้าเหมียวใช้พลังงานเยอะไปหน่อย ตอนนี้กำลังพักผ่อนฮับ! 😴 ลองใหม่พรุ่งนี้นะคะ');
-                nongNgernSpeak(getRandomOfflineResponse('general')); // Use offline response
+                // Removed nongNgernSpeak call here as Nong Ngern is only for initial greeting
                 return;
             }
 
@@ -1508,36 +1548,45 @@
             const totalIncome = financialData.totalIncome;
             if (totalIncome === 0) {
                 showModal('ข้อมูลไม่ครบถ้วน', 'กรุณากรอกข้อมูล "รายรับ" ก่อนขอคำแนะนำจาก AI');
-                debouncedNongNgernThink(createNongNgernPrompt('โอ๊ะ! ยังไม่มีรายรับเลยนะเพื่อน! 🥺 เจ้าเหมียวให้คำแนะนำไม่ได้ถ้าไม่มีข้อมูลน้า~'), 'กรอกรายรับก่อนนะ!', 'general');
+                // Removed debouncedAiThinkingMessage call here
                 return;
             }
 
-            const adviceCard = document.getElementById('advice-card');
-            const adviceLoader = document.getElementById('advice-loader');
-            const adviceContent = document.getElementById('advice-content');
-            const adviceBtn = document.getElementById('get-advice-btn');
-
+            isAnyAiFunctionProcessing = true; // Set flag to true
+            setAiButtonsState(true); // Disable all AI buttons
+            lastAdviceCallTime = now; // Record call time
             adviceCard.classList.remove('hidden');
-            adviceLoader.classList.remove('hidden');
+            adviceLoader.classList.remove('hidden'); // Show loader
             adviceContent.innerHTML = '';
-            adviceBtn.disabled = true;
-            adviceBtn.classList.add('opacity-50');
+            adviceContent.classList.add('hidden'); // Hide content until cooldown is over
 
             const balance = financialData.totalIncome - financialData.totalExpense;
 
             // Adjusted prompt for problem-solving, practical, concise advice
-            const prompt = `จากข้อมูลการเงินของฉัน: รายรับรวม ${formatCurrency(totalIncome)}, รายจ่าย ${formatCurrency(financialData.totalExpense)}, เหลือ ${formatCurrency(balance)}
-ช่วยให้คำแนะนำทางการเงินที่เป็นประโยชน์และนำไปปฏิบัติได้จริง 1-2 ข้อ โดยเน้นการแก้ปัญหาและกระชับที่สุดในสไตล์เจ้าเหมียว`;
+            const prompt = `ในฐานะผู้เชี่ยวชาญด้านการเงินส่วนบุคคลที่น่ารักและเป็นกันเอง ช่วยวิเคราะห์ภาพรวมการเงินของฉัน (รายรับ: ${formatCurrency(totalIncome)}, รายจ่าย: ${formatCurrency(financialData.totalExpense)}, คงเหลือ: ${formatCurrency(balance)}) และให้คำแนะนำทางการเงินที่ทำได้จริงและมีประสิทธิภาพ 2-3 ข้อ เพื่อปรับปรุงสถานะการเงินให้ดีขึ้น โดยใช้ภาษาที่เข้าใจง่ายและน่ารักสไตล์เจ้าเหมียว`;
 
-            debouncedNongNgernThink(createNongNgernPrompt('เจ้าเหมียวกำลังคิดคำแนะนำดีๆ มาให้แล้วนะ! 💡'), 'เจ้าเหมียวขออภัยนะ ตอนนี้ให้คำแนะนำไม่ได้เลย 😥', 'general');
+            // No debouncedAiThinkingMessage call here, as Nong Ngern is only for initial greeting.
+            // The loader within the card itself indicates thinking.
+            
+            const startTime = Date.now();
+            let apiResponseResult = ''; // Variable to store API response
+
             try {
-                adviceContent.innerHTML = await callGemini(prompt);
+                apiResponseResult = await callGemini(prompt); // Await the API call immediately
             } catch (error) {
-                adviceContent.innerHTML = '<p class="text-red-500">เกิดข้อผิดพลาดในการขอคำแนะนำ กรุณาลองใหม่อีกครั้ง</p>';
+                console.error("Error during API call:", error);
+                apiResponseResult = '<p class="text-red-500">เกิดข้อผิดพลาดในการขอคำแนะนำ กรุณาลองใหม่อีกครั้ง</p>';
             } finally {
-                adviceLoader.classList.add('hidden');
-                adviceBtn.disabled = false;
-                adviceBtn.classList.remove('opacity-50');
+                const elapsedTime = Date.now() - startTime;
+                const remainingDelay = Math.max(0, FIXED_AI_COOLDOWN_MS - elapsedTime);
+
+                setTimeout(() => {
+                    adviceLoader.classList.add('hidden'); // Hide loader
+                    adviceContent.innerHTML = apiResponseResult; // Set content after delay
+                    adviceContent.classList.remove('hidden'); // Show content after delay
+                    isAnyAiFunctionProcessing = false; // Release the flag
+                    setAiButtonsState(false); // Enable all AI buttons
+                }, remainingDelay);
             }
         }
         
@@ -1548,9 +1597,28 @@
          * พร้อมใช้ภาษาน่ารักและเป็นกันเอง สไตล์วัยรุ่น
          */
         async function generateSavingsPlan() {
+            const planBtn = document.getElementById('get-plan-btn');
+            const planLoader = document.getElementById('plan-loader');
+            const planContent = document.getElementById('plan-content');
+            const planCard = document.getElementById('plan-card');
+
+            // Prevent multiple AI calls simultaneously
+            if (isAnyAiFunctionProcessing) {
+                showModal('เจ้าเหมียวำลังทำงานอยู่ค่ะ', 'โปรดรอให้การวิเคราะห์ก่อนหน้าเสร็จสิ้นนะคะ 🐾');
+                return;
+            }
+
+            // Cooldown check
+            const now = Date.now();
+            if (now - lastPlanCallTime < FIXED_AI_COOLDOWN_MS) {
+                const remainingSeconds = Math.ceil((FIXED_AI_COOLDOWN_MS - (now - lastPlanCallTime)) / 1000);
+                showModal('รอสักครู่นะคะ', `เจ้าเหมียวำลังสร้างแผนอยู่ค่ะ! รออีก ${remainingSeconds} วินาทีนะคะ ⏳`);
+                return;
+            }
+
             if (!isAiActive) {
-                showModal('เจ้าเหมียวกำลังพักผ่อน', 'อุ๊ย! เจ้าเหมียวใช้พลังงานเยอะไปหน่อย ตอนนี้กำลังพักผ่อนฮับ! 😴 ลองใหม่พรุ่งนี้นะคะ');
-                nongNgernSpeak(getRandomOfflineResponse('generateSavingsPlan')); // Use offline response
+                showModal('เจ้าเหมียวำลังพักผ่อน', 'อุ๊ย! เจ้าเหมียวใช้พลังงานเยอะไปหน่อย ตอนนี้กำลังพักผ่อนฮับ! 😴 ลองใหม่พรุ่งนี้นะคะ');
+                // Removed nongNgernSpeak call here
                 return;
             }
 
@@ -1561,20 +1629,17 @@
 
             if (!goalName || isNaN(goalAmount) || goalAmount <= 0) {
                 showModal('ข้อมูลไม่ครบถ้วน', 'กรุณากรอกข้อมูลเป้าหมายการออมให้ครบถ้วน');
-                debouncedNongNgernThink(createNongNgernPrompt('เอ๊ะ! เป้าหมายการออมหายไปไหนนะ? 🧐 กรอกให้ครบก่อนนะเพื่อน!'), 'กรอกเป้าหมายก่อนนะ!', 'general');
+                // Removed debouncedAiThinkingMessage call here
                 return;
             }
 
-            const planCard = document.getElementById('plan-card');
-            const planLoader = document.getElementById('plan-loader');
-            const planContent = document.getElementById('plan-content');
-            const planBtn = document.getElementById('get-plan-btn');
-
+            isAnyAiFunctionProcessing = true; // Set flag to true
+            setAiButtonsState(true); // Disable all AI buttons
+            lastPlanCallTime = now; // Record call time
             planCard.classList.remove('hidden');
-            planLoader.classList.remove('hidden');
+            planLoader.classList.remove('hidden'); // Show loader
             planContent.innerHTML = '';
-            planBtn.disabled = true;
-            planBtn.classList.add('opacity-50');
+            planContent.classList.add('hidden'); // Hide content until cooldown is over
 
             const currentBalance = financialData.totalIncome - financialData.totalExpense;
             const totalMonthlyDebtPayments = financialData.finiteItems.reduce((sum, item) => sum + item.monthlyPayment, 0);
@@ -1585,7 +1650,6 @@
                 const estimatedMonths = Math.ceil(goalAmount / potentialSavingAfterDebt);
                 const estimatedYears = Math.floor(estimatedMonths / 12);
                 const remainingMonths = estimatedMonths % 12;
-                const estimatedDays = (remainingMonths * (30.44)).toFixed(0); 
                 
                 let timeParts = [];
                 if (estimatedYears > 0) {
@@ -1594,15 +1658,14 @@
                 if (remainingMonths > 0) {
                     timeParts.push(`${remainingMonths} เดือน`);
                 }
+                // If the goal is very small and can be achieved in less than a month, show as days
                 if (estimatedMonths === 0 && goalAmount > 0 && potentialSavingAfterDebt > 0) {
-                    timeParts.push(`${Math.ceil(goalAmount / (potentialSavingAfterDebt / 30.44))} วัน`);
-                } else if (remainingMonths === 0 && estimatedYears === 0 && goalAmount > 0 && potentialSavingAfterDebt > 0) {
                     timeParts.push(`${Math.ceil(goalAmount / (potentialSavingAfterDebt / 30.44))} วัน`);
                 }
                 
                 if (timeParts.length > 0) {
                     estimatedTimeText = `น่าจะใช้เวลาประมาณ ${timeParts.join(' ')}`;
-                } else if (estimatedMonths === 0 && goalAmount > 0) {
+                } else if (goalAmount > 0 && potentialSavingAfterDebt > 0) { // If goal is reached immediately
                     estimatedTimeText = `จะถึงเป้าหมายได้เลย! (ถ้ามีเงินออมพอ)`;
                 }
             } else {
@@ -1610,21 +1673,28 @@
             }
 
             // Adjusted prompt for problem-solving, practical, concise advice
-            const prompt = `ฉันอยากเก็บเงินเพื่อ "${goalName}" จำนวน ${formatCurrency(goalAmount)}
-สถานะการเงินปัจจุบัน: มีเงินคงเหลือสุทธิต่อเดือน ${formatCurrency(currentBalance)} และมีหนี้สินที่ต้องชำระ
-ศักยภาพออมหลังปลดหนี้: ${formatCurrency(potentialSavingAfterDebt)} ต่อเดือน
-${estimatedTimeText ? `ถ้าออมด้วยศักยภาพสูงสุด ${estimatedTimeText} นะ` : ''}
-ช่วยสร้างแผนออมที่ทำได้จริง 1-2 ข้อ โดยเน้นขั้นตอนที่กระชับและเข้าใจง่ายในสไตล์เจ้าเหมียว`;
+            const prompt = `ในฐานะผู้เชี่ยวชาญด้านการเงินส่วนบุคคลที่น่ารักและเป็นกันเอง ฉันต้องการเก็บเงินเพื่อ "${goalName}" จำนวน ${formatCurrency(goalAmount)} โดยมีสถานะการเงินปัจจุบัน: เงินคงเหลือสุทธิต่อเดือน ${formatCurrency(currentBalance)} และมีหนี้สินที่ต้องชำระ (ถ้ามี) ศักยภาพออมหลังปลดหนี้: ${formatCurrency(potentialSavingAfterDebt)} ต่อเดือน ${estimatedTimeText ? `คาดว่าจะใช้เวลา ${estimatedTimeText} ในการออม` : ''} โปรดสร้างแผนการออมที่ทำได้จริงและเป็นขั้นเป็นตอน 2-3 ข้อ เพื่อให้ฉันบรรลุเป้าหมายนี้ โดยใช้ภาษาที่เข้าใจง่ายและน่ารักสไตล์เจ้าเหมียว`;
 
-            debouncedNongNgernThink(createNongNgernPrompt('เจ้าเหมียวกำลังสร้างแผนออมเงินสุดปังให้แล้วนะ! 💖 รอแป๊บเดียว!'), 'เจ้าเหมียวสร้างแผนออมให้ไม่ได้เลย 😥', 'generateSavingsPlan');
+            // No debouncedAiThinkingMessage call here
+            
+            const startTime = Date.now();
+            let apiResponseResult = ''; // Variable to store API response
+
             try {
-                planContent.innerHTML = await callGemini(prompt);
+                apiResponseResult = await callGemini(prompt); // Await the API call immediately
             } catch (error) {
-                planContent.innerHTML = '<p class="text-red-500">เกิดข้อผิดพลาดในการสร้างแผน กรุณาลองใหม่อีกครั้ง</p>';
+                console.error("Error during API call:", error);
+                apiResponseResult = '<p class="text-red-500">เกิดข้อผิดพลาดในการสร้างแผน กรุณาลองใหม่อีกครั้ง</p>';
             } finally {
-                planLoader.classList.add('hidden');
-                planBtn.disabled = false;
-                planBtn.classList.remove('opacity-50');
+                const elapsedTime = Date.now() - startTime;
+                const remainingDelay = Math.max(0, FIXED_AI_COOLDOWN_MS - elapsedTime);
+                setTimeout(() => {
+                    planLoader.classList.add('hidden'); // Hide loader
+                    planContent.innerHTML = apiResponseResult; // Set content after delay
+                    planContent.classList.remove('hidden'); // Show content after delay
+                    isAnyAiFunctionProcessing = false; // Release the flag
+                    setAiButtonsState(false); // Enable all AI buttons
+                }, remainingDelay);
             }
         }
 
@@ -1634,9 +1704,28 @@ ${estimatedTimeText ? `ถ้าออมด้วยศักยภาพสู
          * โดยใช้ภาษาที่น่ารักและเป็นกันเอง สไตล์วัยรุ่น
          */
         async function analyzeExpenses() {
+            const analysisBtn = document.getElementById('analyze-expenses-btn');
+            const analysisLoader = document.getElementById('analysis-loader');
+            const analysisContent = document.getElementById('analysis-content');
+            const analysisCard = document.getElementById('analysis-card');
+
+            // Prevent multiple AI calls simultaneously
+            if (isAnyAiFunctionProcessing) {
+                showModal('เจ้าเหมียวำลังทำงานอยู่ค่ะ', 'โปรดรอให้การวิเคราะห์ก่อนหน้าเสร็จสิ้นนะคะ 🐾');
+                return;
+            }
+
+            // Cooldown check
+            const now = Date.now();
+            if (now - lastAnalysisCallTime < FIXED_AI_COOLDOWN_MS) {
+                const remainingSeconds = Math.ceil((FIXED_AI_COOLDOWN_MS - (now - lastAnalysisCallTime)) / 1000);
+                showModal('รอสักครู่นะคะ', `เจ้าเหมียวำลังวิเคราะห์อยู่ค่ะ! รออีก ${remainingSeconds} วินาทีนะคะ ⏳`);
+                return;
+            }
+
             if (!isAiActive) {
-                showModal('เจ้าเหมียวกำลังพักผ่อน', 'อุ๊ย! เจ้าเหมียวใช้พลังงานเยอะไปหน่อย ตอนนี้กำลังพักผ่อนฮับ! 😴 ลองใหม่พรุ่งนี้นะคะ');
-                nongNgernSpeak(getRandomOfflineResponse('analyzeExpenses')); // Use offline response
+                showModal('เจ้าเหมียวำลังพักผ่อน', 'อุ๊ย! เจ้าเหมียวใช้พลังงานเยอะไปหน่อย ตอนนี้กำลังพักผ่อนฮับ! 😴 ลองใหม่พรุ่งนี้นะคะ');
+                // Removed nongNgernSpeak call here
                 return;
             }
 
@@ -1644,43 +1733,118 @@ ${estimatedTimeText ? `ถ้าออมด้วยศักยภาพสู
 
             if (financialData.fixedExpenses.length === 0 && financialData.finiteItems.length === 0) {
                 showModal('ไม่มีข้อมูล', 'กรุณาเพิ่มรายการ "รายจ่ายคงที่" หรือ "หนี้สิน" ก่อนทำการวิเคราะห์');
-                debouncedNongNgernThink(createNongNgernPrompt('อ้าว! ยังไม่มีรายจ่ายให้วิเคราะห์เลยนะเพื่อน! 🧐 ลองเพิ่มรายการก่อนสิ!'), 'ไม่มีรายจ่ายให้วิเคราะห์นะ!', 'general');
+                // Removed debouncedAiThinkingMessage call here
                 return;
             }
 
-            const analysisCard = document.getElementById('analysis-card');
-            const analysisLoader = document.getElementById('analysis-loader');
-            const analysisContent = document.getElementById('analysis-content');
-            const analysisBtn = document.getElementById('analyze-expenses-btn');
-
+            isAnyAiFunctionProcessing = true; // Set flag to true
+            setAiButtonsState(true); // Disable all AI buttons
+            lastAnalysisCallTime = now; // Record call time
             analysisCard.classList.remove('hidden');
-            analysisLoader.classList.remove('hidden');
+            analysisLoader.classList.remove('hidden'); // Show loader
             analysisContent.innerHTML = '';
-            analysisBtn.disabled = true;
-            analysisBtn.classList.add('opacity-50');
+            analysisContent.classList.add('hidden'); // Hide content until cooldown is over
 
             const fixedExpenseString = financialData.fixedExpenses.map(e => `- ${e.name}: ${formatCurrency(e.amount)}`).join('\n');
             const finiteItemString = financialData.finiteItems.map(e => `- ${e.name} (ผ่อนเดือนละ ${formatCurrency(e.monthlyPayment)})`).join('\n');
 
             // Adjusted prompt for problem-solving, practical, concise advice
-            const prompt = `จากรายจ่ายของฉัน:
-**รายจ่ายคงที่:**
-${fixedExpenseString || 'ไม่มี'}
-**หนี้สินและค่าผ่อนชำระ:**
-${finiteItemString || 'ไม่มี'}
-ช่วยวิเคราะห์และแนะนำวิธีลดรายจ่ายที่เป็นไปได้จริง 1-2 ข้อ โดยเน้นจุดที่สามารถประหยัดได้และกระชับที่สุดในสไตล์เจ้าเหมียว`;
+            const prompt = `ในฐานะผู้เชี่ยวชาญด้านการเงินส่วนบุคคลที่น่ารักและเป็นกันเอง ช่วยวิเคราะห์รายการรายจ่ายของฉันดังนี้: **รายจ่ายคงที่:** ${fixedExpenseString || 'ไม่มี'} **หนี้สินและค่าผ่อนชำระ:** ${finiteItemString || 'ไม่มี'} และให้คำแนะนำที่เจาะจงและทำได้จริง 2-3 ข้อ เพื่อลดรายจ่ายและเพิ่มเงินออม โดยใช้ภาษาที่เข้าใจง่ายและน่ารักสไตล์เจ้าเหมียว`;
 
-            debouncedNongNgernThink(createNongNgernPrompt('เจ้าเหมียวกำลังวิเคราะห์รายจ่ายของคุณอยู่นะ! 🔍 เดี๋ยวก็เจอทางลดรายจ่ายแล้ว! 😉'), 'เจ้าเหมียววิเคราะห์รายจ่ายให้ไม่ได้เลย 😥', 'analyzeExpenses');
+            // No debouncedAiThinkingMessage call here
+            
+            const startTime = Date.now();
+            let apiResponseResult = ''; // Variable to store API response
+
             try {
-                analysisContent.innerHTML = await callGemini(prompt);
+                apiResponseResult = await callGemini(prompt); // Await the API call immediately
             } catch (error) {
-                analysisContent.innerHTML = '<p class="text-red-500">เกิดข้อผิดพลาดในการวิเคราะห์ กรุณาลองใหม่อีกครั้ง</p>';
+                console.error("Error during API call:", error);
+                apiResponseResult = '<p class="text-red-500">เกิดข้อผิดพลาดในการวิเคราะห์ กรุณาลองใหม่อีกครั้ง</p>';
             } finally {
-                analysisLoader.classList.add('hidden');
-                analysisBtn.disabled = false;
-                analysisBtn.classList.remove('opacity-50');
+                const elapsedTime = Date.now() - startTime;
+                const remainingDelay = Math.max(0, FIXED_AI_COOLDOWN_MS - elapsedTime);
+                setTimeout(() => {
+                    analysisLoader.classList.add('hidden'); // Hide loader
+                    analysisContent.innerHTML = apiResponseResult; // Set content after delay
+                    analysisContent.classList.remove('hidden'); // Show content after delay
+                    isAnyAiFunctionProcessing = false; // Release the flag
+                    setAiButtonsState(false); // Enable all AI buttons
+                }, remainingDelay);
             }
         }
+
+        /**
+         * ดึงคำแนะนำด้านภาษีจาก AI โดยอิงจากรายรับรวมต่อปีของผู้ใช้
+         * หน้าที่: ให้คำแนะนำด้านภาษีเงินได้บุคคลธรรมดาที่ทำได้จริงและเป็นประโยชน์
+         */
+        async function getTaxAdvice() {
+            const taxAdviceBtn = document.getElementById('get-tax-advice-btn');
+            const taxAdviceLoader = document.getElementById('tax-advice-loader');
+            const taxAdviceContent = document.getElementById('tax-advice-content');
+            const taxAdviceCard = document.getElementById('tax-advice-card');
+
+            // Prevent multiple AI calls simultaneously
+            if (isAnyAiFunctionProcessing) {
+                showModal('เจ้าเหมียวกำลังทำงานอยู่ค่ะ', 'โปรดรอให้การวิเคราะห์ก่อนหน้าเสร็จสิ้นนะคะ 🐾');
+                return;
+            }
+
+            // Cooldown check
+            const now = Date.now();
+            if (now - lastTaxAdviceCallTime < FIXED_AI_COOLDOWN_MS) {
+                const remainingSeconds = Math.ceil((FIXED_AI_COOLDOWN_MS - (now - lastTaxAdviceCallTime)) / 1000);
+                showModal('รอสักครู่นะคะ', `เจ้าเหมียวกำลังวิเคราะห์ข้อมูลภาษีอยู่ค่ะ! รออีก ${remainingSeconds} วินาทีนะคะ ⏳`);
+                return;
+            }
+
+            if (!isAiActive) {
+                showModal('เจ้าเหมียวกำลังพักผ่อน', 'อุ๊ย! เจ้าเหมียวใช้พลังงานเยอะไปหน่อย ตอนนี้กำลังพักผ่อนฮับ! 😴 ลองใหม่พรุ่งนี้นะคะ');
+                return;
+            }
+
+            updateSummary(); // Ensure financial data is up-to-date
+
+            const totalIncomeMonthly = financialData.totalIncome;
+            if (totalIncomeMonthly === 0) {
+                showModal('ข้อมูลไม่ครบถ้วน', 'กรุณากรอกข้อมูล "รายรับ" ก่อนขอคำแนะนำภาษีจาก AI');
+                return;
+            }
+
+            isAnyAiFunctionProcessing = true; // Set flag to true
+            setAiButtonsState(true); // Disable all AI buttons
+            lastTaxAdviceCallTime = now; // Record call time
+            taxAdviceCard.classList.remove('hidden');
+            taxAdviceLoader.classList.remove('hidden'); // Show loader
+            taxAdviceContent.innerHTML = '';
+            taxAdviceContent.classList.add('hidden'); // Hide content until cooldown is over
+
+            const annualIncome = totalIncomeMonthly * 12; // Convert monthly income to annual
+
+            // Adjusted prompt for tax advice - more formal and expert-like
+            const prompt = `ในฐานะผู้เชี่ยวชาญด้านภาษีเงินได้บุคคลธรรมดาที่ให้ข้อมูลอย่างแม่นยำและเป็นทางการ แต่ยังคงความเป็นมิตรและเข้าใจง่ายสไตล์เจ้าเหมียว โปรดให้คำแนะนำด้านภาษีเงินได้บุคคลธรรมดาที่ทำได้จริง 2-3 ข้อ สำหรับผู้มีรายได้รวมต่อปีประมาณ ${formatCurrency(annualIncome)} (จากรายรับต่อเดือน ${formatCurrency(totalIncomeMonthly)}) โดยเน้นประเด็นสำคัญเกี่ยวกับการวางแผนภาษี การลดหย่อนภาษี และสิ่งที่ควรทราบเพื่อปฏิบัติตามกฎหมายภาษีของประเทศไทยได้อย่างถูกต้องและมีประสิทธิภาพสูงสุด`;
+            
+            const startTime = Date.now();
+            let apiResponseResult = ''; // Variable to store API response
+
+            try {
+                apiResponseResult = await callGemini(prompt); // Await the API call immediately
+            } catch (error) {
+                console.error("Error during API call:", error);
+                apiResponseResult = '<p class="text-red-500">เกิดข้อผิดพลาดในการขอคำแนะนำภาษี กรุณาลองใหม่อีกครั้ง</p>';
+            } finally {
+                const elapsedTime = Date.now() - startTime;
+                const remainingDelay = Math.max(0, FIXED_AI_COOLDOWN_MS - elapsedTime);
+                setTimeout(() => {
+                    taxAdviceLoader.classList.add('hidden'); // Hide loader
+                    taxAdviceContent.innerHTML = apiResponseResult; // Set content after delay
+                    taxAdviceContent.classList.remove('hidden'); // Show content after delay
+                    isAnyAiFunctionProcessing = false; // Release the flag
+                    setAiButtonsState(false); // Enable all AI buttons
+                }, remainingDelay);
+            }
+        }
+
 
         // --- Initial Load ---
         /**
@@ -1704,7 +1868,9 @@ ${finiteItemString || 'ไม่มี'}
             document.getElementById('get-advice-btn').addEventListener('click', getFinancialAdvice);
             document.getElementById('get-plan-btn').addEventListener('click', generateSavingsPlan);
             document.getElementById('analyze-expenses-btn').addEventListener('click', analyzeExpenses);
+            document.getElementById('get-tax-advice-btn').addEventListener('click', getTaxAdvice); // New: Event listener for tax advice button
             
+            // This call will show the assistant for the first time
             nongNgernSpeak(getRandomOfflineResponse('initialGreeting'));
         }
 
@@ -1713,5 +1879,3 @@ ${finiteItemString || 'ไม่มี'}
     </script>
 </body>
 </html>
-```
-I made some changes. The `totalData.totalExpense` reference in the `getFinancialAdvice` function has been corrected to `financialData.totalExpense` to resolve the `ReferenceErro�
