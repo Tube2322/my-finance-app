@@ -1698,7 +1698,7 @@
             const balance = financialData.totalIncome - financialData.totalExpense;
 
             // Adjusted prompt for problem-solving, practical, concise advice
-            const prompt = `ในฐานะผู้เชี่ยวชาญด้านการเงินส่วนบุคคลที่น่ารักและเป็นกันเอง ช่วยวิเคราะห์ภาพรวมการเงินของฉัน (รายรับ: ${formatCurrency(totalIncome)}, รายจ่าย: ${formatCurrency(financialData.totalExpense)}, คงเหลือ: ${formatCurrency(balance)}) และให้คำแนะนำทางการเงินที่ทำได้จริงและมีประสิทธิภาพ 2-3 ข้อ เพื่อปรับปรุงสถานะการเงินให้ดีขึ้น โดยใช้ภาษาที่เข้าใจง่ายและน่ารักสไตล์เจ้าเหมียว`;
+            const prompt = `ในฐานะผู้เชี่ยวชาญด้านการเงินส่วนบุคคลที่น่ารักและเป็นกันเอง ช่วยวิเคราะห์ภาพรวมการเงินของฉัน (รายรับ: ${formatCurrency(totalIncome)}, รายจ่าย: ${formatCurrency(financialData.totalExpense)}, คงเหลือ: ${formatCurrency(balance)}) และให้คำแนะนำทางการเงินที่ทำได้จริงและมีประสิทธิภาพ และอิงจากความเป็นจริง เพื่อปรับปรุงสถานะการเงินให้ดีขึ้น โดยใช้ภาษาที่เข้าใจง่ายและน่ารักสไตล์เจ้าเหมียว`;
 
             
             const startTime = Date.now();
@@ -1804,7 +1804,7 @@
             }
 
             // Adjusted prompt for problem-solving, practical, concise advice
-            const prompt = `ในฐานะผู้เชี่ยวชาญด้านการเงินส่วนบุคคลที่น่ารักและเป็นกันเอง ฉันต้องการเก็บเงินเพื่อ "${goalName}" จำนวน ${formatCurrency(goalAmount)} โดยมีสถานะการเงินปัจจุบัน: เงินคงเหลือสุทธิต่อเดือน ${formatCurrency(currentBalance)} และมีหนี้สินที่ต้องชำระ (ถ้ามี) ศักยภาพออมหลังปลดหนี้: ${formatCurrency(potentialSavingAfterDebt)} ต่อเดือน ${estimatedTimeText ? `คาดว่าจะใช้เวลา ${estimatedTimeText} ในการออม` : ''} โปรดสร้างแผนการออมที่ทำได้จริงและเป็นขั้นเป็นตอน 2-3 ข้อ เพื่อให้ฉันบรรลุเป้าหมายนี้ โดยใช้ภาษาที่เข้าใจง่ายและน่ารักสไตล์เจ้าเหมียว`;
+            const prompt = `ในฐานะผู้เชี่ยวชาญด้านการเงินส่วนบุคคลที่น่ารักและเป็นกันเอง ฉันต้องการเก็บเงินเพื่อ "${goalName}" จำนวน ${formatCurrency(goalAmount)} โดยมีสถานะการเงินปัจจุบัน: เงินคงเหลือสุทธิต่อเดือน ${formatCurrency(currentBalance)} และมีหนี้สินที่ต้องชำระ (ถ้ามี) ศักยภาพออมหลังปลดหนี้: ${formatCurrency(potentialSavingAfterDebt)} ต่อเดือน ${estimatedTimeText ? `คาดว่าจะใช้เวลา ${estimatedTimeText} ในการออม` : ''} โปรดสร้างแผนการออมที่ทำได้จริงและเป็นขั้นเป็นตอน และอิงความเป็นจริง เพื่อให้ฉันบรรลุเป้าหมายนี้ โดยใช้ภาษาที่เข้าใจง่ายและน่ารักสไตล์เจ้าเหมียว`;
 
             
             const startTime = Date.now();
@@ -1877,7 +1877,7 @@
             const finiteItemString = financialData.finiteItems.map(e => `- ${e.name} (ผ่อนเดือนละ ${formatCurrency(e.monthlyPayment)})`).join('\n');
 
             // Adjusted prompt for problem-solving, practical, concise advice
-            const prompt = `ในฐานะผู้เชี่ยวชาญด้านการเงินส่วนบุคคลที่น่ารักและเป็นกันเอง ช่วยวิเคราะห์รายการรายจ่ายของฉันดังนี้: **รายจ่ายคงที่:** ${fixedExpenseString || 'ไม่มี'} **หนี้สินและค่าผ่อนชำระ:** ${finiteItemString || 'ไม่มี'} และให้คำแนะนำที่เจาะจงและทำได้จริง 2-3 ข้อ เพื่อลดรายจ่ายและเพิ่มเงินออม โดยใช้ภาษาที่เข้าใจง่ายและน่ารักสไตล์เจ้าเหมียว`;
+            const prompt = `ในฐานะผู้เชี่ยวชาญด้านการเงินส่วนบุคคลที่น่ารักและเป็นกันเอง ช่วยวิเคราะห์รายการรายจ่ายของฉันดังนี้: **รายจ่ายคงที่:** ${fixedExpenseString || 'ไม่มี'} **หนี้สินและค่าผ่อนชำระ:** ${finiteItemString || 'ไม่มี'} และให้คำแนะนำที่เจาะจงและทำได้จริง และอิงความเป็นจริง เพื่อลดรายจ่ายและเพิ่มเงินออม โดยใช้ภาษาที่เข้าใจง่ายและน่ารักสไตล์เจ้าเหมียว`;
 
             
             const startTime = Date.now();
@@ -1949,7 +1949,7 @@
             const annualIncome = totalIncomeMonthly * 12; // Convert monthly income to annual
 
             // Adjusted prompt for tax advice - more formal and expert-like
-            const prompt = `ในฐานะผู้เชี่ยวชาญด้านภาษีเงินได้บุคคลธรรมดาที่ให้ข้อมูลอย่างแม่นยำและเป็นทางการ แต่ยังคงความเป็นมิตรและเข้าใจง่ายสไตล์เจ้าเหมียว โปรดให้คำแนะนำด้านภาษีเงินได้บุคคลธรรมดาที่ทำได้จริง 2-3 ข้อ สำหรับผู้มีรายได้รวมต่อปีประมาณ ${formatCurrency(annualIncome)} (จากรายรับต่อเดือน ${formatCurrency(totalIncomeMonthly)}) โดยเน้นประเด็นสำคัญเกี่ยวกับการวางแผนภาษี การลดหย่อนภาษี และสิ่งที่ควรทราบเพื่อปฏิบัติตามกฎหมายภาษีของประเทศไทยได้อย่างถูกต้องและมีประสิทธิภาพสูงสุด`;
+            const prompt = `ในฐานะผู้เชี่ยวชาญด้านภาษีเงินได้บุคคลธรรมดาที่ให้ข้อมูลอย่างแม่นยำและเป็นทางการ แต่ยังคงความเป็นมิตรและเข้าใจง่ายสไตล์เจ้าเหมียว โปรดให้คำแนะนำด้านภาษีเงินได้บุคคลธรรมดาที่ทำได้จริง และอิงความเป็นจริง สำหรับผู้มีรายได้รวมต่อปีประมาณ ${formatCurrency(annualIncome)} (จากรายรับต่อเดือน ${formatCurrency(totalIncomeMonthly)}) โดยเน้นประเด็นสำคัญเกี่ยวกับการวางแผนภาษี การลดหย่อนภาษี และสิ่งที่ควรทราบเพื่อปฏิบัติตามกฎหมายภาษีของประเทศไทยได้อย่างถูกต้องและมีประสิทธิภาพสูงสุด`;
             
             const startTime = Date.now();
             let apiResponseResult = ''; // Variable to store API response
