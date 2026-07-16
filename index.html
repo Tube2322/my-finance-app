@@ -344,7 +344,7 @@ body::before{
 .ov{position:fixed;inset:0;background:rgba(0,0,0,.55);display:flex;align-items:flex-end;justify-content:center;z-index:900;backdrop-filter:blur(6px);opacity:0;pointer-events:none;transition:opacity .2s}
 @media(min-width:600px){.ov{align-items:center}}
 .ov.on{opacity:1;pointer-events:all}
-.modal{background:var(--surface);border:1px solid var(--bdr2);border-radius:22px 22px 0 0;padding:20px 20px 26px;width:100%;max-width:420px;box-shadow:0 -8px 40px rgba(139,92,246,.18);transform:translateY(30px);transition:transform .25s ease}
+.modal{background:var(--surface);border:1px solid var(--bdr2);border-radius:22px 22px 0 0;padding:20px 20px 26px;width:100%;max-width:420px;max-height:88dvh;overflow-y:auto;-webkit-overflow-scrolling:touch;box-shadow:0 -8px 40px rgba(139,92,246,.18);transform:translateY(30px);transition:transform .25s ease}
 @media(min-width:600px){.modal{border-radius:22px;transform:scale(.94)}}
 .ov.on .modal{transform:translateY(0)}
 @media(min-width:600px){.ov.on .modal{transform:scale(1)}}
@@ -409,11 +409,13 @@ body::before{
   .ct{font-size:.82rem}
 }
 
-/* irow forms stack on tiny screens */
-@media(max-width:380px){
-  .irow{flex-direction:column}
-  .irow .inp,.ipr{width:100%;max-width:none!important}
-  .bIco{width:100%;height:38px;border-radius:var(--rS)}
+/* irow forms stack on small/medium phones — widened + hardened so
+   name+amount+category+button rows never overflow the viewport,
+   regardless of inline flex/min-width values set in the HTML */
+@media(max-width:480px){
+  .irow{flex-direction:column;align-items:stretch}
+  .irow>*{width:100%!important;max-width:none!important;min-width:0!important;flex:none!important;box-sizing:border-box}
+  .irow .bIco{height:38px;border-radius:var(--rS)}
 }
 
 /* g2 single col on very small */
@@ -483,6 +485,104 @@ body::before{
 /* quick chips */
 @media(max-width:360px){
   .qchip{padding:4px 8px;font-size:.68rem}
+}
+
+/* ══════════ EXTRA CROSS-DEVICE RESPONSIVE PASS ══════════ */
+
+/* Fix real overflow bug: any scrollable row (tab-bar sort tabs, desk-nav, etc.)
+   nested inside a CSS grid/flex column has no intrinsic max width, so its
+   un-wrapped content (e.g. the debt sort tab-bar) was inflating every
+   ancestor up to .cols2 and pushing the entire page past the viewport
+   edge. min-width:0 stops that content-based size from propagating while
+   the element itself stays horizontally scrollable via overflow-x:auto. */
+.cols2>*{min-width:0}
+.card,.ch,.fg,.g2>*,.g3>*,.srow>*,.stick>*{min-width:0}
+.tab-bar,.desk-nav{min-width:0;max-width:100%}
+
+/* Global safety: never allow horizontal scroll from stray wide content */
+html,body{max-width:100%}
+img,svg,video,canvas{max-width:100%;height:auto}
+table{max-width:100%}
+
+/* ── Landscape phones (short viewport height) ──
+   Header + bottom nav can eat too much vertical space when width>height and height is small */
+@media(max-height:480px) and (orientation:landscape){
+  :root{--nh:56px;--hh:46px}
+  .hdr{padding-left:10px;padding-right:10px}
+  .logo-ball{width:28px;height:28px;border-radius:9px;font-size:14px}
+  .logo-txt{font-size:.95rem}
+  .bnav{flex-direction:row;gap:6px;padding:4px 6px}
+  .bnav .bi{font-size:1rem}
+  .bnav span{font-size:.6rem;max-width:none}
+  .page{padding-top:calc(var(--hh) + 10px)}
+  .hero,.streak,.pay-hero{padding:12px}
+  .modal{max-height:94dvh}
+  .ov{align-items:center}
+}
+@media(max-height:400px) and (orientation:landscape){
+  .bot-nav{display:none}
+  body{padding-bottom:14px}
+  .desk-nav{display:flex}
+}
+
+/* ── Small / medium tablets & large phones in landscape (600–1023px) ──
+   Desk-nav isn't shown until 768px; give the single-column layout more
+   breathing room and let form grids use the extra width sensibly */
+@media(min-width:600px) and (max-width:1023px){
+  .g3{grid-template-columns:repeat(3,1fr)}
+  .g2{grid-template-columns:1fr 1fr}
+  .card{padding:18px}
+  .mood-row{flex-wrap:nowrap}
+}
+
+/* ── iPad-class tablets in portrait/landscape (768–1023px) ──
+   Desk-nav is visible here; tighten its spacing so more items fit */
+@media(min-width:768px) and (max-width:1023px){
+  .desk-nav{gap:4px}
+  .dnav{font-size:.8rem;padding:7px 11px}
+  .page{padding-left:20px;padding-right:20px}
+}
+
+/* ── Small desktop / large tablet landscape (1024–1439px) ── */
+@media(min-width:1024px){
+  .g3{grid-template-columns:repeat(3,1fr)}
+  .ach-grid{grid-template-columns:repeat(auto-fill,minmax(130px,1fr))}
+}
+
+/* ── Large desktop & ultra-wide monitors (≥1440px) ──
+   Give the layout a bit more air instead of just stretching the same
+   mobile-sized paddings across a huge canvas */
+@media(min-width:1440px){
+  .page{max-width:1360px;padding-left:28px;padding-right:28px}
+  .cols2{grid-template-columns:1fr 340px;gap:20px}
+  .card{padding:20px}
+  .pttl{font-size:1.4rem}
+  .hero{padding:26px 24px 24px}
+}
+@media(min-width:1800px){
+  .page{max-width:1480px}
+}
+
+/* ── Fine-pointer (mouse) vs coarse-pointer (touch) refinement ──
+   On touch devices keep generous tap targets; on mouse/trackpad
+   devices tighten hit areas slightly and rely on :hover states */
+@media(pointer:coarse){
+  .btn,.hbtn,.bIco{min-height:38px}
+  .dnav,.tab,.bnav{min-height:40px}
+}
+
+/* ── Foldables / very narrow tall screens (e.g. cover displays ~280–300px) ── */
+@media(max-width:300px){
+  .page{padding-left:6px;padding-right:6px}
+  .logo-txt{display:none}
+  .g2,.g3{grid-template-columns:1fr!important}
+  .srow{grid-template-columns:1fr}
+  .bnav span{display:none}
+}
+
+/* ── Reduce motion for users who prefer it, across all screen sizes ── */
+@media(prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important;scroll-behavior:auto!important}
 }
 
 </style>
@@ -626,10 +726,12 @@ body::before{
       </div>
       <div class="card csm">
         <div class="ct mb2"><div class="ci" style="background:rgba(59,130,246,.1)">📈</div><span>คาดการณ์เงินออม</span></div>
-        <table style="width:100%;border-collapse:collapse;font-size:.79rem">
+        <div class="tbl-wrap">
+        <table style="width:100%;border-collapse:collapse;font-size:.79rem;min-width:220px">
           <thead><tr><th style="text-align:left;padding:5px 7px;color:var(--mt);font-weight:600;border-bottom:1px solid var(--bdr);font-size:.67rem">ระยะเวลา</th><th style="padding:5px 7px;color:var(--mt);font-weight:600;border-bottom:1px solid var(--bdr);text-align:right;font-size:.67rem">ยอดสะสม</th></tr></thead>
           <tbody id="projBody"></tbody>
         </table>
+        </div>
       </div>
     </div>
   </div>
@@ -1465,7 +1567,7 @@ const renderDebtList=()=>{
     return`<div class="li" style="flex-direction:column;align-items:stretch;gap:7px">
       <div style="display:flex;align-items:center;justify-content:space-between">
         <div><div class="lin">${esc(d.name)}</div><div class="lim mt1">${cb(d.debtType)}${d.interestRate>0?`<span class="pill" style="background:rgba(239,68,68,.1);color:var(--r);margin-left:4px">${d.interestRate}%/ปี</span>`:''}${d.payDay?`<span class="pill" style="background:rgba(59,130,246,.1);color:var(--b);margin-left:4px">📅 ทุกวันที่ ${d.payDay}</span>`:''}${r<=0?'<span class="pill" style="background:rgba(16,185,129,.12);color:var(--g2);margin-left:4px">✅ ปิดแล้ว</span>':''}</div></div>
-        <div style="display:flex;gap:4px"><button class="btn bGh" onclick="openDebtEdit('${d.id}')">✏️</button><button class="btn bGh" onclick="removeDebt('${d.id}')">✕</button></div>
+        <div style="display:flex;gap:2px;flex-shrink:0"><button class="btn bGh" style="padding:8px" onclick="openDebtEdit('${d.id}')">✏️</button><button class="btn bGh" style="padding:8px" onclick="removeDebt('${d.id}')">✕</button></div>
       </div>
       <div class="g3">
         <div style="text-align:center;padding:6px 3px;background:rgba(239,68,68,.07);border-radius:8px"><div class="fxs tm">คงเหลือ</div><div class="fw8 fxs tr2 mono">${FM.compact(r)}</div></div>
@@ -1473,7 +1575,7 @@ const renderDebtList=()=>{
         <div style="text-align:center;padding:6px 3px;background:${noPayoff?'rgba(239,68,68,.12)':'rgba(139,92,246,.07)'};border-radius:8px"><div class="fxs tm">หมดใน</div><div class="fw8 fxs ${noPayoff?'tr2':'tp'} mono">${time}</div></div>
       </div>
       ${noPayoff?`<div class="fxs" style="color:var(--r);background:rgba(239,68,68,.08);padding:6px 8px;border-radius:8px">⚠️ ค่างวดต่อเดือนไม่พอจ่ายดอกเบี้ย ยอดหนี้จะเพิ่มขึ้นเรื่อยๆ แนะนำเพิ่มยอดผ่อน/เดือน</div>`:''}
-      <div style="display:flex;justify-content:space-between;gap:8px">
+      <div style="display:flex;flex-wrap:wrap;justify-content:space-between;gap:4px 8px">
         ${due?`<div class="fxs tm">ชำระถัดไป: <strong class="tp">${fmtDate(due)}</strong></div>`:'<div></div>'}
         ${d.interestRate>0&&(d.interestAccrued||0)>0?`<div class="fxs tm">ดอกเบี้ยสะสม: <strong class="tr2">${FM.compact(d.interestAccrued)}</strong></div>`:''}
       </div>
