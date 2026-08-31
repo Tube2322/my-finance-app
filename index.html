@@ -574,6 +574,14 @@ body::before{
       <!-- หนี้สิน -->
       <div class="card">
         <div class="ch"><div class="ct"><div class="ci" style="background:rgba(245,158,11,.1)">🏦</div>หนี้สิน</div><button class="btn bSm bO" onclick="clearArr('debts')">🗑️ ล้าง</button></div>
+        <div id="debtSummary"></div>
+        <div class="tab-bar" id="debtSortBar" style="margin-top:9px">
+          <button class="tab on" data-sort="default" onclick="sortDebts('default')">🗂️ ล่าสุด</button>
+          <button class="tab" data-sort="amount" onclick="sortDebts('amount')">💰 ยอดหนี้เยอะสุด</button>
+          <button class="tab" data-sort="rate" onclick="sortDebts('rate')">🔥 ดอกเบี้ยสูงสุด</button>
+          <button class="tab" data-sort="monthly" onclick="sortDebts('monthly')">📆 จ่าย/เดือนเยอะสุด</button>
+          <button class="tab" data-sort="progress" onclick="sortDebts('progress')">🏁 ใกล้หมดหนี้สุด</button>
+        </div>
         <div id="debtList"></div>
         <div class="hr"></div>
         <div class="slbl">เพิ่มรายการหนี้</div>
@@ -585,6 +593,8 @@ body::before{
           <div class="fg"><label class="fl">ยอดหนี้ (฿)</label><div class="ipr"><span class="pre">฿</span><input type="text" inputmode="decimal" id="dTotal" class="inp" placeholder="0" oninput="FM.clean(this)" onfocus="FM.unformat(this)" onblur="FM.format(this)"></div></div>
           <div class="fg"><label class="fl">จ่าย/เดือน (฿)</label><div class="ipr"><span class="pre">฿</span><input type="text" inputmode="decimal" id="dMonthly" class="inp" placeholder="0" oninput="FM.clean(this)" onfocus="FM.unformat(this)" onblur="FM.format(this)"></div></div>
           <div class="fg"><label class="fl">ดอกเบี้ย/ปี (%)</label><input type="text" inputmode="decimal" id="dRate" class="inp" placeholder="18" oninput="FM.clean(this)"></div>
+          <div class="fg"><label class="fl">ชำระทุกวันที่ (1-31)</label><input type="number" min="1" max="31" id="dPayDay" class="inp" placeholder="เช่น 5"></div>
+          <div class="fg"><label class="fl">เริ่มนับตั้งแต่วันที่</label><input type="date" id="dStartDate" class="inp"></div>
         </div>
         <button class="btn bP bFull mt2" onclick="addDebt()">+ เพิ่มรายการหนี้</button>
       </div>
@@ -1040,6 +1050,30 @@ body::before{
     <button class="btn bP bFull" onclick="closeModal()">เข้าใจแล้ว ✓</button>
   </div>
 </div>
+<!-- แก้ไขหนี้สิน -->
+<div class="ov" id="debtEditOv">
+  <div class="modal">
+    <div class="mbar"></div>
+    <div class="mttl">✏️ แก้ไขรายการหนี้</div>
+    <input type="hidden" id="deId">
+    <div class="g2">
+      <div class="fg" style="grid-column:1/-1"><label class="fl">ชื่อหนี้</label><input type="text" id="deName" class="inp" placeholder="เช่น หนี้บัตร"></div>
+      <div class="fg"><label class="fl">ประเภท</label>
+        <select id="deType" class="inp"><option value="credit">💳 บัตรเครดิต</option><option value="car">🚗 ผ่อนรถ</option><option value="house">🏡 ผ่อนบ้าน</option><option value="personal">🏦 สินเชื่อ</option><option value="other">📌 อื่นๆ</option></select>
+      </div>
+      <div class="fg"><label class="fl">ดอกเบี้ย/ปี (%)</label><input type="text" inputmode="decimal" id="deRate" class="inp" placeholder="18" oninput="FM.clean(this)"></div>
+      <div class="fg"><label class="fl">ยอดหนี้ตั้งต้น (฿)</label><div class="ipr"><span class="pre">฿</span><input type="text" inputmode="decimal" id="deTotal" class="inp" placeholder="0" oninput="FM.clean(this)" onfocus="FM.unformat(this)" onblur="FM.format(this)"></div></div>
+      <div class="fg"><label class="fl">ยอดคงเหลือปัจจุบัน (฿)</label><div class="ipr"><span class="pre">฿</span><input type="text" inputmode="decimal" id="deRemaining" class="inp" placeholder="0" oninput="FM.clean(this)" onfocus="FM.unformat(this)" onblur="FM.format(this)"></div></div>
+      <div class="fg" style="grid-column:1/-1"><label class="fl">จ่าย/เดือน (฿)</label><div class="ipr"><span class="pre">฿</span><input type="text" inputmode="decimal" id="deMonthly" class="inp" placeholder="0" oninput="FM.clean(this)" onfocus="FM.unformat(this)" onblur="FM.format(this)"></div></div>
+      <div class="fg"><label class="fl">ชำระทุกวันที่ (1-31)</label><input type="number" min="1" max="31" id="dePayDay" class="inp" placeholder="เช่น 5"></div>
+      <div class="fg"><label class="fl">เริ่มนับตั้งแต่วันที่</label><input type="date" id="deStartDate" class="inp"></div>
+    </div>
+    <div class="irow mt2">
+      <button class="btn bO bFull" onclick="closeDebtEdit()">ยกเลิก</button>
+      <button class="btn bP bFull" onclick="saveDebtEdit()">💾 บันทึก</button>
+    </div>
+  </div>
+</div>
 <!-- CELEBRATE -->
 <div class="cov" id="celOv">
   <div class="cbox"><div class="cico" id="celI">🎉</div><div class="cttl" id="celT"></div><div class="csub" id="celS"></div></div>
@@ -1177,7 +1211,7 @@ setInterval(updateClock,1000);updateClock();
 const calc=()=>{
   S.salary=FM.parse(document.getElementById('salary').value);
   C.inc=S.salary+S.otherIncomes.reduce((s,i)=>s+i.amount,0);
-  C.exp=S.fixedExpenses.reduce((s,i)=>s+i.amount,0)+S.debts.reduce((s,d)=>s+d.monthlyPayment,0);
+  C.exp=S.fixedExpenses.reduce((s,i)=>s+i.amount,0)+S.debts.reduce((s,d)=>s+((d.remaining??d.totalAmount)>0?d.monthlyPayment:0),0);
   C.bal=C.inc-C.exp;
   save();renderSummary();renderProj();renderPie();
   renderBudgetProg();checkAch();updateStreak();renderRule();renderInsights();
@@ -1263,6 +1297,67 @@ const renderExpList=()=>{
     :'<div class="empty" style="padding:8px 0"><p>ยังไม่มีรายจ่ายคงที่</p></div>';
 };
 
+// ── DATE HELPERS สำหรับคำนวณรอบชำระหนี้ตามวันที่จริง ──
+const dimonth=(y,m)=>new Date(y,m+1,0).getDate(); // จำนวนวันในเดือน (m: 0-based, รองรับ m นอกช่วง 0-11)
+const clampPayDate=(y,m,day)=>{const nd=new Date(y,m,1);return new Date(nd.getFullYear(),nd.getMonth(),Math.min(day,dimonth(nd.getFullYear(),nd.getMonth())))};
+const nextPayDayAfter=(date,payDay)=>{
+  let d=clampPayDate(date.getFullYear(),date.getMonth(),payDay);
+  if(d<=date)d=clampPayDate(date.getFullYear(),date.getMonth()+1,payDay);
+  return d;
+};
+// นับจำนวนรอบชำระที่ผ่านไปแล้วนับจาก fromDate (ไม่รวม) ถึง toDate (รวม) — คืนจำนวนรอบ + วันที่รอบล่าสุด
+const countPayCycles=(fromDate,payDay,toDate)=>{
+  let count=0,cursor=fromDate,last=fromDate,guard=0;
+  while(guard++<1200){
+    const nxt=nextPayDayAfter(cursor,payDay);
+    if(nxt>toDate)break;
+    count++;last=nxt;cursor=nxt;
+  }
+  return{count,last};
+};
+// คำนวณจำนวนงวดที่ต้องผ่อนจนหมด โดยคิดดอกเบี้ยทบต้นรายเดือนแบบสินเชื่อจริง (สูตรผ่อนชำระมาตรฐาน)
+const monthsToPayoff=(P,mRate,A)=>{
+  if(P<=0)return 0;
+  if(mRate<=0)return A>0?Math.ceil(P/A):Infinity;
+  if(A<=P*mRate)return Infinity; // ค่างวดไม่พอจ่ายดอกเบี้ย → ไม่มีวันหมด
+  const n=-Math.log(1-mRate*P/A)/Math.log(1+mRate);
+  return Math.ceil(n-1e-9);
+};
+// จำลองการชำระหนี้อัตโนมัติตามวันที่ชำระจริงที่ตั้งไว้ — คิดดอกเบี้ยทบต้นรายเดือนก่อนหักค่างวด แล้วหักยอดคงเหลือตามจำนวนรอบที่ผ่านไปจริง
+const applyAutoPayments=()=>{
+  const today=new Date();let changed=false;
+  S.debts.forEach(d=>{
+    let r=d.remaining??d.totalAmount;
+    if(!d.payDay||r<=0)return;
+    const from=new Date(d.lastAutoPayAt||d.startDate||d.createdAt||today);
+    if(isNaN(from.getTime()))return;
+    const{count,last}=countPayCycles(from,d.payDay,today);
+    if(count>0){
+      const mRate=(d.interestRate||0)/100/12;
+      let accrued=0;
+      for(let i=0;i<count;i++){
+        const interest=r*mRate;
+        accrued+=interest;
+        r=Math.max(0,r+interest-d.monthlyPayment);
+      }
+      d.remaining=r;
+      d.interestAccrued=(d.interestAccrued||0)+accrued;
+      d.lastAutoPayAt=last.toISOString();
+      changed=true;
+      if(d.remaining<=0)setTimeout(()=>celebrate('🕊️','ปลดหนี้ก้อนนี้แล้ว!',`"${d.name}" จ่ายครบแล้ว 🎉`),200);
+    }
+  });
+  if(changed)save();
+};
+// หาวันที่ชำระถัดไป (แสดงในการ์ด)
+const nextDueDate=d=>{
+  if(!d.payDay)return null;
+  const from=new Date(d.lastAutoPayAt||d.startDate||d.createdAt||new Date());
+  if(isNaN(from.getTime()))return null;
+  return nextPayDayAfter(from,d.payDay);
+};
+const fmtDate=dt=>dt.toLocaleDateString('th-TH',{day:'numeric',month:'short',year:'numeric'});
+
 // เพิ่มหนี้สิน → validate → push to S.debts → save → render + คำนวณเวลาผ่อน
 const addDebt=()=>{
   const name=document.getElementById('dName').value.trim();
@@ -1270,35 +1365,124 @@ const addDebt=()=>{
   const monthly=FM.parse(document.getElementById('dMonthly').value);
   const rate=FM.parse(document.getElementById('dRate').value);
   const dtype=document.getElementById('dType').value;
+  const payDay=+document.getElementById('dPayDay').value||null;
+  const startDate=document.getElementById('dStartDate').value||new Date().toISOString().slice(0,10);
   if(!name||!total||!monthly){modal('ข้อมูลไม่ครบ','กรุณากรอกชื่อ, ยอดหนี้ และยอดผ่อน');return}
-  S.debts.push({id:'d'+Date.now(),name,totalAmount:total,monthlyPayment:monthly,interestRate:rate,debtType:dtype});
-  ['dName','dTotal','dMonthly','dRate'].forEach(id=>document.getElementById(id).value='');
-  renderDebtList();calc();
+  S.debts.push({id:'d'+Date.now(),name,totalAmount:total,remaining:total,monthlyPayment:monthly,interestRate:rate,debtType:dtype,payDay,startDate,lastAutoPayAt:startDate,interestAccrued:0,createdAt:new Date().toISOString()});
+  ['dName','dTotal','dMonthly','dRate','dPayDay','dStartDate'].forEach(id=>document.getElementById(id).value='');
+  save();applyAutoPayments();renderDebtList();calc();
 };
 // ลบหนี้สินตาม id
-const removeDebt=id=>{S.debts=S.debts.filter(x=>x.id!==id);renderDebtList();calc()};
-// render รายการหนี้สินพร้อมแสดงยอดหนี้, ค่าผ่อน, เวลาที่เหลือ
+const removeDebt=id=>{S.debts=S.debts.filter(x=>x.id!==id);save();renderDebtList();calc()};
+// เรียงลำดับรายการหนี้ตามโหมดที่เลือก (ไม่ลบข้อมูล แค่เปลี่ยนลำดับแสดงผล)
+let debtSort='default';
+const sortDebts=mode=>{
+  debtSort=mode;
+  document.querySelectorAll('#debtSortBar .tab').forEach(b=>b.classList.toggle('on',b.dataset.sort===mode));
+  renderDebtList();
+};
+// จ่ายหนี้เพิ่ม (เฉพาะยอดคงเหลือ) โดยไม่ต้องลบ/แก้ทั้งรายการ
+const payDebt=(id,amt)=>{
+  const d=S.debts.find(x=>x.id===id);if(!d||!amt||amt<=0)return;
+  d.remaining=Math.max(0,(d.remaining??d.totalAmount)-amt);
+  save();renderDebtList();calc();checkAch();
+  if(d.remaining<=0)setTimeout(()=>celebrate('🕊️','ปลดหนี้ก้อนนี้แล้ว!',`"${d.name}" จ่ายครบแล้ว 🎉`),200);
+};
+// เปิดฟอร์มแก้ไขหนี้สิน (ไม่ต้องลบแล้วเพิ่มใหม่)
+const openDebtEdit=id=>{
+  const d=S.debts.find(x=>x.id===id);if(!d)return;
+  document.getElementById('deId').value=d.id;
+  document.getElementById('deName').value=d.name;
+  document.getElementById('deType').value=d.debtType;
+  document.getElementById('deRate').value=d.interestRate||'';
+  document.getElementById('deTotal').value=d.totalAmount;FM.format(document.getElementById('deTotal'));
+  document.getElementById('deRemaining').value=d.remaining??d.totalAmount;FM.format(document.getElementById('deRemaining'));
+  document.getElementById('deMonthly').value=d.monthlyPayment;FM.format(document.getElementById('deMonthly'));
+  document.getElementById('dePayDay').value=d.payDay||'';
+  document.getElementById('deStartDate').value=(d.startDate||d.createdAt||'').slice(0,10);
+  document.getElementById('debtEditOv').classList.add('on');
+};
+const closeDebtEdit=()=>document.getElementById('debtEditOv').classList.remove('on');
+document.getElementById('debtEditOv').addEventListener('click',e=>{if(e.target.id==='debtEditOv')closeDebtEdit()});
+// บันทึกการแก้ไขหนี้สิน — อัปเดตรายการเดิมแทนที่จะลบทิ้ง
+const saveDebtEdit=()=>{
+  const id=document.getElementById('deId').value;
+  const d=S.debts.find(x=>x.id===id);if(!d)return;
+  const name=document.getElementById('deName').value.trim();
+  const total=FM.parse(document.getElementById('deTotal').value);
+  const remaining=FM.parse(document.getElementById('deRemaining').value);
+  const monthly=FM.parse(document.getElementById('deMonthly').value);
+  const rate=FM.parse(document.getElementById('deRate').value);
+  const dtype=document.getElementById('deType').value;
+  const payDay=+document.getElementById('dePayDay').value||null;
+  const startDate=document.getElementById('deStartDate').value||d.startDate||d.createdAt;
+  if(!name||!total||!monthly){modal('ข้อมูลไม่ครบ','กรุณากรอกชื่อ, ยอดหนี้ และยอดผ่อน');return}
+  // แก้ไขยอด/วันชำระใหม่ → ตั้งจุดเริ่มนับรอบอัตโนมัติใหม่จากค่าที่กรอกล่าสุด กันนับซ้ำ
+  Object.assign(d,{name,totalAmount:total,remaining:Math.min(remaining,total),monthlyPayment:monthly,interestRate:rate,debtType:dtype,payDay,startDate,lastAutoPayAt:new Date().toISOString(),interestAccrued:0});
+  save();closeDebtEdit();renderDebtList();calc();
+};
+// การ์ดสรุปภาพรวมหนี้สินทั้งหมด (ยอดคงเหลือรวม, จ่าย/เดือนรวม, ดอกเบี้ยเฉลี่ยถ่วงน้ำหนัก)
+const renderDebtSummary=()=>{
+  const el=document.getElementById('debtSummary');if(!el)return;
+  if(!S.debts.length){el.innerHTML='';return}
+  const tRem=S.debts.reduce((s,d)=>s+(d.remaining??d.totalAmount),0);
+  const tMo=S.debts.reduce((s,d)=>s+d.monthlyPayment,0);
+  const tOrig=S.debts.reduce((s,d)=>s+d.totalAmount,0);
+  const tInt=S.debts.reduce((s,d)=>s+(d.interestAccrued||0),0);
+  const avgRate=tOrig>0?S.debts.reduce((s,d)=>s+d.interestRate*d.totalAmount,0)/tOrig:0;
+  const pctPaid=tOrig>0?Math.min(100,(tOrig-tRem)/tOrig*100):0;
+  el.innerHTML=`<div class="g3">
+    <div style="text-align:center;padding:8px 3px;background:rgba(239,68,68,.07);border-radius:8px"><div class="fxs tm">คงเหลือรวม</div><div class="fw8 fxs tr2 mono">${FM.compact(tRem)}</div></div>
+    <div style="text-align:center;padding:8px 3px;background:rgba(245,158,11,.07);border-radius:8px"><div class="fxs tm">จ่าย/เดือนรวม</div><div class="fw8 fxs ty mono">${FM.compact(tMo)}</div></div>
+    <div style="text-align:center;padding:8px 3px;background:rgba(139,92,246,.07);border-radius:8px"><div class="fxs tm">ดอกเบี้ยเฉลี่ย</div><div class="fw8 fxs tp mono">${avgRate.toFixed(1)}%</div></div>
+  </div>
+  <div class="pbw mt1"><div class="pbh"><span class="fxs tm">ผ่อนไปแล้ว</span><span class="fxs fw8">${pctPaid.toFixed(0)}%</span></div><div class="pbb"><div class="pbf kok" style="width:${pctPaid}%"></div></div></div>
+  ${tInt>0?`<div class="fxs tm mt1" style="text-align:right">ดอกเบี้ยสะสมรวมทั้งหมด: <strong class="tr2">${FM.compact(tInt)}</strong></div>`:''}`;
+};
+// render รายการหนี้สินพร้อมแสดงยอดคงเหลือ, ค่าผ่อน, เวลาที่เหลือ(นับจากเดือนจริงที่ผ่านไป), % ผ่อนไปแล้ว
 const renderDebtList=()=>{
+  applyAutoPayments();
+  renderDebtSummary();
   const el=document.getElementById('debtList');
   if(!S.debts.length){el.innerHTML='<div class="empty" style="padding:8px 0"><div class="ei">🎉</div><p>ไม่มีหนี้สิน!</p></div>';return}
-  el.innerHTML=S.debts.map(d=>{
-    const mo=d.monthlyPayment>0?Math.ceil(d.totalAmount/d.monthlyPayment):0;
-    const y=Math.floor(mo/12),mn=mo%12;
-    const time=mo>0?((y>0?y+'ปี ':'')+((mn>0||y===0)?mn+'เดือน':'')):'—';
+  const list=[...S.debts];
+  const rem=d=>d.remaining??d.totalAmount;
+  if(debtSort==='amount')list.sort((a,b)=>rem(b)-rem(a));
+  else if(debtSort==='rate')list.sort((a,b)=>b.interestRate-a.interestRate);
+  else if(debtSort==='monthly')list.sort((a,b)=>b.monthlyPayment-a.monthlyPayment);
+  else if(debtSort==='progress')list.sort((a,b)=>(rem(a)/(a.totalAmount||1))-(rem(b)/(b.totalAmount||1)));
+  el.innerHTML=list.map(d=>{
+    const r=rem(d);
+    const mRate=(d.interestRate||0)/100/12;
+    const moN=r>0?monthsToPayoff(r,mRate,d.monthlyPayment):0;
+    const noPayoff=r>0&&!isFinite(moN);
+    let time;
+    if(r<=0)time='✅ หมดแล้ว';
+    else if(noPayoff)time='⚠️ ไม่มีวันหมด';
+    else{const y=Math.floor(moN/12),mn=moN%12;time=moN>0?((y>0?y+'ปี ':'')+((mn>0||y===0)?mn+'เดือน':'')):'—';}
+    const pct=d.totalAmount>0?Math.min(100,(d.totalAmount-r)/d.totalAmount*100):0;
+    const due=r>0?nextDueDate(d):null;
     return`<div class="li" style="flex-direction:column;align-items:stretch;gap:7px">
       <div style="display:flex;align-items:center;justify-content:space-between">
-        <div><div class="lin">${esc(d.name)}</div><div class="lim mt1">${cb(d.debtType)}${d.interestRate>0?`<span class="pill" style="background:rgba(239,68,68,.1);color:var(--r);margin-left:4px">${d.interestRate}%/ปี</span>`:''}</div></div>
-        <button class="btn bGh" onclick="removeDebt('${d.id}')">✕</button>
+        <div><div class="lin">${esc(d.name)}</div><div class="lim mt1">${cb(d.debtType)}${d.interestRate>0?`<span class="pill" style="background:rgba(239,68,68,.1);color:var(--r);margin-left:4px">${d.interestRate}%/ปี</span>`:''}${d.payDay?`<span class="pill" style="background:rgba(59,130,246,.1);color:var(--b);margin-left:4px">📅 ทุกวันที่ ${d.payDay}</span>`:''}${r<=0?'<span class="pill" style="background:rgba(16,185,129,.12);color:var(--g2);margin-left:4px">✅ ปิดแล้ว</span>':''}</div></div>
+        <div style="display:flex;gap:4px"><button class="btn bGh" onclick="openDebtEdit('${d.id}')">✏️</button><button class="btn bGh" onclick="removeDebt('${d.id}')">✕</button></div>
       </div>
       <div class="g3">
-        <div style="text-align:center;padding:6px 3px;background:rgba(239,68,68,.07);border-radius:8px"><div class="fxs tm">ยอดหนี้</div><div class="fw8 fxs tr2 mono">${FM.compact(d.totalAmount)}</div></div>
+        <div style="text-align:center;padding:6px 3px;background:rgba(239,68,68,.07);border-radius:8px"><div class="fxs tm">คงเหลือ</div><div class="fw8 fxs tr2 mono">${FM.compact(r)}</div></div>
         <div style="text-align:center;padding:6px 3px;background:rgba(245,158,11,.07);border-radius:8px"><div class="fxs tm">จ่าย/เดือน</div><div class="fw8 fxs ty mono">${FM.compact(d.monthlyPayment)}</div></div>
-        <div style="text-align:center;padding:6px 3px;background:rgba(139,92,246,.07);border-radius:8px"><div class="fxs tm">หมดใน</div><div class="fw8 fxs tp mono">${time}</div></div>
+        <div style="text-align:center;padding:6px 3px;background:${noPayoff?'rgba(239,68,68,.12)':'rgba(139,92,246,.07)'};border-radius:8px"><div class="fxs tm">หมดใน</div><div class="fw8 fxs ${noPayoff?'tr2':'tp'} mono">${time}</div></div>
       </div>
+      ${noPayoff?`<div class="fxs" style="color:var(--r);background:rgba(239,68,68,.08);padding:6px 8px;border-radius:8px">⚠️ ค่างวดต่อเดือนไม่พอจ่ายดอกเบี้ย ยอดหนี้จะเพิ่มขึ้นเรื่อยๆ แนะนำเพิ่มยอดผ่อน/เดือน</div>`:''}
+      <div style="display:flex;justify-content:space-between;gap:8px">
+        ${due?`<div class="fxs tm">ชำระถัดไป: <strong class="tp">${fmtDate(due)}</strong></div>`:'<div></div>'}
+        ${d.interestRate>0&&(d.interestAccrued||0)>0?`<div class="fxs tm">ดอกเบี้ยสะสม: <strong class="tr2">${FM.compact(d.interestAccrued)}</strong></div>`:''}
+      </div>
+      <div class="pbw"><div class="pbh"><span class="fxs tm">ผ่อนไปแล้ว</span><span class="fxs fw8">${pct.toFixed(0)}%</span></div><div class="pbb"><div class="pbf kok" style="width:${pct}%"></div></div></div>
+      ${r>0?`<div class="irow"><div class="ipr" style="flex:1"><span class="pre">฿</span><input type="text" inputmode="decimal" placeholder="จ่ายเพิ่ม" class="inp" id="dp_${d.id}" oninput="FM.clean(this)"></div><button class="btn bP bSm" onclick="payDebt('${d.id}',FM.parse(document.getElementById('dp_${d.id}').value))">+ จ่าย</button></div>`:''}
     </div>`;}).join('');
 };
 // ล้างข้อมูลทั้ง array ตาม key ที่ระบุ (incomes/expenses/debts)
-const clearArr=key=>{S[key]=[];if(key==='otherIncomes')renderIncList();else if(key==='fixedExpenses')renderExpList();else if(key==='debts')renderDebtList();calc()};
+const clearArr=key=>{S[key]=[];save();if(key==='otherIncomes')renderIncList();else if(key==='fixedExpenses')renderExpList();else if(key==='debts')renderDebtList();calc()};
 
 /* ════════════════════════════════
    WAGE CALCULATOR v8
@@ -1843,7 +2027,7 @@ const renderPie=()=>{
   if(!el)return;
   const map={};
   S.fixedExpenses.forEach(e=>{map[e.category]=(map[e.category]||0)+e.amount});
-  const dt=S.debts.reduce((s,d)=>s+d.monthlyPayment,0);
+  const dt=S.debts.reduce((s,d)=>s+((d.remaining??d.totalAmount)>0?d.monthlyPayment:0),0);
   if(dt>0)map['personal']=(map['personal']||0)+dt;
   const keys=Object.keys(map),vals=Object.values(map);
   const cols=keys.map(k=>CAT[k]?.c||'#94a3b8');
@@ -1877,7 +2061,7 @@ const renderInsights=()=>{
   if(sr<0)ins.push({i:'🚨',t:'รายจ่ายเกินรายรับ!',d:`ขาดอยู่ ${FM.cur(Math.abs(C.bal))}/เดือน`});
   else if(sr<10&&C.inc>0)ins.push({i:'⚠️',t:'ออมน้อยเกินไป',d:`ออมได้ ${sr}% แนะนำ 20%+`});
   else if(sr>=30)ins.push({i:'🏆',t:'นักออมตัวยง!',d:`ออม ${sr}% ยอดเยี่ยม!`});
-  const dp=S.debts.reduce((s,d)=>s+d.monthlyPayment,0);
+  const dp=S.debts.reduce((s,d)=>s+((d.remaining??d.totalAmount)>0?d.monthlyPayment:0),0);
   const dr=C.inc>0?Math.round((dp/C.inc)*100):0;
   if(dr>40)ins.push({i:'💳',t:'ภาระหนี้สูง',d:`ผ่อนหนี้ ${dr}% เกินเกณฑ์`});
   else if(dr>0)ins.push({i:'✅',t:'ภาระหนี้โอเค',d:`ผ่อนหนี้ ${dr}% ปลอดภัย`});
@@ -2008,6 +2192,7 @@ const init=()=>{
   renderIncList();renderExpList();renderDebtList();
   renderTxLists();renderPayHistList();
   document.getElementById('txDate').value=new Date().toISOString().slice(0,10);
+  document.getElementById('dStartDate').value=new Date().toISOString().slice(0,10);
   // แสดง dashboard เริ่มต้น
   ['wage','budget','goals','history','achievements'].forEach(id=>{
     const el=document.getElementById('s-'+id);if(el)el.style.display='none';
