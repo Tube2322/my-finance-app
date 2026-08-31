@@ -136,6 +136,9 @@ body::before{
 .sec.on{display:block!important}
 @keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
 .cols2{display:grid;grid-template-columns:1fr 310px;gap:14px;align-items:start}
+/* grid item ค่าเริ่มต้นคือ min-width:auto (=เนื้อหาข้างในกว้างเท่าไรก็บังคับคอลัมน์กว้างตาม)
+   ตัดเป็น 0 กันเนื้อหาที่มี overflow-x:auto ของตัวเอง (เช่น tab-bar เรียงลำดับหนี้) ดันทั้งหน้าให้กว้างเกินจอมือถือ */
+.cols2>*{min-width:0}
 @media(max-width:960px){.cols2{grid-template-columns:1fr}}
 .stick{position:sticky;top:calc(var(--hh) + env(safe-area-inset-top) + 10px)}
 @media(max-width:1023px){.cols2{grid-template-columns:1fr}.stick{position:static}}
@@ -512,8 +515,8 @@ body::before{
 .ol-sum{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px;margin-bottom:14px}
 .ol-sumcard{background:var(--surface);border:1px solid var(--bdr);border-radius:var(--rL);padding:13px 15px;box-shadow:var(--sh)}
 .ol-sumcard .t{font-size:.73rem;color:var(--mt);font-weight:700;margin-bottom:7px;display:flex;align-items:center;gap:5px}
-.ol-sumrow{display:flex;justify-content:space-between;align-items:baseline;font-size:.76rem;padding:2px 0}
-.ol-sumrow .k{color:var(--mt)}
+.ol-sumrow{display:flex;flex-direction:column;gap:1px;padding:3px 0}
+.ol-sumrow .k{color:var(--mt);font-size:.71rem}
 .ol-sumrow .v{font-family:'IBM Plex Mono',monospace;font-weight:800;font-size:.86rem}
 .ol-delta{margin-top:6px;padding-top:6px;border-top:1px dashed var(--bdr);font-size:.78rem;font-weight:800;font-family:'IBM Plex Mono',monospace}
 
