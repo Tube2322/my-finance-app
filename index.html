@@ -285,6 +285,7 @@ body::before{
 .moji{font-size:1.3rem;display:block;margin-bottom:2px}
 
 /* ══ QUICK CHIPS ══ */
+.chiprow{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0}
 .qchip{padding:5px 11px;border-radius:99px;border:1.5px solid var(--bdr2);background:var(--s2);color:var(--txt2);font-family:'Noto Sans Thai','Sarabun',Arial,sans-serif;font-size:.74rem;font-weight:700;cursor:pointer;transition:var(--tr)}
 .qchip:hover{background:var(--gh);color:#fff;border-color:transparent;transform:scale(1.05)}
 .qchip:active{transform:scale(.95)}
@@ -553,6 +554,12 @@ body::before{
 .ol-src{font-size:.7rem;color:var(--mt);line-height:1.7}
 .ol-src code{font-family:'IBM Plex Mono',monospace;background:rgba(139,92,246,.09);padding:1px 5px;border-radius:4px;color:var(--p2)}
 
+/* ══ INVESTMENT PLANNER ══ */
+input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:6px;border-radius:4px;background:var(--bg2);outline:none;cursor:pointer}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:20px;height:20px;border-radius:50%;background:var(--gh);box-shadow:0 2px 8px rgba(139,92,246,.4);cursor:pointer;border:2px solid var(--surface)}
+input[type=range]::-moz-range-thumb{width:20px;height:20px;border-radius:50%;background:var(--p2);box-shadow:0 2px 8px rgba(139,92,246,.4);cursor:pointer;border:2px solid var(--surface)}
+input[type=range]::-moz-range-track{background:var(--bg2);height:6px;border-radius:4px}
+
 </style>
 </head>
 <body>
@@ -563,7 +570,7 @@ body::before{
   <nav class="desk-nav" id="deskNav">
     <button class="dnav on" data-s="dashboard">🏠 หน้าหลัก <span class="bx" id="bdgD">0</span></button>
     <button class="dnav" data-s="outlook">🔮 อนาคต</button>
-    <button class="dnav" data-s="budget">👛 งบประมาณ</button>
+    <button class="dnav" data-s="budget">💰 ลงทุน</button>
     <button class="dnav" data-s="goals">🎯 เป้าหมาย</button>
     <button class="dnav" data-s="history">📈 ประวัติ</button>
     <button class="dnav" data-s="achievements">🏆 รางวัล</button>
@@ -579,7 +586,7 @@ body::before{
 <nav class="bot-nav">
   <button class="bnav on" data-s="dashboard"><div class="bi">🏠</div><span>หน้าหลัก</span><span class="bx" id="bdgM">0</span></button>
   <button class="bnav" data-s="outlook"><div class="bi">🔮</div><span>อนาคต</span></button>
-  <button class="bnav" data-s="budget"><div class="bi">👛</div><span>งบ</span></button>
+  <button class="bnav" data-s="budget"><div class="bi">💰</div><span>ลงทุน</span></button>
   <button class="bnav" data-s="goals"><div class="bi">🎯</div><span>เป้าหมาย</span></button>
   <button class="bnav" data-s="history"><div class="bi">📈</div><span>ประวัติ</span></button>
   <button class="bnav" data-s="achievements"><div class="bi">🏆</div><span>รางวัล</span></button>
@@ -740,11 +747,6 @@ body::before{
         <div id="dailyChart" style="height:160px;width:100%"></div>
       </div>
       <div class="card csm">
-        <div class="ct mb2"><div class="ci" style="background:rgba(245,158,11,.1)">🔥</div><span>Budget ที่ใช้</span></div>
-        <div id="budgetProgress"></div>
-        <p class="fxs tm mt1">ตั้ง Budget ได้ที่แท็บ "งบประมาณ"</p>
-      </div>
-      <div class="card csm">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
           <div class="ct" style="margin:0"><div class="ci" style="background:rgba(139,92,246,.1)">💡</div><span>Smart Insights</span></div>
           <span class="rate-badge" id="savingsRateBadge">ออม 0%</span>
@@ -768,47 +770,106 @@ body::before{
 </div>
 <!-- END อนาคต -->
 
-<!-- ════════════ 3. งบประมาณ ════════════ -->
+<!-- ════════════ 3. ลงทุน ════════════ -->
 <div class="sec" id="s-budget">
-  <div class="pttl">👛 งบประมาณ</div>
+  <div class="pttl">💰 เงินเหลือไปลงทุนได้เท่าไร?</div>
   <div class="cols2">
     <div>
+      <!-- 1. เงินเหลือหลังภาระทั้งหมด (Actual) -->
+      <div class="card" id="invSurplusCard"></div>
+
+      <!-- 2. เงินสำรองขั้นต่ำ -->
       <div class="card">
-        <div class="ct mb2"><div class="ci" style="background:rgba(245,158,11,.1)">✉️</div><span>Envelope Budgeting</span></div>
-        <p class="fsm tm mb2">แบ่งเงินใส่ซองล่วงหน้า — เตือนเมื่อใกล้เกิน 🚨</p>
-        <div id="envelopeList"></div>
-        <div class="hr"></div>
-        <div class="g2">
-          <div class="fg"><label class="fl">หมวดหมู่</label>
-            <select id="envCat" class="inp">
-              <option value="food">🍜 อาหาร</option><option value="transport">🚗 เดินทาง</option>
-              <option value="entertainment">🎬 บันเทิง</option><option value="health">💊 สุขภาพ</option>
-              <option value="shopping">🛍️ ช้อปปิ้ง</option><option value="utility">💡 สาธารณูปโภค</option>
-              <option value="education">📚 การศึกษา</option><option value="other">📌 อื่นๆ</option>
-            </select>
-          </div>
-          <div class="fg"><label class="fl">งบ/เดือน (฿)</label><div class="ipr"><span class="pre">฿</span><input type="text" inputmode="decimal" id="envAmt" class="inp" placeholder="0" oninput="FM.clean(this)"></div></div>
+        <div class="ct mb2"><div class="ci" style="background:rgba(16,185,129,.1)">🛡️</div><span>เงินสำรองขั้นต่ำ</span></div>
+        <div style="display:flex;gap:6px;margin-bottom:11px">
+          <button class="ptp" id="bufModeFixedBtn" onclick="setInvBufferMode('fixed')">฿ จำนวนคงที่</button>
+          <button class="ptp on" id="bufModePctBtn" onclick="setInvBufferMode('percent')">% ของเงินเหลือ</button>
         </div>
-        <button class="btn bP bFull" onclick="addEnvelope()">+ เพิ่มซอง</button>
+        <div class="fg" id="bufFixedBox" style="display:none"><label class="fl">เงินสำรอง (฿)</label><div class="ipr"><span class="pre">฿</span><input type="text" inputmode="decimal" id="bufFixed" class="inp" placeholder="0" oninput="FM.clean(this);renderInvestPlanner()"></div></div>
+        <div class="fg" id="bufPctBox"><label class="fl">เงินสำรอง (% ของเงินเหลือ)</label><input type="number" inputmode="numeric" id="bufPct" class="inp" value="20" min="0" max="100" oninput="renderInvestPlanner()"></div>
+        <div id="invBufferSummary"></div>
+      </div>
+
+      <!-- 3. กำหนดเงินลงทุน -->
+      <div class="card">
+        <div class="ct mb2"><div class="ci" style="background:rgba(139,92,246,.1)">💸</div><span>คุณต้องการนำเงินไปลงทุนเท่าไร?</span></div>
+        <div style="display:flex;gap:6px;margin-bottom:11px">
+          <button class="ptp on" id="amtModePctBtn" onclick="setInvAmountMode('percent')">% ของเงินที่แนะนำ</button>
+          <button class="ptp" id="amtModeFixedBtn" onclick="setInvAmountMode('fixed')">฿ จำนวนคงที่</button>
+        </div>
+        <div class="fg" id="amtPctBox">
+          <input type="range" id="invPctSlider" min="0" max="100" step="5" value="50" oninput="onInvSliderInput(this.value)" style="width:100%;margin-bottom:8px">
+          <div class="fxs tm" style="text-align:center;margin-bottom:8px">ลงทุน <strong id="invPctLabel" class="tp">50%</strong> ของเงินที่แนะนำ</div>
+        </div>
+        <div class="fg" id="amtFixedBox" style="display:none"><label class="fl">จำนวนเงินลงทุน (฿)</label><div class="ipr"><span class="pre">฿</span><input type="text" inputmode="decimal" id="invFixed" class="inp" placeholder="0" oninput="FM.clean(this);renderInvestPlanner()"></div></div>
+        <div class="chiprow">
+          <button class="qchip" onclick="setInvQuickPct(25)">ลงทุน 25%</button>
+          <button class="qchip" onclick="setInvQuickPct(50)">ลงทุน 50%</button>
+          <button class="qchip" onclick="setInvQuickPct(75)">ลงทุน 75%</button>
+          <button class="qchip" onclick="setInvQuickPct(100)">ลงทุนทั้งหมด</button>
+        </div>
+        <div id="invOverBufferWarn"></div>
+      </div>
+
+      <!-- 4. Impact preview -->
+      <div class="card" id="invImpactCard"></div>
+
+      <!-- 5. เลือกสินทรัพย์ -->
+      <div class="card">
+        <div class="ct mb2"><div class="ci" style="background:rgba(59,130,246,.1)">🔍</div><span>เลือกแผนการลงทุน</span></div>
+        <div class="tab-bar" id="invAssetTypeBar">
+          <button class="tab on" data-atype="stock" onclick="setInvAssetType('stock')">📈 หุ้น</button>
+          <button class="tab" data-atype="etf" onclick="setInvAssetType('etf')">🧺 ETF</button>
+          <button class="tab" data-atype="fund" onclick="setInvAssetType('fund')">🏦 กองทุน</button>
+          <button class="tab" data-atype="other" onclick="setInvAssetType('other')">📌 อื่นๆ</button>
+        </div>
+        <div class="irow mt2">
+          <input type="text" id="invSearchQ" class="inp" placeholder="ค้นหาชื่อหุ้น / Ticker เช่น MSFT">
+          <button class="btn bP" onclick="searchInvAsset()">ค้นหา</button>
+        </div>
+        <p class="fxs tm mt1">Alpha Vantage free tier มีโควต้าจำกัด (~25 ครั้ง/วัน) — กดค้นหาเมื่อพร้อมเท่านั้น</p>
+        <div id="invSearchResults" class="mt2"></div>
+        <div id="invSelectedAsset" class="mt2"></div>
+      </div>
+
+      <!-- 6. ความถี่ -->
+      <div class="card">
+        <div class="ct mb2"><div class="ci" style="background:rgba(245,158,11,.1)">🔁</div><span>ความถี่การลงทุน</span></div>
+        <div style="display:flex;gap:6px;margin-bottom:11px">
+          <button class="ptp" id="freqOnceBtn" onclick="setInvFrequency('once')">ครั้งเดียว</button>
+          <button class="ptp on" id="freqMonthlyBtn" onclick="setInvFrequency('monthly')">ทุกเดือน</button>
+        </div>
+        <div class="hr"></div>
+        <div class="slbl">สมมติฐานผลตอบแทน (ตั้งเอง — ไม่ใช่ข้อมูลจริง)</div>
+        <div class="g2">
+          <div class="fg"><label class="fl">ผลตอบแทนเฉลี่ย (%/ปี)</label><input type="number" inputmode="decimal" id="invReturnPct" class="inp" value="7" step="0.5" oninput="renderInvestPlanner()"></div>
+          <div class="fg"><label class="fl">เงินปันผล (%/ปี)</label><input type="number" inputmode="decimal" id="invDivPct" class="inp" value="0" step="0.5" oninput="renderInvestPlanner()"></div>
+        </div>
+        <button class="btn bP bFull mt2" onclick="saveInvestPlan()">💾 บันทึกแผนลงทุน</button>
       </div>
     </div>
+
+    <!-- Sidebar: Timeline + Suggestion -->
     <div class="stick">
       <div class="card csm">
-        <div class="ct mb2"><div class="ci" style="background:rgba(139,92,246,.1)">⚡</div><span>ภาพรวม</span></div>
-        <div class="srow">
-          <div class="sb sbl"><div class="sl">งบรวม</div><div class="sv" id="totalBudget">฿0</div></div>
-          <div class="sb sr"><div class="sl">ใช้ไป</div><div class="sv" id="totalUsed">฿0</div></div>
+        <div class="ct mb2"><div class="ci" style="background:rgba(139,92,246,.1)">📅</div><span>Timeline</span></div>
+        <div class="tab-bar" id="invPeriodBar">
+          <button class="tab" data-period="1" onclick="setInvPeriod(1)">30 วัน</button>
+          <button class="tab on" data-period="6" onclick="setInvPeriod(6)">6 เดือน</button>
+          <button class="tab" data-period="12" onclick="setInvPeriod(12)">1 ปี</button>
+          <button class="tab" data-period="60" onclick="setInvPeriod(60)">5 ปี</button>
+          <button class="tab" data-period="120" onclick="setInvPeriod(120)">10 ปี</button>
         </div>
-        <div id="budgetOverview"></div>
+        <div id="invTimeline"></div>
       </div>
       <div class="card csm">
-        <div class="ct mb2"><div class="ci" style="background:rgba(59,130,246,.1)">💡</div><span>กฎ 50/30/20</span></div>
-        <div id="rule503020"></div>
+        <div class="ct mb2"><div class="ci" style="background:rgba(139,92,246,.1)">🧠</div><span>สิ่งที่ระบบวิเคราะห์ให้คุณ</span></div>
+        <div id="invInsight"></div>
       </div>
     </div>
   </div>
 </div>
-<!-- END งบประมาณ -->
+<!-- END ลงทุน -->
 
 <!-- ════════════ 4. เป้าหมาย ════════════ -->
 <div class="sec" id="s-goals">
@@ -940,11 +1001,19 @@ const cb=k=>{const m=CAT[k]||CAT.other;return`<span class="tag" style="backgroun
 /* ── STATE ── */
 let S={
   salary:0,otherIncomes:[],fixedExpenses:[],debts:[],
-  transactions:[],envelopes:[],goals:[],monthlyHistory:[],
+  transactions:[],goals:[],monthlyHistory:[],
   streak:0,lastPositiveMonth:'',
   // legacy: ข้อมูลของฟีเจอร์คำนวณค่าแรงเดิม ไม่มีหน้าจอไหนใช้แล้ว แต่เก็บผ่านไว้
   // เพื่อไม่ลบข้อมูลเก่าของผู้ใช้ทิ้ง และให้ไฟล์ backup รุ่นก่อนยัง restore ได้
   legacyWage:null,
+  // 💰 แผนลงทุน — ดู computeSurplus/computeBuffer/computeInvestAmount
+  investPlan:{
+    bufferMode:'percent',bufferFixed:0,bufferPercent:20,
+    amountMode:'percent',fixedAmount:0,percent:50,
+    frequency:'monthly',overrideBuffer:false,
+    asset:null,lastPrice:null,
+    assumedReturnPct:7,assumedDividendPct:0,
+  },
 };
 // ── COMPUTED: ยอดรวมที่คำนวณจาก S (ไม่ได้ save ลง localStorage)
 let C={inc:0,exp:0,bal:0};
@@ -962,10 +1031,11 @@ const load=()=>{
     Object.assign(S,{
       salary:+p.salary||0,otherIncomes:p.otherIncomes||[],
       fixedExpenses:p.fixedExpenses||[],debts:p.debts||[],
-      transactions:p.transactions||[],envelopes:p.envelopes||[],
+      transactions:p.transactions||[],
       goals:p.goals||[],monthlyHistory:p.monthlyHistory||[],
       streak:+p.streak||0,lastPositiveMonth:p.lastPositiveMonth||'',
       legacyWage:p.legacyWage??(p.paySettings?{paySettings:p.paySettings,payHistory:p.payHistory||[]}:null),
+      investPlan:{...S.investPlan,...(p.investPlan||{})},
     });
   }catch(e){}
 };
@@ -1013,7 +1083,7 @@ const navigate=sec=>{
   });
   if(sec==='history'){renderHistChart();renderHistList();}
   if(sec==='achievements')renderAch();
-  if(sec==='budget'){renderBudget();renderRule();}
+  if(sec==='budget')renderInvestPlanner();
   if(sec==='goals')renderGoals();
   if(sec==='outlook')renderOutlook();
   try{window.scrollTo({top:0,behavior:'instant'});}catch(e){}
@@ -1029,8 +1099,9 @@ const calc=()=>{
   C.exp=S.fixedExpenses.reduce((s,i)=>s+i.amount,0)+S.debts.reduce((s,d)=>s+((d.remaining??d.totalAmount)>0?d.monthlyPayment:0),0);
   C.bal=C.inc-C.exp;
   save();renderSummary();renderPie();
-  renderBudgetProg();renderDailyChart();checkAch();updateStreak();renderRule();renderInsights();
+  renderDailyChart();checkAch();updateStreak();renderInsights();
   renderOutlook(); // ข้อมูลต้นทางเปลี่ยน → คาดการณ์อนาคตต้องคำนวณใหม่เสมอ
+  renderInvestPlanner(); // เงินเหลือให้ลงทุนก็เปลี่ยนตาม รายรับ/รายจ่าย/หนี้เช่นกัน
 };
 
 // แสดงยอดสรุปใน hero card, sidebar stats, badge นับถอยหลัง
@@ -1055,16 +1126,6 @@ const renderSummary=()=>{
   document.getElementById('monthSaved').textContent=f(Math.max(0,C.bal-ms));
   const cnt=S.transactions.filter(t=>t.date===today).length;
   ['bdgD','bdgM'].forEach(id=>{const el=document.getElementById(id);if(el)el.textContent=cnt});
-};
-
-// แสดงกฎ 50/30/20 คำนวณจากรายรับปัจจุบัน
-const renderRule=()=>{
-  const i=C.inc;
-  document.getElementById('rule503020').innerHTML=[
-    ['🏠 ความจำเป็น (50%)',50,'var(--b)'],
-    ['🎬 ความต้องการ (30%)',30,'var(--p2)'],
-    ['💰 ออม/ลงทุน (20%)',20,'var(--g2)'],
-  ].map(([l,p,c])=>`<div style="margin-bottom:9px"><div style="display:flex;justify-content:space-between;font-size:.78rem;margin-bottom:3px;font-weight:700"><span>${l}</span><span style="color:${c};font-family:'IBM Plex Mono',monospace">${FM.cur(i*p/100)}</span></div><div class="pbb"><div class="pbf kok" style="background:${c};width:100%"></div></div></div>`).join('');
 };
 
 /* ── INCOME / EXPENSE / DEBT ── */
@@ -1331,7 +1392,11 @@ const olVariableSpend=()=>{
 // ── เครื่องคำนวณหลัก ──
 // เดินหน้าทีละเดือนแบบต่อเนื่อง: เงินปลายเดือนของเดือนก่อน = เงินต้นเดือนของเดือนถัดไป
 // หนี้ก้อนไหนผ่อนหมดกลางทาง จะหยุดหักค่างวดก้อนนั้นในเดือนถัดไปทันที
-const computeOutlook=()=>{
+// investPlan (optional): เมื่อส่งเข้ามาจะหักเงินลงทุนออกจาก cash flow ทุกเดือน + คำนวณมูลค่าพอร์ตจำลองแยกต่างหาก
+//   ไม่ส่ง → พฤติกรรมเดิมทุกประการ (หน้า 🔮 อนาคต ไม่ผูกกับการลงทุน)
+// monthsCount (optional): จำนวนเดือนที่จะจำลอง (ค่าเริ่มต้น OL_MONTHS=5) — ใช้เมื่อ Investment Timeline ขอดูช่วงยาวกว่า 5 เดือน
+const computeOutlook=(investPlan,monthsCount)=>{
+  const N=monthsCount||OL_MONTHS;
   const income=C.inc;
   const fixedExp=S.fixedExpenses.reduce((s,e)=>s+e.amount,0);
   const vs=olVariableSpend();
@@ -1345,9 +1410,21 @@ const computeOutlook=()=>{
   const startDebt=debts.reduce((s,d)=>s+d.rem,0);
   const startDebtMonthly=debts.reduce((s,d)=>s+(d.rem>0?d.monthly:0),0);
 
+  // เงินลงทุน/เดือน — คำนวณใหม่ทุกครั้งจาก surplus ของ "เดือนก่อนหักลงทุน" ตามโหมดที่ตั้ง (ห้าม hardcode ยอดเดียวกันทุกเดือนถ้าเป็น % mode)
+  // ต้องผ่านเงินสำรองก่อนเหมือนการ์ด Impact Preview เสมอ (Single Source of Truth — ใช้ computeBuffer ตัวเดียวกัน)
+  const investAmountFor=(monthIdx,preInvestNet)=>{
+    if(!investPlan)return 0;
+    if(investPlan.frequency==='once'&&monthIdx>1)return 0;
+    if(investPlan.amountMode==='fixed')return Math.max(0,investPlan.fixedAmount||0);
+    const buf=computeBuffer(preInvestNet,investPlan);
+    return Math.max(0,buf.recommendedMax*((investPlan.percent||0)/100));
+  };
+  const monthlyGrowthRate=investPlan?((investPlan.assumedReturnPct||0)+(investPlan.assumedDividendPct||0))/100/12:0;
+
   const months=[];
   let bal=startBalance;
-  for(let m=1;m<=OL_MONTHS;m++){
+  let portfolio=0;
+  for(let m=1;m<=N;m++){
     let debtPaid=0,interestPaid=0;
     const paidOff=[];
     debts.forEach(d=>{
@@ -1360,9 +1437,13 @@ const computeOutlook=()=>{
       debtPaid+=pay;interestPaid+=interest;
       if(d.rem<=0&&!d.paidOffAt){d.paidOffAt=m;paidOff.push({name:d.name,freed:d.monthly})}
     });
-    const net=income-fixedExp-variableExp-debtPaid;
+    const preInvestNet=income-fixedExp-variableExp-debtPaid;
+    const investedThisMonth=investAmountFor(m,preInvestNet);
+    const net=preInvestNet-investedThisMonth;
     const start=bal;bal=start+net;
-    months.push({m,label:olMonthLabel(m),income,fixedExp,variableExp,debtPaid,interestPaid,net,start,end:bal,
+    portfolio=portfolio*(1+monthlyGrowthRate)+investedThisMonth;
+    months.push({m,label:olMonthLabel(m),income,fixedExp,variableExp,debtPaid,interestPaid,net,start,end:bal,cashEnd:bal,
+      invested:investedThisMonth,portfolioValue:portfolio,
       debtLeft:debts.reduce((s,d)=>s+d.rem,0),paidOff});
   }
   // สถานะรายเดือน
@@ -1370,9 +1451,9 @@ const computeOutlook=()=>{
     x.status=x.end<0?'danger':x.net<0?'risk':(income>0&&x.net<income*0.1)?'watch':'good';
   });
 
-  // สถานะรวม 5 เดือน
-  const endBal=months[OL_MONTHS-1].end,endDebt=months[OL_MONTHS-1].debtLeft;
-  const avgFlow=months.reduce((s,x)=>s+x.net,0)/OL_MONTHS;
+  // สถานะรวม
+  const endBal=months[N-1].end,endDebt=months[N-1].debtLeft;
+  const avgFlow=months.reduce((s,x)=>s+x.net,0)/N;
   const anyNegBal=months.some(x=>x.end<0);
   const anyNegFlow=months.some(x=>x.net<0);
   const debtRatio=income>0?startDebtMonthly/income:0;
@@ -1574,10 +1655,10 @@ const addTx=()=>{
   S.transactions.unshift({id:'t'+Date.now(),name,amount:amt,category:cat,date,note,mood:currentMood});
   currentMood='';document.querySelectorAll('.mood-btn').forEach(b=>b.classList.remove('sel'));
   document.getElementById('txName').value='';document.getElementById('txAmt').value='';document.getElementById('txNote').value='';
-  save();renderTxLists();renderSummary();renderBudget();renderDailyChart();renderOutlook();checkAch();
+  save();renderTxLists();renderSummary();renderInvestPlanner();renderDailyChart();renderOutlook();checkAch();
 };
 // ลบรายการค่าใช้จ่ายตาม id → save → render
-const removeTx=id=>{S.transactions=S.transactions.filter(x=>x.id!==id);save();renderTxLists();renderSummary();renderBudget();renderDailyChart();renderOutlook()};
+const removeTx=id=>{S.transactions=S.transactions.filter(x=>x.id!==id);save();renderTxLists();renderSummary();renderInvestPlanner();renderDailyChart();renderOutlook()};
 // สร้าง HTML สำหรับรายการค่าใช้จ่าย 1 รายการ (ใช้ใน renderTxLists)
 const txHtml=t=>{
   const m=CAT[t.category]||CAT.other;
@@ -1632,7 +1713,7 @@ const renderAch=()=>{
 /* ── BACKUP / RESTORE ── */
 // export ข้อมูลทั้งหมดเป็น JSON file ให้ดาวน์โหลด
 const doBackup=()=>{
-  const blob=new Blob([JSON.stringify({...S,ver:9,exportDate:new Date().toISOString()},null,2)],{type:'application/json'});
+  const blob=new Blob([JSON.stringify({...S,ver:10,exportDate:new Date().toISOString()},null,2)],{type:'application/json'});
   const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=`fintrack_${new Date().toISOString().slice(0,10)}.json`;a.click();
 };
 document.getElementById('backupBtn').addEventListener('click',doBackup);
@@ -1643,7 +1724,7 @@ document.getElementById('restoreFile').addEventListener('change',e=>{
   reader.onload=ev=>{
     try{
       const p=JSON.parse(ev.target.result);
-      Object.assign(S,{salary:+p.salary||0,otherIncomes:p.otherIncomes||[],fixedExpenses:p.fixedExpenses||[],debts:p.debts||[],transactions:p.transactions||[],envelopes:p.envelopes||[],goals:p.goals||[],monthlyHistory:p.monthlyHistory||[],streak:+p.streak||0,lastPositiveMonth:p.lastPositiveMonth||'',legacyWage:p.legacyWage??(p.paySettings?{paySettings:p.paySettings,payHistory:p.payHistory||[]}:null)});
+      Object.assign(S,{salary:+p.salary||0,otherIncomes:p.otherIncomes||[],fixedExpenses:p.fixedExpenses||[],debts:p.debts||[],transactions:p.transactions||[],goals:p.goals||[],monthlyHistory:p.monthlyHistory||[],streak:+p.streak||0,lastPositiveMonth:p.lastPositiveMonth||'',legacyWage:p.legacyWage??(p.paySettings?{paySettings:p.paySettings,payHistory:p.payHistory||[]}:null),investPlan:{...S.investPlan,...(p.investPlan||{})}});
       save();init();modal('นำเข้าสำเร็จ ✅','ข้อมูลถูกนำเข้าเรียบร้อย');
     }catch(err){modal('เกิดข้อผิดพลาด','ไม่สามารถอ่านไฟล์ได้');}
   };
@@ -1702,45 +1783,230 @@ const renderInsights=()=>{
   if(box)box.innerHTML=ins.slice(0,3).map(i=>`<div class="ins-item"><div class="ins-ico">${i.i}</div><div class="ins-body"><div class="ins-t">${i.t}</div><div class="ins-d">${i.d}</div></div></div>`).join('');
 };
 
-/* ── BUDGET ── */
-const getMonthSpent=()=>{
-  const ym=new Date().toISOString().slice(0,7),m={};
-  S.transactions.filter(t=>t.date.startsWith(ym)).forEach(t=>{m[t.category]=(m[t.category]||0)+t.amount});
-  return m;
+/* ════════════════════════════════
+   💰 SMART SURPLUS INVESTMENT PLANNER
+   ─────────────────────────────────
+   คำนวณจาก computeOutlook() ตัวเดียวกับหน้า 🔮 อนาคต (Single Source of Truth)
+   Available Surplus = รายรับ − รายจ่ายคงที่ − รายจ่ายรายวันเฉลี่ย − ค่างวดหนี้
+════════════════════════════════ */
+// เงินเหลือหลังภาระทั้งหมด — เรียก computeOutlook() ครั้งเดียว หยิบเลขที่ต้องใช้
+const computeSurplus=()=>{
+  const o=computeOutlook();
+  const surplus=o.ready?(o.income-o.fixedExp-o.variableExp-o.startDebtMonthly):0;
+  return{ready:o.ready,income:o.income,fixedExp:o.fixedExp,variableExp:o.variableExp,debtMonthly:o.startDebtMonthly,surplus,missing:o.missing};
 };
-const addEnvelope=()=>{
-  const cat=document.getElementById('envCat').value;
-  const amt=FM.parse(document.getElementById('envAmt').value);
-  if(!amt){modal('ข้อมูลไม่ครบ','กรุณากรอกจำนวนงบ');return;}
-  const ex=S.envelopes.findIndex(e=>e.category===cat);
-  if(ex>=0)S.envelopes[ex].budget=amt;else S.envelopes.push({id:'env'+Date.now(),category:cat,budget:amt});
-  document.getElementById('envAmt').value='';save();renderBudget();
+// เงินสำรองขั้นต่ำ + เพดานที่แนะนำให้ลงทุนได้
+const computeBuffer=(surplus,plan)=>{
+  const bufferAmt=plan.bufferMode==='percent'?surplus*(plan.bufferPercent/100):plan.bufferFixed;
+  const recommendedMax=Math.max(0,surplus-bufferAmt);
+  return{bufferAmt,recommendedMax};
 };
-const removeEnv=id=>{S.envelopes=S.envelopes.filter(x=>x.id!==id);save();renderBudget()};
-const renderBudget=()=>{
-  const spent=getMonthSpent();
-  const tB=S.envelopes.reduce((s,e)=>s+e.budget,0),tU=Object.values(spent).reduce((s,v)=>s+v,0);
-  const tb=document.getElementById('totalBudget'),tu=document.getElementById('totalUsed');
-  if(tb)tb.textContent=FM.cur(tB);if(tu)tu.textContent=FM.cur(tU);
-  const ev=document.getElementById('envelopeList');
-  if(ev)ev.innerHTML=S.envelopes.length?S.envelopes.map(e=>{
-    const s=spent[e.category]||0,pct=Math.min(100,e.budget>0?s/e.budget*100:0);
-    const cls=pct>100?'kover':pct>80?'kwarn':'kok';
-    const m=CAT[e.category]||CAT.other;
-    return`<div style="padding:11px 12px;border-radius:var(--rM);border:1px solid var(--bdr);background:var(--s2);margin-bottom:8px"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:7px"><div style="font-weight:700;font-size:.87rem">${m.e} ${m.l}</div><div style="display:flex;align-items:center;gap:7px"><span class="fxs tm">${FM.cur(s)} / ${FM.cur(e.budget)}</span><button class="btn bGh" onclick="removeEnv('${e.id}')">✕</button></div></div><div class="pbw"><div class="pbb"><div class="pbf ${cls}" style="width:${pct}%"></div></div><div class="pbh"><span>${pct.toFixed(0)}%</span><span style="color:${pct>80?'var(--r)':'var(--mt)'}">${FM.cur(Math.max(0,e.budget-s))} คงเหลือ</span></div></div></div>`;
-  }).join(''):'<div class="empty"><div class="ei">✉️</div><p>ยังไม่มีซอง</p></div>';
-  const ov=document.getElementById('budgetOverview');
-  if(ov)ov.innerHTML=S.envelopes.map(e=>{
-    const s=spent[e.category]||0,pct=Math.min(100,e.budget>0?s/e.budget*100:0);
-    const cls=pct>100?'kover':pct>80?'kwarn':'kok';const m=CAT[e.category]||CAT.other;
-    return`<div style="margin-bottom:9px"><div style="display:flex;justify-content:space-between;font-size:.76rem;margin-bottom:3px;font-weight:700"><span>${m.e} ${m.l}</span><span>${pct.toFixed(0)}%</span></div><div class="pbb"><div class="pbf ${cls}" style="width:${pct}%"></div></div></div>`;}).join('');
+// จำนวนเงินลงทุนจริงตามโหมดที่ผู้ใช้ตั้ง
+const computeInvestAmount=(surplus,buffer,plan)=>{
+  const amt=plan.amountMode==='percent'?buffer.recommendedMax*(plan.percent/100):plan.fixedAmount;
+  const cashAfter=surplus-amt;
+  return{amt,cashAfter,overBuffer:cashAfter<buffer.bufferAmt,overSurplus:amt>surplus};
 };
-const renderBudgetProg=()=>{
-  const spent=getMonthSpent();const el=document.getElementById('budgetProgress');if(!el)return;
-  el.innerHTML=S.envelopes.length?S.envelopes.map(e=>{
-    const s=spent[e.category]||0,pct=Math.min(100,e.budget>0?s/e.budget*100:0);
-    const cls=pct>100?'kover':pct>80?'kwarn':'kok';const m=CAT[e.category]||CAT.other;
-    return`<div style="margin-bottom:7px"><div style="display:flex;justify-content:space-between;font-size:.71rem;color:var(--mt);margin-bottom:3px;font-weight:700"><span>${m.e} ${m.l}</span><span>${FM.compact(s)}/${FM.compact(e.budget)}</span></div><div class="pbb"><div class="pbf ${cls}" style="width:${pct}%"></div></div></div>`;}).join(''):'<p class="fxs tm">ยังไม่ได้ตั้ง Budget</p>';
+// สถานะสุขภาพการเงินหลังหักแผนลงทุนแล้ว — คำนวณจากตัวเลขจริงเท่านั้น
+const invHealthStatus=(cashAfter,buffer)=>{
+  if(cashAfter<0)return{i:'🔴',t:'Critical',cls:'ol-danger',d:'เงินสดติดลบหลังลงทุนตามแผนนี้'};
+  if(cashAfter<buffer.bufferAmt)return{i:'🟠',t:'Risk',cls:'ol-risk',d:'เงินสดคงเหลือต่ำกว่าเงินสำรองขั้นต่ำที่ตั้งไว้'};
+  if(buffer.bufferAmt>0&&cashAfter<buffer.bufferAmt*1.3)return{i:'🟡',t:'Caution',cls:'ol-watch',d:'เงินสดเหลือใกล้ระดับเงินสำรอง'};
+  return{i:'🟢',t:'Healthy',cls:'ol-good',d:'เงินสดและเงินสำรองยังเพียงพอตามที่ตั้งไว้'};
+};
+
+/* ── UI state toggles (ไม่ persist — persist เฉพาะตอนกด "บันทึกแผนลงทุน") ── */
+const invDraft=()=>{
+  const p=S.investPlan;
+  return{
+    bufferMode:document.getElementById('bufModePctBtn')?.classList.contains('on')?'percent':'fixed',
+    bufferFixed:FM.parse(document.getElementById('bufFixed')?.value),
+    bufferPercent:document.getElementById('bufPct')?.value!==''?+document.getElementById('bufPct').value:p.bufferPercent,
+    amountMode:document.getElementById('amtModeFixedBtn')?.classList.contains('on')?'fixed':'percent',
+    fixedAmount:FM.parse(document.getElementById('invFixed')?.value),
+    percent:document.getElementById('invPctSlider')?.value!==''?+document.getElementById('invPctSlider').value:p.percent,
+    frequency:document.getElementById('freqOnceBtn')?.classList.contains('on')?'once':'monthly',
+    asset:p.asset,lastPrice:p.lastPrice,
+    assumedReturnPct:document.getElementById('invReturnPct')?.value!==''?+document.getElementById('invReturnPct').value:p.assumedReturnPct,
+    assumedDividendPct:document.getElementById('invDivPct')?.value!==''?+document.getElementById('invDivPct').value:p.assumedDividendPct,
+  };
+};
+const setInvBufferMode=m=>{
+  document.getElementById('bufModeFixedBtn').classList.toggle('on',m==='fixed');
+  document.getElementById('bufModePctBtn').classList.toggle('on',m==='percent');
+  document.getElementById('bufFixedBox').style.display=m==='fixed'?'':'none';
+  document.getElementById('bufPctBox').style.display=m==='percent'?'':'none';
+  renderInvestPlanner();
+};
+const setInvAmountMode=m=>{
+  document.getElementById('amtModeFixedBtn').classList.toggle('on',m==='fixed');
+  document.getElementById('amtModePctBtn').classList.toggle('on',m==='percent');
+  document.getElementById('amtFixedBox').style.display=m==='fixed'?'':'none';
+  document.getElementById('amtPctBox').style.display=m==='percent'?'':'none';
+  renderInvestPlanner();
+};
+const onInvSliderInput=v=>{document.getElementById('invPctLabel').textContent=v+'%';renderInvestPlanner();};
+const setInvQuickPct=pct=>{
+  setInvAmountMode('percent');
+  document.getElementById('invPctSlider').value=pct;
+  document.getElementById('invPctLabel').textContent=pct+'%';
+  renderInvestPlanner();
+};
+const setInvFrequency=f=>{
+  document.getElementById('freqOnceBtn').classList.toggle('on',f==='once');
+  document.getElementById('freqMonthlyBtn').classList.toggle('on',f==='monthly');
+  renderInvestPlanner();
+};
+let invAssetType='stock';
+const setInvAssetType=t=>{invAssetType=t;document.querySelectorAll('#invAssetTypeBar .tab').forEach(b=>b.classList.toggle('on',b.dataset.atype===t));};
+let invPeriod=6;
+const setInvPeriod=m=>{invPeriod=m;document.querySelectorAll('#invPeriodBar .tab').forEach(b=>b.classList.toggle('on',+b.dataset.period===m));renderInvestPlanner();};
+
+/* ── หา ticker จริงผ่าน Alpha Vantage (proxy /api/*) — กดค้นหาเอง ไม่ auto ── */
+const searchInvAsset=async()=>{
+  const q=document.getElementById('invSearchQ').value.trim();
+  const box=document.getElementById('invSearchResults');
+  if(!q){modal('ยังไม่ได้พิมพ์คำค้น','กรุณาพิมพ์ชื่อหุ้นหรือ ticker ก่อนค้นหา');return;}
+  box.innerHTML='<p class="fxs tm">กำลังค้นหา...</p>';
+  try{
+    const r=await fetch(`/api/stock-search?q=${encodeURIComponent(q)}`);
+    const data=await r.json();
+    if(!r.ok){box.innerHTML=`<p class="fxs tr2">${esc(data.message||'ค้นหาไม่สำเร็จ')}</p>`;return;}
+    if(!data.matches?.length){box.innerHTML='<p class="fxs tm">ไม่พบผลลัพธ์</p>';return;}
+    box.innerHTML=data.matches.slice(0,8).map(m=>`<div class="li" style="cursor:pointer" onclick='selectInvAsset(${JSON.stringify(m).replace(/'/g,"&#39;")})'><div class="lib"><div class="lin">${esc(m.symbol)}</div><div class="lim">${esc(m.name)} · ${esc(m.region)}</div></div></div>`).join('');
+  }catch(e){box.innerHTML='<p class="fxs tr2">เรียก API ไม่สำเร็จ ลองใหม่อีกครั้ง</p>';}
+};
+const selectInvAsset=async m=>{
+  S.investPlan.asset={type:invAssetType,symbol:m.symbol,name:m.name};
+  document.getElementById('invSearchResults').innerHTML='';
+  document.getElementById('invSearchQ').value='';
+  save();
+  await refreshInvPrice();
+  renderInvestPlanner();
+};
+// ดึงราคาจริงล่าสุด — เรียกเฉพาะตอนเลือกสินทรัพย์ใหม่ หรือกด "รีเฟรชราคา" เอง (ประหยัดโควต้า)
+const refreshInvPrice=async()=>{
+  const a=S.investPlan.asset;if(!a)return;
+  const el=document.getElementById('invSelectedAsset');
+  try{
+    const r=await fetch(`/api/stock-quote?symbol=${encodeURIComponent(a.symbol)}`);
+    const data=await r.json();
+    if(!r.ok){
+      S.investPlan.lastPrice={error:data.message||'ดึงราคาไม่สำเร็จ'};
+    }else{
+      S.investPlan.lastPrice={price:data.price,fetchedAt:data.fetchedAt};
+    }
+  }catch(e){
+    S.investPlan.lastPrice={error:'เรียก API ไม่สำเร็จ'};
+  }
+  save();renderInvestPlanner();
+};
+const clearInvAsset=()=>{S.investPlan.asset=null;S.investPlan.lastPrice=null;save();renderInvestPlanner();};
+
+/* ── บันทึกแผน ── */
+const saveInvestPlan=()=>{
+  Object.assign(S.investPlan,invDraft());
+  save();
+  renderInvestPlanner();renderOutlook();checkAch();
+  celebrate('💰','บันทึกแผนลงทุนแล้ว!','เชื่อมกับหน้า 🔮 อนาคตให้อัตโนมัติ');
+};
+
+/* ── Render หลัก ── */
+const renderInvestPlanner=()=>{
+  const el=document.getElementById('invSurplusCard');if(!el)return; // หน้านี้ไม่ได้แสดงอยู่ ข้าม
+  const plan={...S.investPlan,...invDraft()};
+  const s=computeSurplus();
+
+  // 1. เงินเหลือ (Actual)
+  if(!s.ready){
+    el.innerHTML=`<div class="ct mb2"><div class="ci" style="background:rgba(139,92,246,.1)">💰</div><span>เงินเหลือหลังภาระทั้งหมด</span></div>
+      <div class="empty" style="padding:10px 0"><p>ยังคำนวณไม่ได้ — กรอกรายรับที่หน้าหลักก่อน</p></div>`;
+    document.getElementById('invImpactCard').innerHTML='';
+    document.getElementById('invBufferSummary').innerHTML='';
+    document.getElementById('invTimeline').innerHTML='<p class="fxs tm">ยังไม่มีข้อมูลพอคำนวณ</p>';
+    document.getElementById('invInsight').innerHTML='';
+    renderInvSelectedAsset();
+    return;
+  }
+  el.innerHTML=`<div class="ct mb2"><div class="ci" style="background:rgba(139,92,246,.1)">💰</div><span>เงินเหลือหลังภาระทั้งหมด</span></div>
+    <div class="pr"><span>รายรับทั้งหมด</span><strong class="tp">${FM.cur(s.income)}</strong></div>
+    <div class="pr"><span>รายจ่ายคงที่</span><strong class="tr2">−${FM.cur(s.fixedExp)}</strong></div>
+    <div class="pr"><span>รายจ่ายรายวัน (เฉลี่ย)</span><strong class="tr2">−${FM.cur(s.variableExp)}</strong></div>
+    <div class="pr"><span>ภาระหนี้/ค่างวด</span><strong class="tr2">−${FM.cur(s.debtMonthly)}</strong></div>
+    <div class="pr"><span class="fw9">เงินที่เหลือสำหรับวางแผน</span><strong class="${s.surplus>=0?'tp':'tr2'}">${FM.cur(s.surplus)}</strong></div>`;
+
+  // 2. เงินสำรอง
+  const buf=computeBuffer(s.surplus,plan);
+  document.getElementById('invBufferSummary').innerHTML=`
+    <div class="hr"></div>
+    <div class="pr"><span>เงินเหลือทั้งหมด</span><strong>${FM.cur(s.surplus)}</strong></div>
+    <div class="pr"><span>กันไว้เป็นเงินสำรอง</span><strong class="ty">−${FM.cur(buf.bufferAmt)}</strong></div>
+    <div class="pr"><span class="fw9">แนะนำให้ใช้ลงทุนได้สูงสุด</span><strong class="tp">${FM.cur(buf.recommendedMax)}</strong></div>`;
+
+  // 3+4. เงินลงทุน + impact
+  const inv=computeInvestAmount(s.surplus,buf,plan);
+  document.getElementById('invOverBufferWarn').innerHTML=inv.overSurplus
+    ?`<div class="ins-item" style="background:rgba(239,68,68,.08);border-color:rgba(239,68,68,.25)"><div class="ins-ico">⚠️</div><div class="ins-body"><div class="ins-t tr2">จำนวนเงินลงทุนสูงกว่าเงินคงเหลือที่คำนวณได้</div><div class="ins-d">เกิน ${FM.cur(inv.amt-s.surplus)} — หากลงทุนตามนี้ต้องใช้เงินจากแหล่งอื่น (เช่นเงินออมเดิม) ไม่ใช่เงินเหลือจากเดือนนี้</div></div></div>`
+    :'';
+  const health=invHealthStatus(inv.cashAfter,buf);
+  document.getElementById('invImpactCard').innerHTML=`
+    <div class="ct mb2"><div class="ci" style="background:rgba(139,92,246,.1)">📊</div><span>หากลงทุน ${FM.cur(inv.amt)}</span></div>
+    <div class="srow">
+      <div class="sb sg"><div class="sl">เงินสดคงเหลือ</div><div class="sv" id="">${FM.cur(inv.cashAfter)}</div></div>
+      <div class="sb sy"><div class="sl">เงินที่นำไปลงทุน</div><div class="sv">${FM.cur(inv.amt)}</div></div>
+    </div>
+    <div class="pr"><span>เงินสำรองขั้นต่ำ</span><strong>${FM.cur(buf.bufferAmt)}</strong></div>
+    <span class="ol-badge ${health.cls}">${health.i} ${health.t}</span>
+    <p class="fxs tm mt1">${health.d}${inv.overBuffer&&inv.cashAfter>=0?' คุณยังสามารถบันทึกแผนนี้ได้ แต่เงินสดคงเหลือจะต่ำกว่าเงินสำรองขั้นต่ำที่กำหนด':''}</p>`;
+
+  renderInvSelectedAsset();
+  renderInvTimeline(plan);
+  renderInvInsight(s,buf,inv,plan);
+};
+
+// การ์ดสินทรัพย์ที่เลือกอยู่ + ราคาล่าสุดที่ดึงจริง (ถ้ามี)
+const renderInvSelectedAsset=()=>{
+  const el=document.getElementById('invSelectedAsset');if(!el)return;
+  const a=S.investPlan.asset;
+  if(!a){el.innerHTML='<p class="fxs tm">ยังไม่ได้เลือกสินทรัพย์</p>';return;}
+  const lp=S.investPlan.lastPrice;
+  let priceHtml;
+  if(!lp)priceHtml='<span class="fxs tm">ยังไม่ได้ดึงราคา</span>';
+  else if(lp.error)priceHtml=`<span class="fxs tr2">${esc(lp.error)}</span>`;
+  else priceHtml=`<span class="lia tp">${FM.cur(lp.price)}</span><span class="fxs tm" style="display:block">ราคาจริง ณ ${new Date(lp.fetchedAt).toLocaleString('th-TH')}</span>`;
+  el.innerHTML=`<div class="li" style="flex-direction:column;align-items:stretch;gap:6px">
+    <div style="display:flex;align-items:center;justify-content:space-between">
+      <div><div class="lin">${esc(a.symbol)}</div><div class="lim">${esc(a.name)}</div></div>
+      <button class="btn bGh" onclick="clearInvAsset()">✕</button>
+    </div>
+    <div style="display:flex;align-items:center;justify-content:space-between">${priceHtml}<button class="btn bO bSm" onclick="refreshInvPrice()">🔄 รีเฟรชราคา</button></div>
+  </div>`;
+};
+
+// Timeline — ใช้ computeOutlook(investPlan) เครื่องเดียวกับหน้าอนาคต ขยายเป็น N เดือนตามช่วงที่เลือก
+const renderInvTimeline=plan=>{
+  const el=document.getElementById('invTimeline');if(!el)return;
+  const o=computeOutlook(plan,invPeriod);
+  if(!o.ready){el.innerHTML='<p class="fxs tm">ยังไม่มีข้อมูลพอคำนวณ</p>';return;}
+  const rows=o.months.filter((_,i)=>invPeriod<=12?true:(i+1)%Math.ceil(invPeriod/12)===0||i===o.months.length-1);
+  el.innerHTML=rows.map(x=>`
+    <div style="padding:8px 0;border-bottom:1px solid var(--bdr)">
+      <div class="fw8 fxs mb1">📅 ${x.label}</div>
+      <div class="pr" style="padding:2px 0"><span class="fxs tm">เงินสดคงเหลือ</span><strong class="fxs ${x.cashEnd>=0?'tp':'tr2'}">${FM.compact(x.cashEnd)}</strong></div>
+      <div class="pr" style="padding:2px 0"><span class="fxs tm">มูลค่าพอร์ต (จำลอง)</span><strong class="fxs" style="color:var(--g2)">${FM.compact(x.portfolioValue)}</strong></div>
+      <div class="pr" style="padding:2px 0"><span class="fxs tm">หนี้คงเหลือ</span><strong class="fxs">${x.debtLeft>0?FM.compact(x.debtLeft):'✅'}</strong></div>
+    </div>`).join('');
+};
+
+// Smart Suggestion — สร้างจากตัวเลขที่คำนวณจริงเท่านั้น
+const renderInvInsight=(s,buf,inv,plan)=>{
+  const el=document.getElementById('invInsight');if(!el)return;
+  const ins=[];
+  ins.push({i:'💡',t:`เดือนนี้คุณมีเงินเหลือหลังหักภาระ ${FM.cur(s.surplus)} และตั้งเงินสำรองไว้ ${FM.cur(buf.bufferAmt)} ดังนั้นระบบประเมินว่าสามารถจัดสรรเพื่อลงทุนได้สูงสุดประมาณ ${FM.cur(buf.recommendedMax)}`});
+  if(inv.overBuffer)ins.push({i:'⚠️',t:`แผนลงทุนนี้ทำให้เงินสดคงเหลือต่ำกว่าเงินสำรองขั้นต่ำ ${FM.cur(buf.bufferAmt-inv.cashAfter)}`});
+  const o=computeOutlook(plan);
+  if(o.ready&&o.riskMonth&&o.status!=='good')ins.push({i:'📉',t:`หากลงทุนตามแผนเดิม เดือน ${o.riskMonth.label} อาจมีเงินสดเหลือต่ำที่สุด เนื่องจากมีภาระรายจ่ายและการชำระหนี้สูง`});
+  el.innerHTML=ins.map(x=>`<div class="ins-item"><div class="ins-ico">${x.i}</div><div class="ins-body"><div class="ins-d">${x.t}</div></div></div>`).join('');
 };
 
 /* ── GOALS ── */
@@ -1808,7 +2074,7 @@ const ACHS=[
   {id:'a6',i:'💎',n:'นักออม 100K',d:'ออมรวมเกิน 100,000',c:()=>S.goals.reduce((s,g)=>s+g.saved,0)>=100000},
   {id:'a7',i:'🔥',n:'Hot Streak',d:'ยอดบวก 3 เดือนติด',c:()=>S.streak>=3},
   {id:'a8',i:'⚡',n:'Super Streak',d:'ยอดบวก 6 เดือนติด',c:()=>S.streak>=6},
-  {id:'a9',i:'📊',n:'นักวางแผน',d:'ตั้ง Budget 3+ หมวด',c:()=>S.envelopes.length>=3},
+  {id:'a9',i:'📊',n:'นักลงทุน',d:'มีแผนลงทุนแล้ว',c:()=>{const p=S.investPlan;if(!p.asset)return false;const s=computeSurplus();if(!s.ready)return false;const buf=computeBuffer(s.surplus,p);return computeInvestAmount(s.surplus,buf,p).amt>0;}},
   {id:'a10',i:'🏆',n:'บรรลุเป้า',d:'ออมครบเป้า',c:()=>S.goals.some(g=>g.saved>=g.target)},
   {id:'a11',i:'📝',n:'นักจดบัญชี',d:'บันทึก 7 วัน',c:()=>new Set(S.transactions.map(t=>t.date)).size>=7},
   {id:'a12',i:'🕊️',n:'ปลดหนี้',d:'ไม่มีหนี้+มีรายรับ',c:()=>S.debts.length===0&&C.inc>0&&S.monthlyHistory.length>0},
