@@ -485,6 +485,71 @@ body::before{
   .qchip{padding:4px 8px;font-size:.68rem}
 }
 
+/* ══ FINANCIAL OUTLOOK ══ */
+/* สถานะแนวโน้ม 4 ระดับ — สีสื่อความหมาย แยกจากสีแบรนด์ */
+.ol-badge{display:inline-flex;align-items:center;gap:5px;padding:4px 12px;border-radius:99px;font-size:.76rem;font-weight:800;white-space:nowrap}
+.ol-good{background:rgba(16,185,129,.13);color:var(--g2)}
+.ol-watch{background:rgba(245,158,11,.15);color:var(--y2)}
+.ol-risk{background:rgba(249,115,22,.15);color:#c2410c}
+.ol-danger{background:rgba(239,68,68,.14);color:var(--r2)}
+[data-theme=dark] .ol-good{color:#34d399}
+[data-theme=dark] .ol-watch{color:#fbbf24}
+[data-theme=dark] .ol-risk{color:#fb923c}
+[data-theme=dark] .ol-danger{color:#f87171}
+
+/* การ์ดสรุปบน Dashboard */
+.ol-hero{background:linear-gradient(135deg,rgba(139,92,246,.09),rgba(236,72,153,.05));border:1px solid var(--bdr2);border-radius:var(--rXL);padding:16px 18px;margin-bottom:12px;position:relative;overflow:hidden}
+.ol-hero::before{content:'🔮';position:absolute;right:-8px;top:-10px;font-size:4.5rem;opacity:.09;line-height:1;pointer-events:none}
+.ol-hero-top{display:flex;align-items:center;justify-content:space-between;gap:9px;margin-bottom:12px;flex-wrap:wrap;position:relative;z-index:1}
+.ol-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;position:relative;z-index:1}
+@media(max-width:400px){.ol-grid{grid-template-columns:1fr}}
+.ol-cell{background:var(--surface);border:1px solid var(--bdr);border-radius:var(--rM);padding:9px 11px}
+.ol-cell .ol-l{font-size:.67rem;color:var(--mt);font-weight:600;margin-bottom:2px}
+.ol-cell .ol-v{font-size:.98rem;font-weight:800;font-family:'IBM Plex Mono',monospace}
+.ol-arrow{font-size:.68rem;font-weight:700;margin-left:4px}
+
+/* Summary cards หน้ารายละเอียด */
+.ol-sum{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px;margin-bottom:14px}
+.ol-sumcard{background:var(--surface);border:1px solid var(--bdr);border-radius:var(--rL);padding:13px 15px;box-shadow:var(--sh)}
+.ol-sumcard .t{font-size:.73rem;color:var(--mt);font-weight:700;margin-bottom:7px;display:flex;align-items:center;gap:5px}
+.ol-sumrow{display:flex;justify-content:space-between;align-items:baseline;font-size:.76rem;padding:2px 0}
+.ol-sumrow .k{color:var(--mt)}
+.ol-sumrow .v{font-family:'IBM Plex Mono',monospace;font-weight:800;font-size:.86rem}
+.ol-delta{margin-top:6px;padding-top:6px;border-top:1px dashed var(--bdr);font-size:.78rem;font-weight:800;font-family:'IBM Plex Mono',monospace}
+
+/* Timeline รายเดือน */
+.ol-tl{display:flex;flex-direction:column;gap:9px}
+.ol-mo{background:var(--surface);border:1px solid var(--bdr);border-left:3px solid var(--p);border-radius:0 var(--rL) var(--rL) 0;padding:13px 15px;box-shadow:var(--sh)}
+.ol-mo.s-good{border-left-color:var(--g)}
+.ol-mo.s-watch{border-left-color:var(--y)}
+.ol-mo.s-risk{border-left-color:#f97316}
+.ol-mo.s-danger{border-left-color:var(--r)}
+.ol-mo-h{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:9px;flex-wrap:wrap}
+.ol-mo-t{font-weight:800;font-size:.92rem}
+.ol-rows{display:grid;grid-template-columns:1fr 1fr;gap:5px 12px}
+@media(max-width:420px){.ol-rows{grid-template-columns:1fr}}
+.ol-r{display:flex;justify-content:space-between;align-items:baseline;font-size:.79rem;padding:3px 0;border-bottom:1px solid var(--bdr)}
+.ol-r .k{color:var(--mt)}
+.ol-r .v{font-family:'IBM Plex Mono',monospace;font-weight:700}
+.ol-r.hl{grid-column:1/-1;border-bottom:none;padding-top:7px;font-size:.85rem}
+.ol-r.hl .v{font-weight:900;font-size:.92rem}
+.ol-note{font-size:.74rem;color:var(--mt);line-height:1.6;margin-top:8px;padding-top:8px;border-top:1px dashed var(--bdr)}
+.ol-chg{display:inline-flex;align-items:center;gap:3px;font-size:.71rem;font-weight:700;padding:2px 7px;border-radius:99px;margin-right:5px;margin-top:4px}
+.ol-up{background:rgba(16,185,129,.11);color:var(--g2)}
+.ol-down{background:rgba(239,68,68,.1);color:var(--r)}
+[data-theme=dark] .ol-up{color:#34d399}
+[data-theme=dark] .ol-down{color:#f87171}
+.ol-paid{background:rgba(139,92,246,.12);color:var(--p2);font-weight:800}
+
+/* Insight + disclaimer */
+.ol-insight{background:rgba(139,92,246,.06);border:1px solid var(--bdr2);border-radius:var(--rL);padding:14px 16px;margin-top:14px}
+.ol-insight li{font-size:.82rem;line-height:1.75;margin-bottom:7px;list-style:none;padding-left:22px;position:relative}
+.ol-insight li::before{content:attr(data-i);position:absolute;left:0;top:0}
+.ol-insight li:last-child{margin-bottom:0}
+.ol-disc{font-size:.71rem;color:var(--mt);line-height:1.6;background:var(--s2);border:1px dashed var(--bdr2);border-radius:var(--rM);padding:9px 12px;margin-top:12px}
+.ol-src{font-size:.7rem;color:var(--mt);line-height:1.7}
+.ol-src code{font-family:'IBM Plex Mono',monospace;background:rgba(139,92,246,.09);padding:1px 5px;border-radius:4px;color:var(--p2)}
+
 </style>
 </head>
 <body>
@@ -493,8 +558,8 @@ body::before{
 <header class="hdr">
   <a class="logo" href="#"><div class="logo-ball">💜</div><span class="logo-txt">FinTrack</span></a>
   <nav class="desk-nav" id="deskNav">
-    <button class="dnav on" data-s="dashboard">🏠 หน้าหลัก</button>
-    <button class="dnav" data-s="wage">💼 ค่าแรง <span class="bx" id="bdgD">0</span></button>
+    <button class="dnav on" data-s="dashboard">🏠 หน้าหลัก <span class="bx" id="bdgD">0</span></button>
+    <button class="dnav" data-s="outlook">🔮 อนาคต</button>
     <button class="dnav" data-s="budget">👛 งบประมาณ</button>
     <button class="dnav" data-s="goals">🎯 เป้าหมาย</button>
     <button class="dnav" data-s="history">📈 ประวัติ</button>
@@ -509,8 +574,8 @@ body::before{
 
 <!-- BOTTOM NAV -->
 <nav class="bot-nav">
-  <button class="bnav on" data-s="dashboard"><div class="bi">🏠</div><span>หน้าหลัก</span></button>
-  <button class="bnav" data-s="wage"><div class="bi">💼</div><span>ค่าแรง</span><span class="bx" id="bdgM">0</span></button>
+  <button class="bnav on" data-s="dashboard"><div class="bi">🏠</div><span>หน้าหลัก</span><span class="bx" id="bdgM">0</span></button>
+  <button class="bnav" data-s="outlook"><div class="bi">🔮</div><span>อนาคต</span></button>
   <button class="bnav" data-s="budget"><div class="bi">👛</div><span>งบ</span></button>
   <button class="bnav" data-s="goals"><div class="bi">🎯</div><span>เป้าหมาย</span></button>
   <button class="bnav" data-s="history"><div class="bi">📈</div><span>ประวัติ</span></button>
@@ -534,6 +599,9 @@ body::before{
       </div>
     </div>
   </div>
+
+  <!-- 🔮 FINANCIAL OUTLOOK — สรุปย่อ (คำนวณจากข้อมูลจริงใน Dashboard เดียวกัน) -->
+  <div id="outlookHero"></div>
 
   <div class="cols2">
     <div>
@@ -598,261 +666,7 @@ body::before{
         </div>
         <button class="btn bP bFull mt2" onclick="addDebt()">+ เพิ่มรายการหนี้</button>
       </div>
-    </div>
-    <!-- Sidebar dashboard -->
-    <div class="stick">
-      <div class="card csm">
-        <div class="srow">
-          <div class="sb sg"><div class="sl">รายรับรวม</div><div class="sv" id="totInc">฿0</div></div>
-          <div class="sb sr"><div class="sl">รายจ่ายรวม</div><div class="sv" id="totExp">฿0</div></div>
-        </div>
-        <div class="bal"><div class="bal-l">คงเหลือสุทธิ / เดือน</div><div class="bal-n bzer" id="balDisp">฿0</div></div>
-        <div class="srow">
-          <div class="sb sy"><div class="sl">วันนี้ใช้</div><div class="sv" id="todaySpend">฿0</div></div>
-          <div class="sb sbl"><div class="sl">เดือนนี้ออม</div><div class="sv" id="monthSaved">฿0</div></div>
-        </div>
-      </div>
-      <div class="card csm">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
-          <div class="ct" style="margin:0"><div class="ci" style="background:rgba(139,92,246,.1)">💡</div><span>Smart Insights</span></div>
-          <span class="rate-badge" id="savingsRateBadge">ออม 0%</span>
-        </div>
-        <div id="insightsBox"></div>
-      </div>
-      <div class="card csm">
-        <div class="ct mb2"><div class="ci" style="background:rgba(245,158,11,.1)">🥧</div><span>สัดส่วนรายจ่าย</span></div>
-        <div id="pieChart" style="width:100%;aspect-ratio:1;max-width:160px;margin:0 auto;border-radius:50%"></div>
-        <div id="pieLegend" style="display:flex;flex-wrap:wrap;gap:4px;margin-top:8px"></div>
-      </div>
-      <div class="card csm">
-        <div class="ct mb2"><div class="ci" style="background:rgba(59,130,246,.1)">📈</div><span>คาดการณ์เงินออม</span></div>
-        <table style="width:100%;border-collapse:collapse;font-size:.79rem">
-          <thead><tr><th style="text-align:left;padding:5px 7px;color:var(--mt);font-weight:600;border-bottom:1px solid var(--bdr);font-size:.67rem">ระยะเวลา</th><th style="padding:5px 7px;color:var(--mt);font-weight:600;border-bottom:1px solid var(--bdr);text-align:right;font-size:.67rem">ยอดสะสม</th></tr></thead>
-          <tbody id="projBody"></tbody>
-        </table>
-      </div>
-    </div>
-  </div>
-</div>
-<!-- END DASHBOARD -->
-
-<!-- ════════════ 2. ค่าแรง ════════════ -->
-<div class="sec" id="s-wage">
-  <div class="pttl">💼 ค่าแรงและบันทึก</div>
-  <div class="tab-bar">
-    <button class="tab on" data-wt="calc" onclick="showWT('calc')">🧮 คำนวณค่าแรง</button>
-    <button class="tab" data-wt="log" onclick="showWT('log')">📝 บันทึกค่าใช้จ่าย</button>
-  </div>
-
-  <!-- Tab: คำนวณค่าแรง -->
-  <div id="wt-calc">
-  <div class="cols2">
-    <div>
-      <div class="card">
-        <div class="ch">
-          <div class="ct"><div class="ci" style="background:rgba(139,92,246,.1)">⚙️</div><span>ตั้งค่าการทำงาน</span></div>
-          <div style="display:flex;align-items:center;gap:6px;background:rgba(139,92,246,.06);padding:5px 9px;border-radius:var(--rS)">
-            <span style="font-size:.9rem;font-weight:800;font-family:'IBM Plex Mono',monospace;color:var(--p2)" id="rtTime">00:00:00</span>
-            <span class="fxs tm" id="rtDate"></span>
-          </div>
-        </div>
-        <div style="display:flex;gap:6px;margin-bottom:13px">
-          <button class="ptp on" id="ptbD" onclick="setPT('daily')">📅 รายวัน</button>
-          <button class="ptp" id="ptbM" onclick="setPT('monthly')">📆 รายเดือน</button>
-        </div>
-        <div class="g2">
-          <div class="fg" id="dailyRateBox"><label class="fl">ค่าแรง/วัน (฿)</label><div class="ipr"><span class="pre">฿</span><input type="text" inputmode="decimal" id="dailyRate" class="inp" placeholder="เช่น 400" oninput="FM.clean(this)"></div></div>
-          <div class="fg" id="monthlyRateBox" style="display:none"><label class="fl">เงินเดือน/เดือน (฿)</label><div class="ipr"><span class="pre">฿</span><input type="text" inputmode="decimal" id="monthlyRate" class="inp" placeholder="15,000" oninput="FM.clean(this)"></div></div>
-          <div class="fg"><label class="fl">วันทำงานปกติ</label><input type="number" inputmode="numeric" id="workedDays" class="inp" placeholder="เช่น 26" min="0" max="31"></div>
-          <div class="fg"><label class="fl">วันขาดงาน (หัก)</label><input type="number" inputmode="numeric" id="absentDays" class="inp" placeholder="0" min="0" max="31" value="0"></div>
-          <div class="fg"><label class="fl">วันหยุด/สัปดาห์</label>
-            <select id="weekOff" class="inp" onchange="updateCal()">
-              <option value="sun">วันอาทิตย์</option>
-              <option value="sat-sun">เสาร์-อาทิตย์</option>
-              <option value="none">ไม่มีวันหยุด</option>
-            </select>
-          </div>
-          <div class="fg"><label class="fl">เริ่มนับวันที่</label><input type="number" inputmode="numeric" id="wStartDay" class="inp" placeholder="1" min="1" max="31" value="1"></div>
-        </div>
-      </div>
-
-      <!-- กะดึก -->
-      <div class="card">
-        <button class="accH" onclick="togAcc('accNight')">
-          <div class="ct" style="margin:0"><div class="ci" style="background:rgba(30,0,80,.1)">🌙</div><span>กะดึก / Night Shift</span></div>
-          <span class="arrw" id="accNightArrow">▶</span>
-        </button>
-        <div class="accB" id="accNight" style="display:none">
-          <div class="g2 mt2">
-            <div class="fg"><label class="fl">ค่ากะดึก (฿/กะ)</label><div class="ipr"><span class="pre">฿</span><input type="text" inputmode="decimal" id="nightRate" class="inp" placeholder="เช่น 200" oninput="FM.clean(this)"></div></div>
-            <div class="fg"><label class="fl">จำนวนกะดึก</label><input type="number" inputmode="numeric" id="nightShifts" class="inp" placeholder="0" min="0" value="0"></div>
-            <div class="fg"><label class="fl">กะดึกวันหยุด (฿/กะ)</label><div class="ipr"><span class="pre">฿</span><input type="text" inputmode="decimal" id="nightHolidayRate" class="inp" placeholder="0" oninput="FM.clean(this)"></div></div>
-            <div class="fg"><label class="fl">จำนวนกะดึกวันหยุด</label><input type="number" inputmode="numeric" id="nightHolidayShifts" class="inp" placeholder="0" min="0" value="0"></div>
-          </div>
-        </div>
-      </div>
-
-      <!-- สวัสดิการ -->
-      <div class="card">
-        <button class="accH" onclick="togAcc('accBen')">
-          <div class="ct" style="margin:0"><div class="ci" style="background:rgba(245,158,11,.1)">🎁</div><span>สวัสดิการ</span></div>
-          <span class="arrw" id="accBenArrow">▶</span>
-        </button>
-        <div class="accB" id="accBen" style="display:none">
-          <div class="slbl mt2">ต่อวันทำงาน</div>
-          <div class="g2">
-            <div class="fg"><label class="fl">🍜 ค่าอาหาร/วัน</label><div class="ipr"><span class="pre">฿</span><input type="text" inputmode="decimal" id="mealAllow" class="inp" placeholder="เช่น 80" oninput="FM.clean(this)"></div></div>
-            <div class="fg"><label class="fl">🚗 ค่าเดินทาง/วัน</label><div class="ipr"><span class="pre">฿</span><input type="text" inputmode="decimal" id="travelAllow" class="inp" placeholder="0" oninput="FM.clean(this)"></div></div>
-            <div class="fg"><label class="fl">📌 อื่นๆ/วัน</label><div class="ipr"><span class="pre">฿</span><input type="text" inputmode="decimal" id="otherDaily" class="inp" placeholder="0" oninput="FM.clean(this)"></div></div>
-            <div class="fg"><label class="fl">ชื่อรายการ</label><input type="text" id="otherDailyName" class="inp" placeholder="เช่น ค่ากะ"></div>
-          </div>
-          <div class="hr"></div>
-          <div class="slbl">ต่อเดือน</div>
-          <div class="g2">
-            <div class="fg"><label class="fl">🎁 โบนัส/เบี้ยเลี้ยง</label><div class="ipr"><span class="pre">฿</span><input type="text" inputmode="decimal" id="monthBonus" class="inp" placeholder="0" oninput="FM.clean(this)"></div></div>
-            <div class="fg"><label class="fl">🏷️ ค่าตำแหน่ง</label><div class="ipr"><span class="pre">฿</span><input type="text" inputmode="decimal" id="posAllow" class="inp" placeholder="0" oninput="FM.clean(this)"></div></div>
-          </div>
-        </div>
-      </div>
-
-      <!-- OT -->
-      <div class="card">
-        <button class="accH" onclick="togAcc('accOT')">
-          <div class="ct" style="margin:0"><div class="ci" style="background:rgba(239,68,68,.1)">⏰</div><span>OT ค่าล่วงเวลา</span></div>
-          <span class="arrw" id="accOTArrow">▶</span>
-        </button>
-        <div class="accB" id="accOT" style="display:none">
-          <div class="g2 mt2">
-            <div class="fg"><label class="fl">OT ธรรมดา (฿/ชม.)</label><div class="ipr"><span class="pre">฿</span><input type="text" inputmode="decimal" id="otWeekday" class="inp" placeholder="เช่น 75" oninput="FM.clean(this)"></div></div>
-            <div class="fg"><label class="fl">ชม. OT ธรรมดา</label><input type="number" inputmode="decimal" id="otWeekdayHrs" class="inp" placeholder="0" min="0" step="0.5" value="0"></div>
-            <div class="fg"><label class="fl">OT วันหยุด</label><div class="ipr"><span class="pre">฿</span><input type="text" inputmode="decimal" id="otHoliday" class="inp" placeholder="เช่น 800" oninput="FM.clean(this)"></div></div>
-            <div class="fg"><label class="fl">ประเภท OT วันหยุด</label>
-              <select id="otHolidayType" class="inp"><option value="perday">฿/วัน</option><option value="perhour">฿/ชม.</option></select>
-            </div>
-            <div class="fg"><label class="fl">จำนวน วัน/ชม.</label><input type="number" inputmode="decimal" id="otHolidayAmt" class="inp" placeholder="0" min="0" step="0.5" value="0"></div>
-          </div>
-        </div>
-      </div>
-
-      <!-- รายการหัก -->
-      <div class="card">
-        <button class="accH" onclick="togAcc('accDed')">
-          <div class="ct" style="margin:0"><div class="ci" style="background:rgba(139,92,246,.1)">✂️</div><span>รายการหัก</span></div>
-          <span class="arrw" id="accDedArrow">▶</span>
-        </button>
-        <div class="accB" id="accDed" style="display:none">
-          <div class="mt2 mb2">
-            <div id="dedList"></div>
-            <div class="slbl">เพิ่มรายการหัก</div>
-            <div class="g2">
-              <div class="fg"><label class="fl">ชื่อรายการหัก</label><input type="text" id="dedName" class="inp" placeholder="เช่น ประกันสังคม"></div>
-              <div class="fg"><label class="fl">จำนวน</label><div class="ipr"><span class="pre">฿</span><input type="text" inputmode="decimal" id="dedAmt" class="inp" placeholder="750" oninput="FM.clean(this)"></div></div>
-              <div class="fg"><label class="fl">ไอคอน</label>
-                <select id="dedIcon" class="inp"><option value="🛡️">🛡️ ประกันสังคม</option><option value="📋">📋 ภาษี</option><option value="🏦">🏦 กองทุน</option><option value="✂️">✂️ อื่นๆ</option></select>
-              </div>
-              <div class="fg"><label class="fl">ประเภท</label>
-                <select id="dedType" class="inp"><option value="fixed">คงที่ (฿)</option><option value="pct">เปอร์เซ็นต์ (%)</option></select>
-              </div>
-            </div>
-            <button class="btn bP bFull" onclick="addDeduction()">+ เพิ่มรายการหัก</button>
-          </div>
-        </div>
-      </div>
-
-      <!-- วันจ่ายเงิน -->
-      <div class="card">
-        <button class="accH" onclick="togAcc('accPD')">
-          <div class="ct" style="margin:0"><div class="ci" style="background:rgba(245,158,11,.1)">📅</div><span>วันจ่ายเงิน (เพิ่มได้หลายวัน)</span></div>
-          <span class="arrw" id="accPDArrow">▶</span>
-        </button>
-        <div class="accB" id="accPD" style="display:none">
-          <div class="mt2">
-            <div id="pdList"></div>
-            <div class="g2">
-              <div class="fg"><label class="fl">วันที่จ่าย</label><input type="number" inputmode="numeric" id="newPD" class="inp" placeholder="เช่น 25" min="1" max="31"></div>
-              <div class="fg"><label class="fl">ชื่อรอบ</label><input type="text" id="newPDName" class="inp" placeholder="เช่น เงินเดือน"></div>
-            </div>
-            <button class="btn bP bFull" onclick="addPayday()">+ เพิ่มวันจ่ายเงิน</button>
-          </div>
-        </div>
-      </div>
-
-      <button class="btn bP bFull" style="padding:14px;font-size:.95rem;margin-bottom:4px" onclick="calcPay()">🧮 คำนวณค่าแรง</button>
-
-      <!-- ผลลัพธ์ -->
-      <div id="payResult" style="display:none;margin-top:13px">
-        <div class="pay-hero">
-          <div style="position:relative;z-index:1">
-            <div style="font-size:.72rem;color:rgba(255,255,255,.8);font-weight:700;margin-bottom:4px">💜 เงินที่ได้รับ (สุทธิ)</div>
-            <div style="font-size:clamp(1.4rem,5vw,2.2rem);font-weight:900;font-family:'IBM Plex Mono',monospace;color:#fff" id="payNetAmount">฿0</div>
-            <div style="font-size:.72rem;color:rgba(255,255,255,.75);margin-top:4px" id="paySubLabel"></div>
-            <div class="g2 mt2" style="gap:12px">
-              <div><div style="font-size:.65rem;color:rgba(255,255,255,.7)">เฉลี่ย/วัน</div><div style="font-size:.9rem;font-weight:800;color:#fff;font-family:'IBM Plex Mono',monospace" id="payPerDay">฿0</div></div>
-              <div><div style="font-size:.65rem;color:rgba(255,255,255,.7)">เฉลี่ย/ชม.</div><div style="font-size:.9rem;font-weight:800;color:#fff;font-family:'IBM Plex Mono',monospace" id="payPerHour">฿0</div></div>
-            </div>
-          </div>
-        </div>
-        <div class="card csm mt2"><div class="slbl">รายละเอียด</div><div id="payBreakdown"></div></div>
-        <div class="tab-bar mt2">
-          <button class="tab on" data-pt="cal" onclick="showPT('cal')">📅 ปฏิทิน</button>
-          <button class="tab" data-pt="daily" onclick="showPT('daily')">📆 รายวัน</button>
-          <button class="tab" data-pt="chart" onclick="showPT('chart')">📊 กราฟ</button>
-        </div>
-        <div id="pt-cal" class="card csm"></div>
-        <div id="pt-daily" style="display:none"></div>
-        <div id="pt-chart" style="display:none"></div>
-      </div>
-    </div>
-
-    <!-- Sidebar ค่าแรง -->
-    <div class="stick">
-      <div class="run-balance">
-        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:5px">
-          <div><div class="rb-lbl">💜 ยอดคงเหลือสะสม (Real-time)</div><div class="rb-val" id="runBalance">฿0</div></div>
-          <div style="text-align:right"><div class="rb-lbl">ณ วันที่</div><div style="font-size:.82rem;font-weight:700;color:var(--p2);font-family:'IBM Plex Mono',monospace" id="runDate">—</div></div>
-        </div>
-        <div class="rb-since fxs tm" id="runSince"></div>
-      </div>
-      <div class="slbl">⏳ นับถอยหลังเงินออก</div>
-      <div id="cdMulti" class="mb2"></div>
-      <div class="card csm">
-        <div class="ct mb2"><div class="ci" style="background:rgba(245,158,11,.1)">⚡</div><span>สรุปค่าแรง</span></div>
-        <div class="srow">
-          <div class="sb sg"><div class="sl">ก่อนหัก</div><div class="sv" id="payGross">฿0</div></div>
-          <div class="sb sr"><div class="sl">หักทั้งหมด</div><div class="sv" id="payDeduct">฿0</div></div>
-        </div>
-        <div class="srow">
-          <div class="sb sy"><div class="sl">สวัสดิการรวม</div><div class="sv" id="payBenefits">฿0</div></div>
-          <div class="sb stl"><div class="sl">OT+กะดึก</div><div class="sv" id="payOT">฿0</div></div>
-        </div>
-      </div>
-      <div class="card csm">
-        <div class="ct mb2"><div class="ci" style="background:rgba(59,130,246,.1)">📅</div><span id="calMonthLabel">ปฏิทิน</span></div>
-        <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:3px">
-          <div class="cal-h">อา</div><div class="cal-h">จ</div><div class="cal-h">อ</div>
-          <div class="cal-h">พ</div><div class="cal-h">พฤ</div><div class="cal-h">ศ</div><div class="cal-h">ส</div>
-        </div>
-        <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:3px;margin-top:2px" id="calDays"></div>
-        <div class="cal-leg mt1">
-          <div class="leg"><div class="legdot" style="background:var(--gh)"></div>วันนี้</div>
-          <div class="leg"><div class="legdot" style="background:var(--gy)"></div>เงินออก</div>
-          <div class="leg"><div class="legdot" style="background:rgba(239,68,68,.2)"></div>หยุด/ขาด</div>
-          <div class="leg"><div class="legdot" style="background:rgba(139,92,246,.18)"></div>ทำงาน</div>
-        </div>
-      </div>
-      <div class="card csm">
-        <div class="ct mb2"><div class="ci" style="background:rgba(139,92,246,.1)">📋</div><span>ประวัติค่าแรง</span></div>
-        <div id="payHistory"></div>
-        <button class="btn bO bSm bFull mt1" onclick="savePayHistory()">💾 บันทึกเดือนนี้</button>
-      </div>
-    </div>
-  </div>
-  </div><!-- end wt-calc -->
-
-  <!-- Tab: บันทึกค่าใช้จ่าย -->
-  <div id="wt-log" style="display:none">
-  <div class="cols2">
-    <div>
+      <!-- บันทึกค่าใช้จ่ายรายวัน -->
       <div class="card">
         <div class="ct mb2"><div class="ci" style="background:rgba(59,130,246,.1)">➕</div><span>บันทึกค่าใช้จ่าย</span></div>
         <div style="margin-bottom:11px">
@@ -901,7 +715,19 @@ body::before{
         <div id="recentList"></div>
       </div>
     </div>
+    <!-- Sidebar dashboard -->
     <div class="stick">
+      <div class="card csm">
+        <div class="srow">
+          <div class="sb sg"><div class="sl">รายรับรวม</div><div class="sv" id="totInc">฿0</div></div>
+          <div class="sb sr"><div class="sl">รายจ่ายรวม</div><div class="sv" id="totExp">฿0</div></div>
+        </div>
+        <div class="bal"><div class="bal-l">คงเหลือสุทธิ / เดือน</div><div class="bal-n bzer" id="balDisp">฿0</div></div>
+        <div class="srow">
+          <div class="sb sy"><div class="sl">วันนี้ใช้</div><div class="sv" id="todaySpend">฿0</div></div>
+          <div class="sb sbl"><div class="sl">เดือนนี้ออม</div><div class="sv" id="monthSaved">฿0</div></div>
+        </div>
+      </div>
       <div class="card csm">
         <div class="ct mb2"><div class="ci" style="background:rgba(13,148,136,.1)">📊</div><span>เดือนนี้</span></div>
         <div class="srow">
@@ -915,11 +741,29 @@ body::before{
         <div id="budgetProgress"></div>
         <p class="fxs tm mt1">ตั้ง Budget ได้ที่แท็บ "งบประมาณ"</p>
       </div>
+      <div class="card csm">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+          <div class="ct" style="margin:0"><div class="ci" style="background:rgba(139,92,246,.1)">💡</div><span>Smart Insights</span></div>
+          <span class="rate-badge" id="savingsRateBadge">ออม 0%</span>
+        </div>
+        <div id="insightsBox"></div>
+      </div>
+      <div class="card csm">
+        <div class="ct mb2"><div class="ci" style="background:rgba(245,158,11,.1)">🥧</div><span>สัดส่วนรายจ่าย</span></div>
+        <div id="pieChart" style="width:100%;aspect-ratio:1;max-width:160px;margin:0 auto;border-radius:50%"></div>
+        <div id="pieLegend" style="display:flex;flex-wrap:wrap;gap:4px;margin-top:8px"></div>
+      </div>
     </div>
   </div>
-  </div><!-- end wt-log -->
 </div>
-<!-- END ค่าแรง -->
+<!-- END DASHBOARD -->
+
+<!-- ════════════ 2. 🔮 อนาคต ════════════ -->
+<div class="sec" id="s-outlook">
+  <div class="pttl">🔮 การเงินของคุณในอีก 5 เดือน</div>
+  <div id="olBody"></div>
+</div>
+<!-- END อนาคต -->
 
 <!-- ════════════ 3. งบประมาณ ════════════ -->
 <div class="sec" id="s-budget">
@@ -1003,15 +847,9 @@ body::before{
     <div class="ct mb2"><div class="ci" style="background:rgba(59,130,246,.1)">📈</div><span>ย้อนหลัง 6 เดือน</span></div>
     <div id="historyChart" style="width:100%;height:200px"></div>
   </div>
-  <div class="cols2">
-    <div class="card">
-      <div class="ct mb2"><div class="ci" style="background:rgba(245,158,11,.1)">📅</div><span>ประวัติรายเดือน</span></div>
-      <div id="historyList"></div>
-    </div>
-    <div class="card">
-      <div class="ct mb2"><div class="ci" style="background:rgba(139,92,246,.1)">💜</div><span>ประวัติค่าแรง</span></div>
-      <div id="salaryHistory"></div>
-    </div>
+  <div class="card">
+    <div class="ct mb2"><div class="ci" style="background:rgba(245,158,11,.1)">📅</div><span>ประวัติรายเดือน</span></div>
+    <div id="historyList"></div>
   </div>
 </div>
 <!-- END ประวัติ -->
@@ -1100,16 +938,10 @@ const cb=k=>{const m=CAT[k]||CAT.other;return`<span class="tag" style="backgroun
 let S={
   salary:0,otherIncomes:[],fixedExpenses:[],debts:[],
   transactions:[],envelopes:[],goals:[],monthlyHistory:[],
-  streak:0,lastPositiveMonth:'',payHistory:[],runningBalance:0,lastPayDate:null,
-  paySettings:{
-    payType:'daily',dailyRate:0,monthlyRate:0,
-    workedDays:0,absentDays:0,weekOff:'sun',startDay:1,
-    nightRate:0,nightShifts:0,nightHolidayRate:0,nightHolidayShifts:0,
-    mealAllow:0,travelAllow:0,otherDaily:0,otherDailyName:'',
-    monthBonus:0,posAllow:0,
-    otWeekday:0,otWeekdayHrs:0,otHoliday:0,otHolidayType:'perday',otHolidayAmt:0,
-    deductions:[],paydays:[],
-  }
+  streak:0,lastPositiveMonth:'',
+  // legacy: ข้อมูลของฟีเจอร์คำนวณค่าแรงเดิม ไม่มีหน้าจอไหนใช้แล้ว แต่เก็บผ่านไว้
+  // เพื่อไม่ลบข้อมูลเก่าของผู้ใช้ทิ้ง และให้ไฟล์ backup รุ่นก่อนยัง restore ได้
+  legacyWage:null,
 };
 // ── COMPUTED: ยอดรวมที่คำนวณจาก S (ไม่ได้ save ลง localStorage)
 let C={inc:0,exp:0,bal:0};
@@ -1130,12 +962,8 @@ const load=()=>{
       transactions:p.transactions||[],envelopes:p.envelopes||[],
       goals:p.goals||[],monthlyHistory:p.monthlyHistory||[],
       streak:+p.streak||0,lastPositiveMonth:p.lastPositiveMonth||'',
-      payHistory:p.payHistory||[],runningBalance:+p.runningBalance||0,
-      lastPayDate:p.lastPayDate||null,
-      paySettings:{...S.paySettings,...(p.paySettings||{})},
+      legacyWage:p.legacyWage??(p.paySettings?{paySettings:p.paySettings,payHistory:p.payHistory||[]}:null),
     });
-    if(!Array.isArray(S.paySettings.deductions))S.paySettings.deductions=[];
-    if(!Array.isArray(S.paySettings.paydays))S.paySettings.paydays=[];
   }catch(e){}
 };
 
@@ -1148,7 +976,6 @@ const FM={
   parse:v=>parseFloat(String(v||'').replace(/,/g,''))||0,
   cur:n=>'฿'+Number(n).toLocaleString('th-TH',{minimumFractionDigits:2,maximumFractionDigits:2}),
   compact:n=>n>=1e6?'฿'+(n/1e6).toFixed(1)+'ล้าน':n>=1e3?'฿'+(n/1e3).toFixed(0)+'K':FM.cur(n),
-  d2:n=>String(n).padStart(2,'0'),
 };
 // ป้องกัน XSS: escape HTML entities ก่อนแสดงผลใน innerHTML
 const esc=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
@@ -1177,7 +1004,7 @@ document.getElementById('darkBtn').addEventListener('click',()=>{applyTheme(docu
 const navigate=sec=>{
   document.querySelectorAll('.dnav,.bnav').forEach(b=>b.classList.toggle('on',b.dataset.s===sec));
   // ซ่อนทุก section แล้วแสดงเฉพาะที่เลือก
-  ['dashboard','wage','budget','goals','history','achievements'].forEach(id=>{
+  ['dashboard','outlook','budget','goals','history','achievements'].forEach(id=>{
     const el=document.getElementById('s-'+id);
     if(el)el.style.display=(id===sec)?'block':'none';
   });
@@ -1185,26 +1012,11 @@ const navigate=sec=>{
   if(sec==='achievements')renderAch();
   if(sec==='budget'){renderBudget();renderRule();}
   if(sec==='goals')renderGoals();
-  if(sec==='wage'){renderTxLists();renderDailyChart();renderBudgetProg();loadWageSettings();updateCal();updateCDs();renderRunBalance();}
+  if(sec==='outlook')renderOutlook();
   try{window.scrollTo({top:0,behavior:'instant'});}catch(e){}
 };
 document.getElementById('deskNav').addEventListener('click',e=>{const b=e.target.closest('.dnav');if(b)navigate(b.dataset.s)});
 document.querySelector('.bot-nav').addEventListener('click',e=>{const b=e.target.closest('.bnav');if(b)navigate(b.dataset.s)});
-
-/* ── REALTIME CLOCK ── */
-// อัพเดทนาฬิกาและวันที่แบบ real-time (เรียกทุก 1 วินาที)
-const updateClock=()=>{
-  const now=new Date();
-  const el=document.getElementById('rtTime');const el2=document.getElementById('rtDate');
-  const runEl=document.getElementById('runDate');
-  if(el)el.textContent=`${FM.d2(now.getHours())}:${FM.d2(now.getMinutes())}:${FM.d2(now.getSeconds())}`;
-  const thDays=['อา','จ','อ','พ','พฤ','ศ','ส'];
-  const thMonths=['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
-  const dateStr=`${thDays[now.getDay()]} ${now.getDate()} ${thMonths[now.getMonth()]} ${now.getFullYear()+543}`;
-  if(el2)el2.textContent=dateStr;
-  if(runEl)runEl.textContent=dateStr;
-};
-setInterval(updateClock,1000);updateClock();
 
 /* ── CALC ── */
 // คำนวณยอดรายรับ-รายจ่าย-คงเหลือ แล้ว render ทุก component ที่เกี่ยวข้อง
@@ -1213,8 +1025,9 @@ const calc=()=>{
   C.inc=S.salary+S.otherIncomes.reduce((s,i)=>s+i.amount,0);
   C.exp=S.fixedExpenses.reduce((s,i)=>s+i.amount,0)+S.debts.reduce((s,d)=>s+((d.remaining??d.totalAmount)>0?d.monthlyPayment:0),0);
   C.bal=C.inc-C.exp;
-  save();renderSummary();renderProj();renderPie();
-  renderBudgetProg();checkAch();updateStreak();renderRule();renderInsights();
+  save();renderSummary();renderPie();
+  renderBudgetProg();renderDailyChart();checkAch();updateStreak();renderRule();renderInsights();
+  renderOutlook(); // ข้อมูลต้นทางเปลี่ยน → คาดการณ์อนาคตต้องคำนวณใหม่เสมอ
 };
 
 // แสดงยอดสรุปใน hero card, sidebar stats, badge นับถอยหลัง
@@ -1239,13 +1052,6 @@ const renderSummary=()=>{
   document.getElementById('monthSaved').textContent=f(Math.max(0,C.bal-ms));
   const cnt=S.transactions.filter(t=>t.date===today).length;
   ['bdgD','bdgM'].forEach(id=>{const el=document.getElementById(id);if(el)el.textContent=cnt});
-};
-
-// แสดงตารางคาดการณ์เงินออมสะสม (1เดือน ถึง 5ปี)
-const renderProj=()=>{
-  const b=C.bal;
-  document.getElementById('projBody').innerHTML=[['1 เดือน',1],['3 เดือน',3],['6 เดือน',6],['1 ปี',12],['2 ปี',24],['5 ปี',60]]
-    .map(([l,m])=>`<tr><td style="padding:5px 7px;border-bottom:1px solid var(--bdr);color:var(--mt);font-size:.76rem">${l}</td><td style="padding:5px 7px;border-bottom:1px solid var(--bdr);text-align:right;font-weight:800;font-size:.79rem;font-family:'IBM Plex Mono',monospace;color:${b>=0?'var(--p2)':'var(--r)'}">${FM.cur(Math.max(0,b*m))}</td></tr>`).join('');
 };
 
 // แสดงกฎ 50/30/20 คำนวณจากรายรับปัจจุบัน
@@ -1485,442 +1291,266 @@ const renderDebtList=()=>{
 const clearArr=key=>{S[key]=[];save();if(key==='otherIncomes')renderIncList();else if(key==='fixedExpenses')renderExpList();else if(key==='debts')renderDebtList();calc()};
 
 /* ════════════════════════════════
-   WAGE CALCULATOR v8
+   🔮 FINANCIAL OUTLOOK — คาดการณ์การเงิน 5 เดือนข้างหน้า
+   ─────────────────────────────────
+   ใช้ Source of Truth ชุดเดียวกับ Dashboard ทั้งหมด ไม่มี mock data / ไม่ hardcode ยอดเงิน:
+     รายรับ/เดือน    ← C.inc          (S.salary + S.otherIncomes)
+     รายจ่ายคงที่    ← S.fixedExpenses
+     รายจ่ายรายวัน   ← S.transactions (เฉลี่ยต่อเดือนจากที่บันทึกไว้จริง)
+     หนี้ + ค่างวด   ← S.debts        (remaining, monthlyPayment, interestRate)
+     จุดตั้งต้น       ← C.bal − รายจ่ายที่บันทึกแล้วในเดือนนี้
+   คิดดอกเบี้ยทบต้นรายเดือนด้วยสูตรเดียวกับการ์ดหนี้สิน (monthsToPayoff) เพื่อให้ตัวเลขสองที่ตรงกัน
 ════════════════════════════════ */
-/* Accordion */
-// toggle accordion panel — เปิด/ปิดส่วนที่ซ่อนอยู่
-const togAcc=id=>{
-  const b=document.getElementById(id);
-  const a=document.getElementById(id+'Arrow');
-  if(!b)return;
-  const open=b.style.display!=='none';
-  b.style.display=open?'none':'block';
-  if(a)a.classList.toggle('open',!open);
+const OL_MONTHS=5;
+const TH_MONTHS_FULL=['มกราคม','กุมภาพันธ์','มีนาคม','เมษายน','พฤษภาคม','มิถุนายน','กรกฎาคม','สิงหาคม','กันยายน','ตุลาคม','พฤศจิกายน','ธันวาคม'];
+// ชื่อเดือนไทย + พ.ศ. นับจากเดือนปัจจุบัน (off=0 คือเดือนนี้, off=1 คือเดือนหน้า)
+const olMonthLabel=off=>{const n=new Date(),d=new Date(n.getFullYear(),n.getMonth()+off,1);return`${TH_MONTHS_FULL[d.getMonth()]} ${d.getFullYear()+543}`};
+// แสดงตัวเลขพร้อมเครื่องหมายบวก/ลบชัดเจน
+const olSigned=n=>(n>=0?'+':'−')+FM.cur(Math.abs(n));
+const OL_STATUS={
+  good  :{i:'🟢',t:'แนวโน้มดี' ,cls:'ol-good'  },
+  watch :{i:'🟡',t:'ต้องระวัง' ,cls:'ol-watch' },
+  risk  :{i:'🟠',t:'เริ่มเสี่ยง',cls:'ol-risk'  },
+  danger:{i:'🔴',t:'เสี่ยงสูง' ,cls:'ol-danger'},
 };
 
-/* Pay type */
-// เปลี่ยนประเภทค่าจ้าง: รายวัน หรือ รายเดือน (toggle pill UI)
-const setPT=t=>{
-  document.getElementById('ptbD').classList.toggle('on',t==='daily');
-  document.getElementById('ptbM').classList.toggle('on',t==='monthly');
-  document.getElementById('dailyRateBox').style.display=t==='daily'?'':'none';
-  document.getElementById('monthlyRateBox').style.display=t==='monthly'?'':'none';
-  S.paySettings.payType=t;
+// รายจ่ายรายวันเฉลี่ยต่อเดือน — ใช้เฉพาะเดือนที่จบไปแล้ว เพราะเดือนปัจจุบันยังบันทึกไม่ครบ จะดึงค่าเฉลี่ยให้ต่ำกว่าจริง
+const olVariableSpend=()=>{
+  const byMonth={};
+  S.transactions.forEach(t=>{const m=(t.date||'').slice(0,7);if(m)byMonth[m]=(byMonth[m]||0)+t.amount});
+  const cur=new Date().toISOString().slice(0,7);
+  const past=Object.keys(byMonth).filter(m=>m<cur);
+  if(past.length)return{avg:past.reduce((s,m)=>s+byMonth[m],0)/past.length,basis:`เฉลี่ยจากรายจ่ายจริง ${past.length} เดือนที่ผ่านมา`,solid:true};
+  if(byMonth[cur]!=null)return{avg:byMonth[cur],basis:'ใช้ยอดที่บันทึกไว้ในเดือนนี้ (ยังไม่ครบเดือน — ค่าจริงอาจสูงกว่านี้)',solid:false};
+  return{avg:0,basis:'ยังไม่มีรายจ่ายรายวันที่บันทึกไว้ จึงยังไม่ถูกนำมาคิด',solid:false};
 };
 
-/* Wage tab */
-// สลับ tab ภายในหน้าค่าแรง: คำนวณ vs บันทึกค่าใช้จ่าย
-const showWT=tab=>{
-  document.querySelectorAll('[data-wt]').forEach(b=>b.classList.toggle('on',b.dataset.wt===tab));
-  ['wt-calc','wt-log'].forEach(id=>{const el=document.getElementById(id);if(el)el.style.display='none'});
-  const t=document.getElementById('wt-'+tab);if(t)t.style.display='block';
-  if(tab==='log'){renderTxLists();renderDailyChart();renderBudgetProg();}
-};
+// ── เครื่องคำนวณหลัก ──
+// เดินหน้าทีละเดือนแบบต่อเนื่อง: เงินปลายเดือนของเดือนก่อน = เงินต้นเดือนของเดือนถัดไป
+// หนี้ก้อนไหนผ่อนหมดกลางทาง จะหยุดหักค่างวดก้อนนั้นในเดือนถัดไปทันที
+const computeOutlook=()=>{
+  const income=C.inc;
+  const fixedExp=S.fixedExpenses.reduce((s,e)=>s+e.amount,0);
+  const vs=olVariableSpend();
+  const variableExp=vs.avg;
+  const ym=new Date().toISOString().slice(0,7);
+  const spentThisMonth=S.transactions.filter(t=>(t.date||'').startsWith(ym)).reduce((s,t)=>s+t.amount,0);
+  const startBalance=C.bal-spentThisMonth;
 
-/* Pay tab */
-// สลับ tab ผลลัพธ์: ปฏิทิน / รายวัน / กราฟ
-const showPT=tab=>{
-  document.querySelectorAll('[data-pt]').forEach(b=>b.classList.toggle('on',b.dataset.pt===tab));
-  ['pt-cal','pt-daily','pt-chart'].forEach(id=>{const el=document.getElementById(id);if(el)el.style.display='none'});
-  const t=document.getElementById('pt-'+tab);if(t)t.style.display='block';
-};
+  // snapshot หนี้ — ทำงานบนสำเนา ไม่แตะ S.debts ตัวจริง (การคาดการณ์ต้องไม่เปลี่ยนข้อมูลผู้ใช้)
+  const debts=S.debts.map(d=>({name:d.name,rem:Math.max(0,d.remaining??d.totalAmount),monthly:d.monthlyPayment,rate:d.interestRate||0,paidOffAt:null}));
+  const startDebt=debts.reduce((s,d)=>s+d.rem,0);
+  const startDebtMonthly=debts.reduce((s,d)=>s+(d.rem>0?d.monthly:0),0);
 
-/* Deductions list */
-// เพิ่มรายการหักเงิน (fixed ฿ หรือ % ของรายได้) ลงใน paySettings.deductions
-const addDeduction=()=>{
-  const name=document.getElementById('dedName').value.trim();
-  const amt=FM.parse(document.getElementById('dedAmt').value);
-  const icon=document.getElementById('dedIcon').value;
-  const type=document.getElementById('dedType').value;
-  if(!name||!amt){modal('ข้อมูลไม่ครบ','กรุณากรอกชื่อและจำนวน');return}
-  S.paySettings.deductions.push({id:'ded'+Date.now(),name,amount:amt,icon,type});
-  document.getElementById('dedName').value='';document.getElementById('dedAmt').value='';
-  save();renderDedList();
-};
-// ลบรายการหักเงินตาม id
-const removeDed=id=>{S.paySettings.deductions=S.paySettings.deductions.filter(x=>x.id!==id);save();renderDedList()};
-// render รายการหักเงินทั้งหมด
-const renderDedList=()=>{
-  const el=document.getElementById('dedList');if(!el)return;
-  el.innerHTML=S.paySettings.deductions.length
-    ?S.paySettings.deductions.map(d=>`<div class="ded-item"><div class="ded-icon">${d.icon}</div><div class="ded-info"><div class="ded-name">${esc(d.name)}</div><div class="fxs tm">${d.type==='pct'?d.amount+'% ของรายได้':FM.cur(d.amount)}</div></div><span class="ded-amt">${d.type==='pct'?d.amount+'%':FM.cur(d.amount)}</span><button class="btn bGh" onclick="removeDed('${d.id}')">✕</button></div>`).join('')
-    :'<p class="fxs tm">ยังไม่มีรายการหัก</p>';
-};
-
-/* Paydays list */
-// เพิ่มวันจ่ายเงิน (รองรับหลายวัน เช่น วันที่ 15 และ 25)
-const addPayday=()=>{
-  const day=+document.getElementById('newPD').value;
-  const name=document.getElementById('newPDName').value.trim()||`รอบที่ ${S.paySettings.paydays.length+1}`;
-  if(!day||day<1||day>31){modal('ข้อมูลไม่ถูกต้อง','กรุณากรอกวันที่ 1-31');return}
-  S.paySettings.paydays.push({id:'pd'+Date.now(),day,name});
-  document.getElementById('newPD').value='';document.getElementById('newPDName').value='';
-  save();renderPdList();updateCDs();updateCal();
-};
-// ลบวันจ่ายเงินตาม id
-const removePd=id=>{S.paySettings.paydays=S.paySettings.paydays.filter(x=>x.id!==id);save();renderPdList();updateCDs();updateCal()};
-// render รายการวันจ่ายเงินทั้งหมด (รอบที่ 1 = สีม่วง, รอบอื่น = สีชมพู)
-const renderPdList=()=>{
-  const el=document.getElementById('pdList');if(!el)return;
-  el.innerHTML=S.paySettings.paydays.length
-    ?S.paySettings.paydays.map((pd,i)=>`<div class="pd-item"><div class="pd-dot" style="${i===0?'':'background:linear-gradient(135deg,#ec4899,#f43f5e)'}"></div><div class="pd-info"><div class="pd-day">${FM.d2(pd.day)}</div><div class="pd-name">${esc(pd.name)}</div></div><button class="btn bGh" onclick="removePd('${pd.id}')">✕</button></div>`).join('')
-    :'<p class="fxs tm">ยังไม่ได้ตั้งวันจ่ายเงิน</p>';
-};
-
-/* Countdown multi */
-// อัพเดท countdown นับถอยหลังถึงวันจ่ายเงินทุกรอบ (sort หา "รอบถัดไป")
-const updateCDs=()=>{
-  const now=new Date();
-  const today=now.getDate();
-  const year=now.getFullYear(),month=now.getMonth();
-  const pds=S.paySettings.paydays;
-  const el=document.getElementById('cdMulti');if(!el)return;
-  if(!pds.length){el.innerHTML='<p class="fxs tm">เพิ่มวันจ่ายเงินในแท็บ "คำนวณค่าแรง"</p>';return}
-  const items=pds.map(pd=>{
-    let payDate=new Date(year,month,pd.day);
-    if(today>pd.day)payDate=new Date(year,month+1,pd.day);
-    const diffDays=Math.ceil((payDate-now)/86400000);
-    const thMonths=['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
-    const dateStr=`${payDate.getDate()} ${thMonths[payDate.getMonth()]}`;
-    return{...pd,diffDays,dateStr,payDate};
-  }).sort((a,b)=>a.diffDays-b.diffDays);
-  el.innerHTML=items.map((it,i)=>`
-    <div class="cd-item ${i===0?'next':''}">
-      <div><div class="cd-lbl">${esc(it.name)}</div><div class="cd-val">${it.diffDays===0?'🎉 วันนี้!':it.diffDays+' วัน'}${i===0?'<span class="cd-badge">ถัดไป</span>':''}</div></div>
-      <div style="text-align:right"><div class="cd-lbl">วันที่จ่าย</div><div class="cd-val">${it.dateStr}</div></div>
-    </div>`).join('');
-  updateCal();
-};
-
-/* Running balance - carries forward month to month */
-// คำนวณยอดเงินสะสม real-time:
-// runningBalance = เงินเดือนล่าสุด + ค่าแรงที่ได้รับตั้งแต่วันจ่ายล่าสุด − ค่าใช้จ่ายตั้งแต่วันนั้น
-const renderRunBalance=()=>{
-  const ps=S.paySettings;
-  const now=new Date();
-  const today=now.getDate();
-  // Find days since last payday in paydays list
-  const pds=ps.paydays.sort((a,b)=>a.day-b.day);
-  let daysSinceLastPay=0;
-  let lastPayDay=1;
-  if(pds.length){
-    // find last payday that passed
-    const passed=pds.filter(pd=>pd.day<=today).sort((a,b)=>b.day-a.day);
-    if(passed.length){lastPayDay=passed[0].day;daysSinceLastPay=today-lastPayDay;}
-    else{
-      // last payday was last month
-      const lastMonth=pds[pds.length-1];
-      lastPayDay=lastMonth.day;
-      const daysInLastMonth=new Date(now.getFullYear(),now.getMonth(),0).getDate();
-      daysSinceLastPay=(daysInLastMonth-lastPayDay)+today;
-    }
-  } else {daysSinceLastPay=today-1}
-
-  // Calc daily wage
-  let ratePerDay=0;
-  if(ps.payType==='daily')ratePerDay=ps.dailyRate;
-  else if(ps.workedDays>0&&ps.monthlyRate>0){
-    const daysInMonth=new Date(now.getFullYear(),now.getMonth()+1,0).getDate();
-    ratePerDay=ps.monthlyRate/daysInMonth;
+  const months=[];
+  let bal=startBalance;
+  for(let m=1;m<=OL_MONTHS;m++){
+    let debtPaid=0,interestPaid=0;
+    const paidOff=[];
+    debts.forEach(d=>{
+      if(d.rem<=0)return;                              // หมดแล้ว → ไม่หักค่างวดอีก
+      const mRate=d.rate/100/12;
+      const interest=d.rem*mRate;
+      const pay=Math.min(d.monthly,d.rem+interest);    // งวดสุดท้ายจ่ายเท่าที่เหลือจริง
+      d.rem=d.rem+interest-pay;
+      if(d.rem<0.01)d.rem=0;
+      debtPaid+=pay;interestPaid+=interest;
+      if(d.rem<=0&&!d.paidOffAt){d.paidOffAt=m;paidOff.push({name:d.name,freed:d.monthly})}
+    });
+    const net=income-fixedExp-variableExp-debtPaid;
+    const start=bal;bal=start+net;
+    months.push({m,label:olMonthLabel(m),income,fixedExp,variableExp,debtPaid,interestPaid,net,start,end:bal,
+      debtLeft:debts.reduce((s,d)=>s+d.rem,0),paidOff});
   }
-  const dailyAllow=(ps.mealAllow||0)+(ps.travelAllow||0)+(ps.otherDaily||0);
-  const dailyNet=ratePerDay+dailyAllow;
-
-  // Running balance = previous balance + earned since last pay - spent since last pay
-  const lastPayDateStr=`${now.getFullYear()}-${FM.d2(now.getMonth()+1)}-${FM.d2(lastPayDay)}`;
-  const earnedSince=daysSinceLastPay*dailyNet;
-  const spentSince=S.transactions.filter(t=>t.date>=lastPayDateStr&&t.date<=now.toISOString().slice(0,10)).reduce((s,t)=>s+t.amount,0);
-  const runBal=(S.runningBalance||0)+earnedSince-spentSince;
-
-  const el=document.getElementById('runBalance');
-  if(el){el.textContent=FM.cur(runBal);el.style.color=runBal>=0?'var(--p2)':'var(--r)';}
-  const sinceEl=document.getElementById('runSince');
-  if(sinceEl)sinceEl.textContent=`นับตั้งแต่วันที่ ${lastPayDay} (${daysSinceLastPay} วันที่ผ่านมา) · ได้รับ ${FM.compact(earnedSince)} · ใช้ไป ${FM.compact(spentSince)}`;
-};
-
-/* Load wage form */
-// โหลดค่าตั้งจาก S.paySettings ใส่ใน form fields ทั้งหมด
-const loadWageSettings=()=>{
-  const ps=S.paySettings;
-  const fmap={dailyRate:ps.dailyRate||'',monthlyRate:ps.monthlyRate||'',workedDays:ps.workedDays||'',absentDays:ps.absentDays||0,wStartDay:ps.startDay||1,weekOff:ps.weekOff||'sun',
-    nightRate:ps.nightRate||'',nightShifts:ps.nightShifts||0,nightHolidayRate:ps.nightHolidayRate||'',nightHolidayShifts:ps.nightHolidayShifts||0,
-    mealAllow:ps.mealAllow||'',travelAllow:ps.travelAllow||'',otherDaily:ps.otherDaily||'',otherDailyName:ps.otherDailyName||'',
-    monthBonus:ps.monthBonus||'',posAllow:ps.posAllow||'',
-    otWeekday:ps.otWeekday||'',otWeekdayHrs:ps.otWeekdayHrs||0,otHoliday:ps.otHoliday||'',otHolidayType:ps.otHolidayType||'perday',otHolidayAmt:ps.otHolidayAmt||0,
-  };
-  Object.entries(fmap).forEach(([id,val])=>{const el=document.getElementById(id);if(el&&val!=='')el.value=val});
-  setPT(ps.payType||'daily');
-  renderDedList();renderPdList();
-  // update month label
-  const thMonths=['มกราคม','กุมภาพันธ์','มีนาคม','เมษายน','พฤษภาคม','มิถุนายน','กรกฎาคม','สิงหาคม','กันยายน','ตุลาคม','พฤศจิกายน','ธันวาคม'];
-  const now=new Date();
-  const el=document.getElementById('calMonthLabel');if(el)el.textContent=`${thMonths[now.getMonth()]} ${now.getFullYear()+543}`;
-};
-
-// อ่านค่าจาก form fields ทั้งหมด → บันทึกลง S.paySettings → save()
-const saveWageSettings=()=>{
-  const ps=S.paySettings;
-  ps.payType=ps.payType||'daily';
-  ps.dailyRate=FM.parse(document.getElementById('dailyRate').value);
-  ps.monthlyRate=FM.parse(document.getElementById('monthlyRate').value);
-  ps.workedDays=+document.getElementById('workedDays').value||0;
-  ps.absentDays=+document.getElementById('absentDays').value||0;
-  ps.startDay=+document.getElementById('wStartDay').value||1;
-  ps.weekOff=document.getElementById('weekOff').value;
-  ps.nightRate=FM.parse(document.getElementById('nightRate').value);
-  ps.nightShifts=+document.getElementById('nightShifts').value||0;
-  ps.nightHolidayRate=FM.parse(document.getElementById('nightHolidayRate').value);
-  ps.nightHolidayShifts=+document.getElementById('nightHolidayShifts').value||0;
-  ps.mealAllow=FM.parse(document.getElementById('mealAllow').value);
-  ps.travelAllow=FM.parse(document.getElementById('travelAllow').value);
-  ps.otherDaily=FM.parse(document.getElementById('otherDaily').value);
-  ps.otherDailyName=document.getElementById('otherDailyName').value||'อื่นๆ';
-  ps.monthBonus=FM.parse(document.getElementById('monthBonus').value);
-  ps.posAllow=FM.parse(document.getElementById('posAllow').value);
-  ps.otWeekday=FM.parse(document.getElementById('otWeekday').value);
-  ps.otWeekdayHrs=+document.getElementById('otWeekdayHrs').value||0;
-  ps.otHoliday=FM.parse(document.getElementById('otHoliday').value);
-  ps.otHolidayType=document.getElementById('otHolidayType').value;
-  ps.otHolidayAmt=+document.getElementById('otHolidayAmt').value||0;
-  save();
-};
-
-// คำนวณวันทำงานปกติในเดือน (ไม่รวมวันหยุด) — ไม่หักขาดงานที่นี่
-// absentDays จะถูกหักใน calcPay() เพียงครั้งเดียว
-const calcWorkedDays=(year,month,ps)=>{
-  const dim=new Date(year,month+1,0).getDate();
-  const start=ps.startDay||1;
-  let count=0;
-  for(let d=start;d<=dim;d++){
-    const dow=new Date(year,month,d).getDay();
-    const off=(ps.weekOff==='sun'&&dow===0)||(ps.weekOff==='sat-sun'&&(dow===0||dow===6));
-    if(!off)count++;
-  }
-  return count; // คืนค่าวันทำงานปกติ ไม่หักขาดงาน
-};
-
-/* MAIN CALC */
-// ── MAIN WAGE CALCULATION ──
-// ลำดับการคำนวณ:
-//   1. scheduled days (จากตาราง หรือ calcWorkedDays)
-//   2. netWorked = scheduled - absentDays  ← หักขาดงานครั้งเดียวที่นี่
-//   3. basePay = ค่าจ้างพื้นฐาน (รายวัน×netWorked หรือ เดือนปรับตาม netWorked)
-//   4. dailyAllow = สวัสดิการต่อวัน × netWorked
-//   5. monthlyAllow = สวัสดิการต่อเดือน
-//   6. nightTotal = กะดึก
-//   7. OT = ค่าล่วงเวลา
-//   8. gross = basePay + benefits + OT
-//   9. deductions = ประกันสังคม + ภาษี + รายการหักอื่นๆ
-//  10. net = gross - deductions
-const calcPay=()=>{
-  saveWageSettings();
-  const ps=S.paySettings;
-  const now=new Date();
-  const year=now.getFullYear(),month=now.getMonth();
-
-  // วันทำงานตามตาราง (ก่อนหักขาดงาน)
-  const scheduled=ps.workedDays>0?ps.workedDays:calcWorkedDays(year,month,ps);
-  // วันทำงานจริง = ตาราง − วันขาดงาน (หักครั้งเดียวที่นี่)
-  const netWorked=Math.max(0,scheduled-(ps.absentDays||0));
-
-  // Base pay
-  let basePay=0;
-  if(ps.payType==='daily') basePay=ps.dailyRate*netWorked;
-  else {
-    // วันทำงานเต็มเดือน (ใช้หาอัตราต่อวันสำหรับเงินเดือนรายเดือน)
-    const totalWork=calcWorkedDays(year,month,ps);
-    basePay=totalWork>0?(ps.monthlyRate/totalWork)*netWorked:ps.monthlyRate;
-  }
-
-  // หมายเหตุ: วันขาดงานถูกหักแล้วผ่าน netWorked (ไม่หักซ้ำ)
-  const absentDeduct=0;
-
-  // Daily allowances (only for days worked, not absent)
-  const dailyAllow=(ps.mealAllow+ps.travelAllow+ps.otherDaily)*netWorked;
-  const monthlyAllow=ps.monthBonus+ps.posAllow;
-
-  // Night shifts
-  const nightTotal=ps.nightRate*ps.nightShifts+ps.nightHolidayRate*ps.nightHolidayShifts;
-
-  // OT
-  const otWkTotal=ps.otWeekday*ps.otWeekdayHrs;
-  const otHolTotal=ps.otHoliday*ps.otHolidayAmt;
-  const totalOT=otWkTotal+otHolTotal+nightTotal;
-  const totalBen=dailyAllow+monthlyAllow;
-
-  const gross=basePay+totalBen+totalOT;
-
-  // Deductions
-  let totalDed=0;
-  const dedRows=[];
-  ps.deductions.forEach(d=>{
-    const amt=d.type==='pct'?gross*(d.amount/100):d.amount;
-    totalDed+=amt;
-    dedRows.push({name:d.name,icon:d.icon,amt,pct:d.type==='pct'});
+  // สถานะรายเดือน
+  months.forEach(x=>{
+    x.status=x.end<0?'danger':x.net<0?'risk':(income>0&&x.net<income*0.1)?'watch':'good';
   });
-  const taxAmt=0; // no separate tax field now, user adds via deduction list
 
-  const net=Math.max(0,gross-totalDed);
+  // สถานะรวม 5 เดือน
+  const endBal=months[OL_MONTHS-1].end,endDebt=months[OL_MONTHS-1].debtLeft;
+  const avgFlow=months.reduce((s,x)=>s+x.net,0)/OL_MONTHS;
+  const anyNegBal=months.some(x=>x.end<0);
+  const anyNegFlow=months.some(x=>x.net<0);
+  const debtRatio=income>0?startDebtMonthly/income:0;
+  const allNegFlow=months.every(x=>x.net<0);
+  let status;
+  // เสี่ยงสูง = จบ 5 เดือนแล้วเงินยังติดลบ หรือกระแสเงินสดติดลบทุกเดือน (ไม่มีสัญญาณฟื้นตัวเลย)
+  // เริ่มเสี่ยง = มีเดือนที่ติดลบ แต่ยังฟื้นกลับมาเป็นบวกได้ภายใน 5 เดือน (เช่น หลังผ่อนหนี้หมด)
+  if(endBal<0||allNegFlow)status='danger';
+  else if(anyNegFlow||anyNegBal)status='risk';
+  else if((income>0&&avgFlow<income*0.1)||debtRatio>0.4||endBal<startBalance)status='watch';
+  else status='good';
 
-  // Update running balance if net > 0 (payday happened)
-  // Store last calculated net for running balance use
-  S.runningBalance=net;
-  save();
+  // เดือนที่ต้องระวังที่สุด — ถ้ามีเดือนติดลบให้ดูเงินคงเหลือต่ำสุด ไม่งั้นดูเงินเหลือหลังหักทุกอย่างต่ำสุด
+  const riskBy=anyNegBal?'balance':'flow';   // ติดลบ → ดูเงินคงเหลือสะสม, ปกติ → ดูเงินเหลือต่อเดือน
+  const riskMonth=anyNegBal
+    ?months.reduce((a,b)=>b.end<a.end-0.005?b:a)
+    :months.reduce((a,b)=>b.net<a.net-0.005?b:a);
+  const flatFlow=months.every(x=>Math.abs(x.net-months[0].net)<0.005);
 
-  // Update sidebar
-  document.getElementById('payGross').textContent=FM.cur(gross);
-  document.getElementById('payDeduct').textContent=FM.cur(totalDed);
-  document.getElementById('payBenefits').textContent=FM.cur(totalBen);
-  document.getElementById('payOT').textContent=FM.cur(totalOT);
+  // ข้อมูลที่ยังขาด (กฎข้อ 9)
+  const missing=[];
+  if(income<=0)missing.push('<b>รายรับ</b> — กรอก "เงินเดือน / รายรับหลัก" ที่หน้าหลัก');
+  if(fixedExp<=0)missing.push('<b>รายจ่ายคงที่</b> — เพิ่มที่การ์ด "รายจ่ายคงที่/เดือน"');
+  if(!vs.solid)missing.push('<b>รายจ่ายรายวัน</b> — บันทึกที่การ์ด "บันทึกค่าใช้จ่าย" อย่างน้อย 1 เดือนเต็ม เพื่อให้คาดการณ์แม่นขึ้น');
 
-  // Show result
-  document.getElementById('payResult').style.display='block';
-  document.getElementById('payNetAmount').textContent=FM.cur(net);
-  document.getElementById('paySubLabel').textContent=`ทำงาน ${netWorked} วัน${ps.absentDays>0?' (ขาด '+ps.absentDays+' วัน)':''}`;
-  document.getElementById('payPerDay').textContent=netWorked>0?FM.compact(net/netWorked):'฿0';
-  document.getElementById('payPerHour').textContent=netWorked>0?FM.compact(net/(netWorked*8)):'฿0';
-
-  // Breakdown rows
-  const rows=[
-    ['💼 ค่าจ้างพื้นฐาน',basePay,'inc'],
-    ps.mealAllow>0?[`🍜 ค่าอาหาร (×${netWorked}วัน)`,ps.mealAllow*netWorked,'inc']:null,
-    ps.travelAllow>0?[`🚗 ค่าเดินทาง (×${netWorked}วัน)`,ps.travelAllow*netWorked,'inc']:null,
-    ps.otherDaily>0?[`📌 ${esc(ps.otherDailyName)} (×${netWorked}วัน)`,ps.otherDaily*netWorked,'inc']:null,
-    ps.monthBonus>0?['🎁 โบนัส/เบี้ยเลี้ยง',ps.monthBonus,'inc']:null,
-    ps.posAllow>0?['🏷️ ค่าตำแหน่ง',ps.posAllow,'inc']:null,
-    nightTotal>0?[`🌙 กะดึก (${ps.nightShifts}+${ps.nightHolidayShifts}กะ)`,nightTotal,'inc']:null,
-    otWkTotal>0?[`⏰ OT ธรรมดา (${ps.otWeekdayHrs}ชม.)`,otWkTotal,'inc']:null,
-    otHolTotal>0?[`🗓️ OT วันหยุด (${ps.otHolidayAmt}${ps.otHolidayType==='perday'?'วัน':'ชม.'})`,otHolTotal,'inc']:null,
-    absentDeduct>0?[`❌ หักขาดงาน (${ps.absentDays}วัน)`,absentDeduct,'ded']:null,
-    ...dedRows.map(d=>[`${d.icon} ${esc(d.name)}${d.pct?` (${d.amount}%)`:''}`,d.amt,'ded']),
-    ['── รับสุทธิ',net,'net'],
-  ].filter(Boolean);
-
-  document.getElementById('payBreakdown').innerHTML=rows.map(([l,v,t])=>`
-    <div class="pr" ${t==='net'?'style="font-weight:900"':''}>
-      <span>${l}</span>
-      <strong style="color:${t==='inc'?'var(--p2)':t==='ded'?'var(--r)':'var(--g2)'}">${t==='ded'?'-':''}${FM.cur(v)}</strong>
-    </div>`).join('');
-
-  // Calendar
-  renderPayCal(year,month,ps,netWorked);
-  renderDailyTable(year,month,ps,netWorked,basePay/netWorked||0,dailyAllow/netWorked||0);
-  renderPayChart(gross,totalDed,net);
-  renderRunBalance();
-  checkAch();
+  return{ready:income>0,income,fixedExp,variableExp,vsBasis:vs.basis,vsSolid:vs.solid,spentThisMonth,
+    startBalance,startDebt,startDebtMonthly,endBal,endDebt,avgFlow,months,status,riskMonth,riskBy,flatFlow,missing,
+    balDelta:endBal-startBalance,debtDelta:startDebt-endDebt};
 };
 
-/* Calendar render */
-// render ปฏิทินเดือนปัจจุบัน ระบายสีวันทำงาน/หยุด/วันจ่ายเงิน
-const renderPayCal=(year,month,ps,worked)=>{
-  const dim=new Date(year,month+1,0).getDate();
-  const firstDow=new Date(year,month,1).getDay();
-  const now=new Date();
-  const thMonths=['มกราคม','กุมภาพันธ์','มีนาคม','เมษายน','พฤษภาคม','มิถุนายน','กรกฎาคม','สิงหาคม','กันยายน','ตุลาคม','พฤศจิกายน','ธันวาคม'];
-  const el=document.getElementById('calMonthLabel');if(el)el.textContent=`${thMonths[month]} ${year+543}`;
-  const paydays=ps.paydays||[];
-  const cells=[];
-  for(let i=0;i<firstDow;i++)cells.push('<div class="cday empty-d"></div>');
-  for(let d=1;d<=dim;d++){
-    const dow=new Date(year,month,d).getDay();
-    const isToday=now.getDate()===d&&now.getMonth()===month&&now.getFullYear()===year;
-    const pdIdx=paydays.findIndex(pd=>pd.day===d);
-    const isWknd=(ps.weekOff==='sun'&&dow===0)||(ps.weekOff==='sat-sun'&&(dow===0||dow===6));
-    const isWork=d>=ps.startDay&&!isWknd;
-    let cls='cday';
-    if(isToday)cls+=' today';
-    else if(pdIdx===0)cls+=' payday';
-    else if(pdIdx>0)cls+=' payday2';
-    else if(isWknd)cls+=' holiday';
-    else if(isWork)cls+=' worked';
-    const pdTip=pdIdx>=0?`💸 ${paydays[pdIdx].name}`:'';
-    cells.push(`<div class="${cls}" title="${pdTip||''}">${d}</div>`);
+// ── การ์ดสรุปย่อบนหน้าหลัก ──
+const renderOutlookHero=o=>{
+  const el=document.getElementById('outlookHero');if(!el)return;
+  if(!o.ready){
+    el.innerHTML=`<div class="ol-hero"><div class="ol-hero-top"><div class="ct" style="margin:0"><div class="ci" style="background:rgba(139,92,246,.12)">🔮</div><span>ภาพรวม 5 เดือนข้างหน้า</span></div></div>
+      <p class="fsm tm" style="position:relative;z-index:1;margin-bottom:8px">ยังคาดการณ์ไม่ได้ เพราะยังไม่มีข้อมูลรายรับ</p>
+      <ul class="ol-src" style="position:relative;z-index:1;padding-left:16px;margin:0">${o.missing.map(m=>`<li>${m}</li>`).join('')}</ul></div>`;
+    return;
   }
-  const calEl=document.getElementById('calDays');
-  const ptCalEl=document.getElementById('pt-cal');
-  const calHtml=`<div class="cal-g">${cells.join('')}</div>`;
-  if(calEl)calEl.innerHTML=cells.join('');
-  if(ptCalEl){
-    const legHtml=`<div class="cal-leg mt1"><div class="leg"><div class="legdot" style="background:var(--gh)"></div>วันนี้</div><div class="leg"><div class="legdot" style="background:var(--gy)"></div>เงินออกรอบ1</div><div class="leg"><div class="legdot" style="background:linear-gradient(135deg,#ec4899,#f43f5e)"></div>เงินออกรอบ2+</div><div class="leg"><div class="legdot" style="background:rgba(239,68,68,.18)"></div>หยุด</div><div class="leg"><div class="legdot" style="background:rgba(139,92,246,.18)"></div>ทำงาน</div></div>`;
-    ptCalEl.innerHTML=`<div class="cal-g cal-h-row" style="display:grid;grid-template-columns:repeat(7,1fr);gap:3px;margin-bottom:4px"><div class="cal-h">อา</div><div class="cal-h">จ</div><div class="cal-h">อ</div><div class="cal-h">พ</div><div class="cal-h">พฤ</div><div class="cal-h">ศ</div><div class="cal-h">ส</div></div>${calHtml}${legHtml}`;
-  }
-};
-
-// save settings แล้ว re-render ปฏิทิน (เรียกเมื่อ weekOff เปลี่ยน)
-const updateCal=()=>{saveWageSettings();const now=new Date();renderPayCal(now.getFullYear(),now.getMonth(),S.paySettings,0)};
-
-/* Daily table */
-// สร้างตารางรายวันทั้งเดือน แสดงสถานะและรายได้ต่อวัน
-const renderDailyTable=(year,month,ps,worked,basePerDay,benPerDay)=>{
-  const dim=new Date(year,month+1,0).getDate();
-  const rows=[];
-  for(let d=1;d<=dim;d++){
-    const dow=new Date(year,month,d).getDay();
-    const isWknd=(ps.weekOff==='sun'&&dow===0)||(ps.weekOff==='sat-sun'&&(dow===0||dow===6));
-    const inRange=d>=ps.startDay;
-    const isWork=inRange&&!isWknd;
-    const dayNames=['อา','จ','อ','พ','พฤ','ศ','ส'];
-    rows.push(`<tr style="background:${isWknd?'rgba(239,68,68,.03)':isWork?'rgba(139,92,246,.02)':''}">
-      <td style="padding:5px 7px;border-bottom:1px solid var(--bdr);font-size:.76rem">${FM.d2(d)}/${FM.d2(month+1)}</td>
-      <td style="padding:5px 7px;border-bottom:1px solid var(--bdr);font-size:.7rem;color:var(--mt)">${dayNames[dow]}</td>
-      <td style="padding:5px 7px;border-bottom:1px solid var(--bdr);font-size:.7rem">${isWknd?'<span class="tr2">หยุด</span>':isWork?'<span class="tp">ทำงาน</span>':'<span class="tm">—</span>'}</td>
-      <td style="padding:5px 7px;border-bottom:1px solid var(--bdr);text-align:right;font-size:.76rem;font-family:'IBM Plex Mono',monospace;color:${isWork?'var(--p2)':'var(--mt)'}">
-        ${isWork?FM.cur(basePerDay+benPerDay):'—'}
-      </td>
-    </tr>`);
-  }
-  const el=document.getElementById('pt-daily');if(!el)return;
-  el.innerHTML=`<div style="overflow-x:auto;border-radius:var(--rM);border:1px solid var(--bdr);background:var(--surface)"><table style="width:100%;border-collapse:collapse;min-width:220px;font-size:.79rem"><thead><tr style="background:var(--s2)"><th style="padding:6px 7px;text-align:left;font-size:.68rem;color:var(--mt);font-weight:700;border-bottom:1px solid var(--bdr)">วันที่</th><th style="padding:6px 7px;font-size:.68rem;color:var(--mt);font-weight:700;border-bottom:1px solid var(--bdr)">วัน</th><th style="padding:6px 7px;font-size:.68rem;color:var(--mt);font-weight:700;border-bottom:1px solid var(--bdr)">สถานะ</th><th style="padding:6px 7px;text-align:right;font-size:.68rem;color:var(--mt);font-weight:700;border-bottom:1px solid var(--bdr)">รายได้/วัน</th></tr></thead><tbody>${rows.join('')}</tbody></table></div>`;
-};
-
-/* Pay chart */
-// render Doughnut chart เปรียบเทียบสุทธิ vs หักทั้งหมด
-const renderPayChart=(gross,ded,net)=>{
-  const el=document.getElementById('pt-chart');if(!el)return;
-  const total=gross||1;
-  const netPct=Math.round((net/total)*100);
-  const dedPct=100-netPct;
-  el.innerHTML=`<div style="padding:16px">
-    <div style="display:flex;gap:8px;margin-bottom:12px">
-      <div style="flex:${netPct};background:var(--gp);border-radius:8px;padding:10px 8px;text-align:center;color:#fff">
-        <div style="font-size:.7rem;opacity:.85">รับสุทธิ</div>
-        <div style="font-weight:800;font-size:.85rem">${FM.compact(net)}</div>
-      </div>
-      <div style="flex:${dedPct||10};background:var(--gx);border-radius:8px;padding:10px 8px;text-align:center;color:#fff">
-        <div style="font-size:.7rem;opacity:.85">หักทั้งหมด</div>
-        <div style="font-weight:800;font-size:.85rem">${FM.compact(ded)}</div>
-      </div>
+  const st=OL_STATUS[o.status];
+  el.innerHTML=`<div class="ol-hero">
+    <div class="ol-hero-top">
+      <div class="ct" style="margin:0"><div class="ci" style="background:rgba(139,92,246,.12)">🔮</div><span>ภาพรวม 5 เดือนข้างหน้า</span></div>
+      <span class="ol-badge ${st.cls}">${st.i} ${st.t}</span>
     </div>
-    <div style="font-size:.75rem;color:var(--mt);text-align:center">รับสุทธิ ${netPct}% · หัก ${dedPct}%</div>
+    <div class="ol-grid">
+      <div class="ol-cell"><div class="ol-l">เงินคงเหลือปัจจุบัน</div><div class="ol-v ${o.startBalance>=0?'tp':'tr2'}">${FM.cur(o.startBalance)}</div></div>
+      <div class="ol-cell"><div class="ol-l">คาดการณ์หลัง 5 เดือน</div><div class="ol-v ${o.endBal>=0?'tp':'tr2'}">${FM.cur(o.endBal)}<span class="ol-arrow ${o.balDelta>=0?'tg':'tr2'}">${o.balDelta>=0?'▲':'▼'} ${FM.compact(Math.abs(o.balDelta))}</span></div></div>
+      <div class="ol-cell"><div class="ol-l">หนี้ปัจจุบัน</div><div class="ol-v ${o.startDebt>0?'tr2':'tg'}">${FM.cur(o.startDebt)}</div></div>
+      <div class="ol-cell"><div class="ol-l">คาดการณ์หนี้หลัง 5 เดือน</div><div class="ol-v ${o.endDebt>0?'tr2':'tg'}">${FM.cur(o.endDebt)}${o.debtDelta>0?`<span class="ol-arrow tg">▼ ${FM.compact(o.debtDelta)}</span>`:''}</div></div>
+    </div>
+    ${o.startDebt>0||o.months.some(x=>x.status!=='good')?`<div class="ol-cell mt2" style="position:relative;z-index:1"><div class="ol-l">⚠️ เดือนที่ต้องระวังที่สุด</div><div class="ol-v ty" style="font-size:.9rem">${o.riskMonth.label}<span class="fxs tm mono" style="margin-left:6px">${o.riskBy==='balance'?`เงินคงเหลือ ${FM.cur(o.riskMonth.end)}`:`เหลือ ${FM.cur(o.riskMonth.net)}/เดือน`}</span></div></div>`:''}
+    <button class="btn bP bFull mt2" style="position:relative;z-index:1" onclick="navigate('outlook')">ดูรายละเอียดรายเดือน →</button>
   </div>`;
 };
-// บันทึกผลการคำนวณค่าแรงเดือนนี้ → S.payHistory → อัพเดท runningBalance
-const savePayHistory=()=>{
-  const netEl=document.getElementById('payNetAmount');
-  if(!netEl||netEl.textContent==='฿0'){modal('ยังไม่ได้คำนวณ','กรุณากดปุ่ม "คำนวณค่าแรง" ก่อนบันทึก');return}
-  const now=new Date();
-  const ym=`${now.getFullYear()}-${FM.d2(now.getMonth()+1)}`;
-  const entry={month:ym,net:FM.parse(netEl.textContent),gross:FM.parse(document.getElementById('payGross').textContent)};
-  const ex=S.payHistory.findIndex(h=>h.month===ym);
-  if(ex>=0)S.payHistory[ex]=entry;else S.payHistory.unshift(entry);
-  if(S.payHistory.length>24)S.payHistory=S.payHistory.slice(0,24);
-  // Update running balance from payday
-  S.runningBalance=entry.net;
-  S.lastPayDate=now.toISOString().slice(0,10);
-  save();renderPayHistList();renderRunBalance();
-  celebrate('💜','บันทึกเงินเดือนแล้ว!',`${ym} · สุทธิ ${FM.cur(entry.net)}`);
+
+// ── หน้ารายละเอียด: Summary cards + Timeline รายเดือน + Insight ──
+const renderOutlookDetail=o=>{
+  const el=document.getElementById('olBody');if(!el)return;
+  if(!o.ready){
+    el.innerHTML=`<div class="card"><div class="empty"><div class="ei">🔮</div>
+      <p style="margin-bottom:10px">ยังคาดการณ์ไม่ได้ — ระบบต้องใช้ข้อมูลจริงจากหน้าหลักก่อน</p></div>
+      <div class="slbl">ข้อมูลที่ยังขาด</div>
+      <ul class="ol-src" style="padding-left:16px">${o.missing.map(m=>`<li>${m}</li>`).join('')}</ul>
+      <button class="btn bP bFull mt2" onclick="navigate('dashboard')">ไปกรอกข้อมูลที่หน้าหลัก →</button></div>`;
+    return;
+  }
+  const st=OL_STATUS[o.status];
+
+  // Summary cards
+  const sum=`<div class="ol-sum">
+    <div class="ol-sumcard">
+      <div class="t">💰 เงินคงเหลือ</div>
+      <div class="ol-sumrow"><span class="k">ปัจจุบัน</span><span class="v ${o.startBalance>=0?'tp':'tr2'}">${FM.cur(o.startBalance)}</span></div>
+      <div class="ol-sumrow"><span class="k">อีก 5 เดือน</span><span class="v ${o.endBal>=0?'tp':'tr2'}">${FM.cur(o.endBal)}</span></div>
+      <div class="ol-delta ${o.balDelta>=0?'tg':'tr2'}">${olSigned(o.balDelta)}</div>
+    </div>
+    <div class="ol-sumcard">
+      <div class="t">💳 ภาระหนี้</div>
+      <div class="ol-sumrow"><span class="k">ปัจจุบัน</span><span class="v">${FM.cur(o.startDebt)}</span></div>
+      <div class="ol-sumrow"><span class="k">อีก 5 เดือน</span><span class="v">${FM.cur(o.endDebt)}</span></div>
+      <div class="ol-delta ${o.debtDelta>0?'tg':'tm'}">${o.debtDelta>0?'ลดลง '+FM.cur(o.debtDelta):'ไม่มีหนี้'}</div>
+    </div>
+    <div class="ol-sumcard">
+      <div class="t">📈 Cash Flow</div>
+      <div class="ol-sumrow"><span class="k">เฉลี่ยต่อเดือน</span><span class="v ${o.avgFlow>=0?'tg':'tr2'}">${olSigned(o.avgFlow)}</span></div>
+      <div class="ol-sumrow"><span class="k">รายรับ/เดือน</span><span class="v">${FM.cur(o.income)}</span></div>
+      <div class="ol-delta tm" style="font-family:'Noto Sans Thai',sans-serif;font-weight:600;font-size:.72rem">คิดจากรายรับ − รายจ่าย − ค่างวดหนี้</div>
+    </div>
+    <div class="ol-sumcard">
+      <div class="t">⚠️ เดือนที่เสี่ยงที่สุด</div>
+      <div class="ol-sumrow"><span class="k">เดือน</span><span class="v ty" style="font-size:.8rem">${o.riskMonth.label}</span></div>
+      <div class="ol-sumrow"><span class="k">${o.riskBy==='balance'?'เงินคงเหลือปลายเดือน':'เหลือหลังหักทุกอย่าง'}</span><span class="v ${(o.riskBy==='balance'?o.riskMonth.end:o.riskMonth.net)>=0?'tp':'tr2'}">${olSigned(o.riskBy==='balance'?o.riskMonth.end:o.riskMonth.net)}</span></div>
+      <div class="ol-delta tm" style="font-family:'Noto Sans Thai',sans-serif;font-weight:600;font-size:.72rem">${o.riskBy==='balance'?'เดือนที่เงินคงเหลือสะสมติดลบมากที่สุด':o.flatFlow?'ทุกเดือนเท่ากัน เพราะยังไม่มีหนี้ก้อนไหนผ่อนหมดในช่วงนี้':'เดือนนี้มีเงินเหลือหลังหักรายจ่ายและหนี้น้อยที่สุด'}</div>
+    </div>
+  </div>`;
+
+  // Timeline รายเดือน
+  const tl=o.months.map((x,i)=>{
+    const s=OL_STATUS[x.status];
+    const prev=i>0?o.months[i-1]:null;
+    const chips=[];
+    if(prev){
+      const db=x.end-prev.end,dd=prev.debtLeft-x.debtLeft;
+      chips.push(`<span class="ol-chg ${db>=0?'ol-up':'ol-down'}">${db>=0?'📈 เงินคงเหลือเพิ่มขึ้น':'📉 เงินคงเหลือลดลง'} ${FM.cur(Math.abs(db))}</span>`);
+      if(dd>0.005)chips.push(`<span class="ol-chg ol-up">📉 หนี้ลดลง ${FM.cur(dd)}</span>`);
+    }
+    x.paidOff.forEach(p=>chips.push(`<span class="ol-chg ol-paid">🎉 ผ่อน "${esc(p.name)}" หมด · มีเงินคืน ${FM.cur(p.freed)}/เดือน</span>`));
+    const note=x.end<0
+      ?'เงินคงเหลือติดลบ — รายรับไม่พอกับรายจ่ายและภาระหนี้รวมในเดือนนี้'
+      :x.net<0
+        ?'เงินไหลออกมากกว่าไหลเข้าในเดือนนี้ ต้องดึงเงินคงเหลือเดิมมาใช้'
+        :x.status==='watch'
+          ?'ยังเป็นบวก แต่เหลือน้อย เผื่อค่าใช้จ่ายฉุกเฉินได้ไม่มาก'
+          :'สถานะเป็นบวก เพราะรายรับมากกว่ารายจ่ายรวมและภาระหนี้';
+    return`<div class="ol-mo s-${x.status}">
+      <div class="ol-mo-h">
+        <div class="ol-mo-t">📅 เดือนที่ ${x.m} · ${x.label}</div>
+        <span class="ol-badge ${s.cls}">${s.i} ${s.t}</span>
+      </div>
+      <div class="ol-rows">
+        <div class="ol-r"><span class="k">รายรับ</span><span class="v tp">${FM.cur(x.income)}</span></div>
+        <div class="ol-r"><span class="k">รายจ่ายคงที่</span><span class="v tr2">−${FM.cur(x.fixedExp)}</span></div>
+        <div class="ol-r"><span class="k">รายจ่ายรายวัน (เฉลี่ย)</span><span class="v tr2">−${FM.cur(x.variableExp)}</span></div>
+        <div class="ol-r"><span class="k">ผ่อนหนี้</span><span class="v ty">${x.debtPaid>0?'−'+FM.cur(x.debtPaid):'—'}</span></div>
+        <div class="ol-r hl"><span class="k fw8">เงินสุทธิเดือนนี้</span><span class="v ${x.net>=0?'tg':'tr2'}">${olSigned(x.net)}</span></div>
+        <div class="ol-r hl" style="padding-top:0"><span class="k fw8">เงินคงเหลือปลายเดือน</span><span class="v ${x.end>=0?'tp':'tr2'}">${FM.cur(x.end)}</span></div>
+        <div class="ol-r hl" style="padding-top:0"><span class="k fw8">หนี้คงเหลือ</span><span class="v ${x.debtLeft>0?'tr2':'tg'}">${x.debtLeft>0?FM.cur(x.debtLeft):'ปลอดหนี้ 🎉'}</span></div>
+      </div>
+      ${chips.length?`<div style="margin-top:6px">${chips.join('')}</div>`:''}
+      <div class="ol-note">${note}</div>
+    </div>`;
+  }).join('');
+
+  // Insight — สร้างจากตัวเลขที่คำนวณจริงทั้งหมด
+  const ins=[];
+  ins.push({i:o.balDelta>=0?'📈':'📉',t:`หากคุณยังคงใช้จ่ายและผ่อนหนี้ตามแผนปัจจุบัน อีก 5 เดือนเงินคงเหลือของคุณมีแนวโน้ม<b>${o.balDelta>=0?'เพิ่มขึ้น':'ลดลง'} ${FM.cur(Math.abs(o.balDelta))}</b>${o.debtDelta>0?` และภาระหนี้ลดลง <b>${FM.cur(o.debtDelta)}</b>`:''}`});
+  o.months.forEach(x=>x.paidOff.forEach(p=>{
+    ins.push({i:'🕊️',t:`ในเดือน <b>${x.label}</b> คุณคาดว่าจะชำระ "<b>${esc(p.name)}</b>" เสร็จ หลังจากนั้นจะมีเงินสำหรับใช้จ่ายหรือเก็บออมเพิ่มขึ้นประมาณ <b>${FM.cur(p.freed)} ต่อเดือน</b>`});
+  }));
+  if(o.status==='danger')ins.push({i:'🚨',t:`ระวัง: มีเดือนที่เงินคงเหลือติดลบหรือกระแสเงินสดติดลบต่อเนื่อง — หนักที่สุดคือเดือน <b>${o.riskMonth.label}</b> ที่เงินคงเหลือสะสมจะอยู่ที่ <b>${FM.cur(o.riskMonth.end)}</b> ควรลดรายจ่ายหรือเพิ่มรายรับก่อนถึงตอนนั้น`});
+  else if(o.status==='risk')ins.push({i:'⚠️',t:`มีบางเดือนที่เงินไหลออกมากกว่าไหลเข้า ต้องดึงเงินคงเหลือเดิมมาใช้ — เดือนที่หนักที่สุดคือ <b>${o.riskMonth.label}</b>`});
+  else if(o.status==='watch')ins.push({i:'⚠️',t:`เดือน <b>${o.riskMonth.label}</b> เป็นเดือนที่ต้องระวังมากที่สุด เนื่องจากเงินคงเหลือหลังหักภาระทั้งหมดอยู่ในระดับต่ำ (${FM.cur(o.riskMonth.net)}/เดือน)`});
+  else ins.push({i:'✅',t:`ทั้ง 5 เดือนไม่มีเดือนไหนที่เงินติดลบ กระแสเงินสดเฉลี่ยเป็นบวก <b>${FM.cur(o.avgFlow)}/เดือน</b>`});
+  if(o.startDebt>0&&o.endDebt>0){
+    const stillPaying=o.months[OL_MONTHS-1].debtPaid;
+    if(stillPaying>0)ins.push({i:'💳',t:`หลังครบ 5 เดือน คุณยังมีหนี้เหลือ <b>${FM.cur(o.endDebt)}</b> และยังต้องผ่อนต่อเดือนละ <b>${FM.cur(stillPaying)}</b>`});
+  }
+  if(!o.vsSolid)ins.push({i:'📝',t:`ตัวเลขรายจ่ายรายวันยังอ้างอิงข้อมูลไม่ครบเดือน — บันทึกค่าใช้จ่ายให้ครบอย่างน้อย 1 เดือนเต็ม การคาดการณ์จะแม่นยำขึ้นมาก`});
+
+  const insight=`<div class="ol-insight">
+    <div class="ct mb2"><div class="ci" style="background:rgba(139,92,246,.12)">🧠</div><span>สิ่งที่ระบบวิเคราะห์ให้คุณ</span></div>
+    <ul style="margin:0;padding:0">${ins.map(x=>`<li data-i="${x.i}">${x.t}</li>`).join('')}</ul>
+  </div>`;
+
+  // แหล่งที่มาของทุกตัวเลข (กฎข้อ 8 — ตรวจสอบย้อนกลับได้)
+  const src=`<div class="card csm mt2">
+    <div class="slbl">ตัวเลขทั้งหมดนี้มาจากไหน</div>
+    <div class="ol-src">
+      <div>• <b>รายรับ ${FM.cur(o.income)}/เดือน</b> ← เงินเดือน + รายรับเพิ่มเติม ที่การ์ด "รายรับรายเดือน"</div>
+      <div>• <b>รายจ่ายคงที่ ${FM.cur(o.fixedExp)}/เดือน</b> ← รวมทุกรายการในการ์ด "รายจ่ายคงที่/เดือน"</div>
+      <div>• <b>รายจ่ายรายวัน ${FM.cur(o.variableExp)}/เดือน</b> ← ${o.vsBasis}</div>
+      <div>• <b>ค่างวดหนี้ ${FM.cur(o.startDebtMonthly)}/เดือน</b> ← รวม "จ่าย/เดือน" ของหนี้ที่ยังมียอดคงเหลือ พร้อมคิดดอกเบี้ยทบต้นรายเดือน</div>
+      <div>• <b>เงินคงเหลือปัจจุบัน ${FM.cur(o.startBalance)}</b> ← คงเหลือสุทธิเดือนนี้ (${FM.cur(C.bal)}) − รายจ่ายที่บันทึกแล้วเดือนนี้ (${FM.cur(o.spentThisMonth)})</div>
+    </div>
+    ${o.missing.length?`<div class="slbl mt2">ข้อมูลที่ยังขาด (เติมแล้วคาดการณ์จะแม่นขึ้น)</div><ul class="ol-src" style="padding-left:16px;margin:0">${o.missing.map(m=>`<li>${m}</li>`).join('')}</ul>`:''}
+  </div>`;
+
+  el.innerHTML=`<div class="ol-hero-top" style="margin-bottom:14px">
+      <span class="fsm tm">สถานะแนวโน้มรวม</span><span class="ol-badge ${st.cls}">${st.i} ${st.t}</span>
+    </div>
+    ${sum}
+    <div class="slbl mt3">ไทม์ไลน์รายเดือน</div>
+    <div class="ol-tl">${tl}</div>
+    ${insight}
+    ${src}
+    <div class="ol-disc">ℹ️ นี่คือ<b>การคาดการณ์จากข้อมูลปัจจุบัน</b> โดยสมมติว่ารายรับ รายจ่าย และแผนผ่อนชำระคงเดิมทุกเดือน — ไม่ใช่ผลลัพธ์ทางการเงินที่รับประกัน ตัวเลขจริงจะเปลี่ยนเมื่อรายรับ รายจ่าย หรือการผ่อนของคุณเปลี่ยนไป</div>`;
 };
 
-// render ประวัติค่าแรงย้อนหลัง (แสดงทั้งใน wage sidebar และ history tab)
-const renderPayHistList=()=>{
-  ['payHistory','salaryHistory'].forEach(id=>{
-    const el=document.getElementById(id);if(!el)return;
-    el.innerHTML=S.payHistory.length
-      ?S.payHistory.slice(0,6).map(h=>`<div class="li"><div class="lib"><div class="lin mono">${h.month}</div></div><span class="lia tp">${FM.cur(h.net)}</span></div>`).join('')
-      :'<div class="empty" style="padding:8px 0"><p>ยังไม่มีประวัติ</p></div>';
-  });
-};
-
+// เรียกซ้ำทุกครั้งที่ข้อมูลต้นทางเปลี่ยน (รายรับ / รายจ่าย / หนี้ / รายการค่าใช้จ่าย)
+const renderOutlook=()=>{const o=computeOutlook();renderOutlookHero(o);renderOutlookDetail(o)};
 /* ── MOOD ── */
 // เลือก mood การใช้จ่าย (need/want/impulse/regret) → toggle UI
 const setMood=m=>{currentMood=m;document.querySelectorAll('.mood-btn').forEach(b=>b.classList.toggle('sel',b.dataset.mood===m))};
@@ -1941,10 +1571,10 @@ const addTx=()=>{
   S.transactions.unshift({id:'t'+Date.now(),name,amount:amt,category:cat,date,note,mood:currentMood});
   currentMood='';document.querySelectorAll('.mood-btn').forEach(b=>b.classList.remove('sel'));
   document.getElementById('txName').value='';document.getElementById('txAmt').value='';document.getElementById('txNote').value='';
-  save();renderTxLists();renderSummary();renderBudget();renderDailyChart();renderRunBalance();checkAch();
+  save();renderTxLists();renderSummary();renderBudget();renderDailyChart();renderOutlook();checkAch();
 };
 // ลบรายการค่าใช้จ่ายตาม id → save → render
-const removeTx=id=>{S.transactions=S.transactions.filter(x=>x.id!==id);save();renderTxLists();renderSummary();renderBudget();renderDailyChart();renderRunBalance()};
+const removeTx=id=>{S.transactions=S.transactions.filter(x=>x.id!==id);save();renderTxLists();renderSummary();renderBudget();renderDailyChart();renderOutlook()};
 // สร้าง HTML สำหรับรายการค่าใช้จ่าย 1 รายการ (ใช้ใน renderTxLists)
 const txHtml=t=>{
   const m=CAT[t.category]||CAT.other;
@@ -1991,7 +1621,7 @@ const renderDailyChart=()=>{
 const renderAch=()=>{
   document.getElementById('achGrid').innerHTML=ACHS.map(a=>`<div class="ach ${unlocked.has(a.id)?'on':'off'}"><div class="ach-i">${a.i}</div><div class="ach-n">${a.n}</div><div class="ach-d">${a.d}</div>${unlocked.has(a.id)?'<div style="font-size:.61rem;color:var(--g2);margin-top:3px;font-weight:800">✅</div>':''}</div>`).join('');
   document.getElementById('userStats').innerHTML=`<div style="font-size:.82rem">${
-    [['รางวัล',`${unlocked.size}/${ACHS.length}`],['Streak',`🔥 ${S.streak} เดือน`],['บันทึก',`${S.transactions.length} รายการ`],['เป้าสำเร็จ',`${S.goals.filter(g=>g.saved>=g.target).length}/${S.goals.length}`],['ประวัติค่าแรง',`${S.payHistory.length} เดือน`]]
+    [['รางวัล',`${unlocked.size}/${ACHS.length}`],['Streak',`🔥 ${S.streak} เดือน`],['บันทึก',`${S.transactions.length} รายการ`],['เป้าสำเร็จ',`${S.goals.filter(g=>g.saved>=g.target).length}/${S.goals.length}`],['หนี้ที่ปิดแล้ว',`${S.debts.filter(d=>(d.remaining??d.totalAmount)<=0).length}/${S.debts.length}`]]
     .map(([l,v])=>`<div style="display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--bdr)"><span class="tm">${l}</span><strong>${v}</strong></div>`).join('')
   }</div>`;
 };
@@ -1999,7 +1629,7 @@ const renderAch=()=>{
 /* ── BACKUP / RESTORE ── */
 // export ข้อมูลทั้งหมดเป็น JSON file ให้ดาวน์โหลด
 const doBackup=()=>{
-  const blob=new Blob([JSON.stringify({...S,ver:8,exportDate:new Date().toISOString()},null,2)],{type:'application/json'});
+  const blob=new Blob([JSON.stringify({...S,ver:9,exportDate:new Date().toISOString()},null,2)],{type:'application/json'});
   const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=`fintrack_${new Date().toISOString().slice(0,10)}.json`;a.click();
 };
 document.getElementById('backupBtn').addEventListener('click',doBackup);
@@ -2010,9 +1640,7 @@ document.getElementById('restoreFile').addEventListener('change',e=>{
   reader.onload=ev=>{
     try{
       const p=JSON.parse(ev.target.result);
-      Object.assign(S,{salary:+p.salary||0,otherIncomes:p.otherIncomes||[],fixedExpenses:p.fixedExpenses||[],debts:p.debts||[],transactions:p.transactions||[],envelopes:p.envelopes||[],goals:p.goals||[],monthlyHistory:p.monthlyHistory||[],streak:+p.streak||0,lastPositiveMonth:p.lastPositiveMonth||'',payHistory:p.payHistory||[],runningBalance:+p.runningBalance||0,lastPayDate:p.lastPayDate||null,paySettings:{...S.paySettings,...(p.paySettings||{})}});
-      if(!Array.isArray(S.paySettings.deductions))S.paySettings.deductions=[];
-      if(!Array.isArray(S.paySettings.paydays))S.paySettings.paydays=[];
+      Object.assign(S,{salary:+p.salary||0,otherIncomes:p.otherIncomes||[],fixedExpenses:p.fixedExpenses||[],debts:p.debts||[],transactions:p.transactions||[],envelopes:p.envelopes||[],goals:p.goals||[],monthlyHistory:p.monthlyHistory||[],streak:+p.streak||0,lastPositiveMonth:p.lastPositiveMonth||'',legacyWage:p.legacyWage??(p.paySettings?{paySettings:p.paySettings,payHistory:p.payHistory||[]}:null)});
       save();init();modal('นำเข้าสำเร็จ ✅','ข้อมูลถูกนำเข้าเรียบร้อย');
     }catch(err){modal('เกิดข้อผิดพลาด','ไม่สามารถอ่านไฟล์ได้');}
   };
@@ -2172,7 +1800,7 @@ const ACHS=[
   {id:'a1',i:'💜',n:'รายรับแรก',d:'กรอกรายรับ',c:()=>C.inc>0},
   {id:'a2',i:'🎉',n:'ไม่มีหนี้',d:'ไม่มีหนี้สิน',c:()=>S.debts.length===0&&C.inc>0},
   {id:'a3',i:'✅',n:'ยอดบวก',d:'ยอดคงเหลือบวก',c:()=>C.bal>0},
-  {id:'a4',i:'💸',n:'คำนวณค่าแรง',d:'คำนวณครั้งแรก',c:()=>S.payHistory.length>0},
+  {id:'a4',i:'🔮',n:'มองอนาคต',d:'มีข้อมูลพอคาดการณ์ 5 เดือน',c:()=>C.inc>0&&S.transactions.length>0},
   {id:'a5',i:'🏦',n:'นักออม 10K',d:'ออมรวมเกิน 10,000',c:()=>S.goals.reduce((s,g)=>s+g.saved,0)>=10000},
   {id:'a6',i:'💎',n:'นักออม 100K',d:'ออมรวมเกิน 100,000',c:()=>S.goals.reduce((s,g)=>s+g.saved,0)>=100000},
   {id:'a7',i:'🔥',n:'Hot Streak',d:'ยอดบวก 3 เดือนติด',c:()=>S.streak>=3},
@@ -2181,7 +1809,7 @@ const ACHS=[
   {id:'a10',i:'🏆',n:'บรรลุเป้า',d:'ออมครบเป้า',c:()=>S.goals.some(g=>g.saved>=g.target)},
   {id:'a11',i:'📝',n:'นักจดบัญชี',d:'บันทึก 7 วัน',c:()=>new Set(S.transactions.map(t=>t.date)).size>=7},
   {id:'a12',i:'🕊️',n:'ปลดหนี้',d:'ไม่มีหนี้+มีรายรับ',c:()=>S.debts.length===0&&C.inc>0&&S.monthlyHistory.length>0},
-  {id:'a13',i:'🌙',n:'กะดึก',d:'บันทึกกะดึก 5+ ครั้ง',c:()=>(S.paySettings.nightShifts||0)>=5},
+  {id:'a13',i:'🌅',n:'อนาคตสดใส',d:'คาดการณ์ 5 เดือนไม่มีเดือนติดลบ',c:()=>{const o=computeOutlook();return o.ready&&o.months.every(m=>m.net>=0&&m.end>=0)}},
 ];
 let unlocked=new Set(JSON.parse(localStorage.getItem('achs8')||'[]'));
 const checkAch=()=>{ACHS.forEach(a=>{if(!unlocked.has(a.id)&&a.c()){unlocked.add(a.id);localStorage.setItem('achs8',JSON.stringify([...unlocked]));setTimeout(()=>celebrate(a.i,`ปลดล็อก: ${a.n}!`,a.d),400)}})};
@@ -2190,16 +1818,16 @@ const init=()=>{
   const sal=document.getElementById('salary');
   if(S.salary){sal.value=S.salary;FM.format(sal);}
   renderIncList();renderExpList();renderDebtList();
-  renderTxLists();renderPayHistList();
-  document.getElementById('txDate').value=new Date().toISOString().slice(0,10);
-  document.getElementById('dStartDate').value=new Date().toISOString().slice(0,10);
+  renderTxLists();
+  const today=new Date().toISOString().slice(0,10);
+  document.getElementById('txDate').value=today;
+  document.getElementById('dStartDate').value=today;
   // แสดง dashboard เริ่มต้น
-  ['wage','budget','goals','history','achievements'].forEach(id=>{
+  ['outlook','budget','goals','history','achievements'].forEach(id=>{
     const el=document.getElementById('s-'+id);if(el)el.style.display='none';
   });
   const dash=document.getElementById('s-dashboard');if(dash)dash.style.display='block';
-  calc();renderInsights();updateCDs();renderRunBalance();
-  setInterval(updateCDs,60000);setInterval(renderRunBalance,300000);
+  calc();renderInsights();renderOutlook();
 };
 // ── รัน app เมื่อหน้าโหลดเสร็จสมบูรณ์ ──
 window.addEventListener('load', function() {
