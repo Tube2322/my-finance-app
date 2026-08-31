@@ -317,22 +317,6 @@ body::before{
 .leg{display:flex;align-items:center;gap:3px;font-size:.66rem;color:var(--mt)}
 .legdot{width:9px;height:9px;border-radius:3px;flex-shrink:0}
 
-/* ══ STREAK ══ */
-.streak{background:linear-gradient(135deg,#fdf4ff,#fae8ff);border:1.5px solid rgba(168,85,247,.3);border-radius:var(--rXL);padding:16px;text-align:center;margin-bottom:12px;position:relative;overflow:hidden}
-[data-theme=dark] .streak{background:linear-gradient(135deg,#1e0840,#13082a);border-color:rgba(168,85,247,.25)}
-.streak::before{content:'🔥';position:absolute;right:-8px;bottom:-8px;font-size:5rem;opacity:.1;line-height:1}
-.streak-n{font-size:clamp(2rem,7vw,3rem);font-weight:900;color:var(--p2);line-height:1;font-family:'IBM Plex Mono',monospace}
-.streak-l{font-size:.78rem;color:var(--p2);margin-top:4px;font-weight:700}
-
-/* ══ ACHIEVEMENT ══ */
-.ach-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:8px}
-.ach{padding:12px 8px;border-radius:var(--rL);text-align:center;border:1px solid var(--bdr);background:var(--s2);transition:var(--sp)}
-.ach.on{background:linear-gradient(135deg,#fdf4ff,#fae8ff);border-color:rgba(168,85,247,.4);box-shadow:0 4px 14px rgba(168,85,247,.18);transform:scale(1.03)}
-[data-theme=dark] .ach.on{background:linear-gradient(135deg,#1e0840,#130828)}
-.ach.off{opacity:.33;filter:grayscale(1)}
-.ach-i{font-size:1.8rem;margin-bottom:5px;line-height:1}
-.ach-n{font-size:.73rem;font-weight:800}
-.ach-d{font-size:.63rem;color:var(--mt);margin-top:2px;line-height:1.4}
 
 /* ══ TAB BAR ══ */
 .tab-bar{display:flex;gap:3px;background:var(--s2);border:1px solid var(--bdr);padding:3px;border-radius:var(--rM);margin-bottom:13px;overflow-x:auto;scrollbar-width:none}
@@ -572,8 +556,6 @@ input[type=range]::-moz-range-track{background:var(--bg2);height:6px;border-radi
     <button class="dnav" data-s="outlook">🔮 อนาคต</button>
     <button class="dnav" data-s="budget">💰 ลงทุน</button>
     <button class="dnav" data-s="goals">🎯 เป้าหมาย</button>
-    <button class="dnav" data-s="history">📈 ประวัติ</button>
-    <button class="dnav" data-s="achievements">🏆 รางวัล</button>
   </nav>
   <div class="hdr-r">
     <button class="hbtn" id="darkBtn">🌙</button>
@@ -588,8 +570,6 @@ input[type=range]::-moz-range-track{background:var(--bg2);height:6px;border-radi
   <button class="bnav" data-s="outlook"><div class="bi">🔮</div><span>อนาคต</span></button>
   <button class="bnav" data-s="budget"><div class="bi">💰</div><span>ลงทุน</span></button>
   <button class="bnav" data-s="goals"><div class="bi">🎯</div><span>เป้าหมาย</span></button>
-  <button class="bnav" data-s="history"><div class="bi">📈</div><span>ประวัติ</span></button>
-  <button class="bnav" data-s="achievements"><div class="bi">🏆</div><span>รางวัล</span></button>
 </nav>
 
 <main class="page">
@@ -604,7 +584,6 @@ input[type=range]::-moz-range-track{background:var(--bg2);height:6px;border-radi
       <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(80px,1fr));gap:10px;margin-top:14px">
         <div><div style="font-size:.63rem;opacity:.7;font-weight:600">รายรับ</div><div style="font-size:.95rem;font-weight:900;font-family:'IBM Plex Mono',monospace" id="hInc">฿0</div></div>
         <div><div style="font-size:.63rem;opacity:.7;font-weight:600">รายจ่าย</div><div style="font-size:.95rem;font-weight:900;font-family:'IBM Plex Mono',monospace" id="hExp">฿0</div></div>
-        <div><div style="font-size:.63rem;opacity:.7;font-weight:600">🔥 Streak</div><div style="font-size:.95rem;font-weight:900;font-family:'IBM Plex Mono',monospace" id="hStreak">0 เดือน</div></div>
         <div><div style="font-size:.63rem;opacity:.7;font-weight:600">💜 ออม</div><div style="font-size:.95rem;font-weight:900;font-family:'IBM Plex Mono',monospace" id="hSavRate">0%</div></div>
       </div>
     </div>
@@ -906,43 +885,6 @@ input[type=range]::-moz-range-track{background:var(--bg2);height:6px;border-radi
 </div>
 <!-- END เป้าหมาย -->
 
-<!-- ════════════ 5. ประวัติ ════════════ -->
-<div class="sec" id="s-history">
-  <div class="pttl">📈 ประวัติการเงิน</div>
-  <div class="card">
-    <div class="ct mb2"><div class="ci" style="background:rgba(59,130,246,.1)">📈</div><span>ย้อนหลัง 6 เดือน</span></div>
-    <div id="historyChart" style="width:100%;height:200px"></div>
-  </div>
-  <div class="card">
-    <div class="ct mb2"><div class="ci" style="background:rgba(245,158,11,.1)">📅</div><span>ประวัติรายเดือน</span></div>
-    <div id="historyList"></div>
-  </div>
-</div>
-<!-- END ประวัติ -->
-
-<!-- ════════════ 6. รางวัล ════════════ -->
-<div class="sec" id="s-achievements">
-  <div class="pttl">🏆 รางวัลและ Streak</div>
-  <div class="cols2">
-    <div class="card">
-      <div class="ct mb2"><div class="ci" style="background:rgba(245,158,11,.1)">🏆</div><span>รางวัลความสำเร็จ</span></div>
-      <p class="fsm tm mb2">ปลดล็อกรางวัลเมื่อบรรลุเป้าหมาย!</p>
-      <div class="ach-grid" id="achGrid"></div>
-    </div>
-    <div class="stick">
-      <div class="streak">
-        <div class="streak-n" id="streakNum">0</div>
-        <div class="streak-l">🔥 เดือนติดต่อกันที่ยอดบวก</div>
-      </div>
-      <div class="card csm">
-        <div class="ct mb2"><div class="ci" style="background:rgba(59,130,246,.1)">⭐</div><span>สถิติ</span></div>
-        <div id="userStats"></div>
-      </div>
-    </div>
-  </div>
-</div>
-<!-- END รางวัล -->
-
 </main>
 
 <!-- MODAL -->
@@ -1003,8 +945,7 @@ const cb=k=>{const m=CAT[k]||CAT.other;return`<span class="tag" style="backgroun
 /* ── STATE ── */
 let S={
   salary:0,otherIncomes:[],fixedExpenses:[],debts:[],
-  transactions:[],goals:[],monthlyHistory:[],
-  streak:0,lastPositiveMonth:'',
+  transactions:[],goals:[],
   // legacy: ข้อมูลของฟีเจอร์คำนวณค่าแรงเดิม ไม่มีหน้าจอไหนใช้แล้ว แต่เก็บผ่านไว้
   // เพื่อไม่ลบข้อมูลเก่าของผู้ใช้ทิ้ง และให้ไฟล์ backup รุ่นก่อนยัง restore ได้
   legacyWage:null,
@@ -1034,8 +975,7 @@ const load=()=>{
       salary:+p.salary||0,otherIncomes:p.otherIncomes||[],
       fixedExpenses:p.fixedExpenses||[],debts:p.debts||[],
       transactions:p.transactions||[],
-      goals:p.goals||[],monthlyHistory:p.monthlyHistory||[],
-      streak:+p.streak||0,lastPositiveMonth:p.lastPositiveMonth||'',
+      goals:p.goals||[],
       legacyWage:p.legacyWage??(p.paySettings?{paySettings:p.paySettings,payHistory:p.payHistory||[]}:null),
       investPlan:{...S.investPlan,...(p.investPlan||{})},
     });
@@ -1079,12 +1019,10 @@ document.getElementById('darkBtn').addEventListener('click',()=>{applyTheme(docu
 const navigate=sec=>{
   document.querySelectorAll('.dnav,.bnav').forEach(b=>b.classList.toggle('on',b.dataset.s===sec));
   // ซ่อนทุก section แล้วแสดงเฉพาะที่เลือก
-  ['dashboard','outlook','budget','goals','history','achievements'].forEach(id=>{
+  ['dashboard','outlook','budget','goals'].forEach(id=>{
     const el=document.getElementById('s-'+id);
     if(el)el.style.display=(id===sec)?'block':'none';
   });
-  if(sec==='history'){renderHistChart();renderHistList();}
-  if(sec==='achievements')renderAch();
   if(sec==='budget')renderInvestPlanner();
   if(sec==='goals')renderGoals();
   if(sec==='outlook')renderOutlook();
@@ -1101,7 +1039,7 @@ const calc=()=>{
   C.exp=S.fixedExpenses.reduce((s,i)=>s+i.amount,0)+S.debts.reduce((s,d)=>s+((d.remaining??d.totalAmount)>0?d.monthlyPayment:0),0);
   C.bal=C.inc-C.exp;
   save();renderSummary();renderPie();
-  renderDailyChart();checkAch();updateStreak();renderInsights();
+  renderDailyChart();renderInsights();
   renderOutlook(); // ข้อมูลต้นทางเปลี่ยน → คาดการณ์อนาคตต้องคำนวณใหม่เสมอ
   renderInvestPlanner(); // เงินเหลือให้ลงทุนก็เปลี่ยนตาม รายรับ/รายจ่าย/หนี้เช่นกัน
 };
@@ -1112,14 +1050,12 @@ const renderSummary=()=>{
   document.getElementById('heroBalance').textContent=f(C.bal);
   document.getElementById('hInc').textContent=f(C.inc);
   document.getElementById('hExp').textContent=f(C.exp);
-  document.getElementById('hStreak').textContent=S.streak+' เดือน';
   const sr=C.inc>0?Math.round((C.bal/C.inc)*100):0;
   document.getElementById('hSavRate').textContent=sr+'%';
   document.getElementById('totInc').textContent=f(C.inc);
   document.getElementById('totExp').textContent=f(C.exp);
   const b=document.getElementById('balDisp');
   b.textContent=f(C.bal);b.className='bal-n '+(C.bal>0?'bpos':C.bal<0?'bneg':'bzer');
-  document.getElementById('streakNum').textContent=S.streak;
   const today=new Date().toISOString().slice(0,10);
   const ta=S.transactions.filter(t=>t.date===today).reduce((s,t)=>s+t.amount,0);
   document.getElementById('todaySpend').textContent=f(ta);
@@ -1257,7 +1193,7 @@ const sortDebts=mode=>{
 const payDebt=(id,amt)=>{
   const d=S.debts.find(x=>x.id===id);if(!d||!amt||amt<=0)return;
   d.remaining=Math.max(0,(d.remaining??d.totalAmount)-amt);
-  save();renderDebtList();calc();checkAch();
+  save();renderDebtList();calc();
   if(d.remaining<=0)setTimeout(()=>celebrate('🕊️','ปลดหนี้ก้อนนี้แล้ว!',`"${d.name}" จ่ายครบแล้ว 🎉`),200);
 };
 // เปิดฟอร์มแก้ไขหนี้สิน (ไม่ต้องลบแล้วเพิ่มใหม่)
@@ -1657,7 +1593,7 @@ const addTx=()=>{
   S.transactions.unshift({id:'t'+Date.now(),name,amount:amt,category:cat,date,note,mood:currentMood});
   currentMood='';document.querySelectorAll('.mood-btn').forEach(b=>b.classList.remove('sel'));
   document.getElementById('txName').value='';document.getElementById('txAmt').value='';document.getElementById('txNote').value='';
-  save();renderTxLists();renderSummary();renderInvestPlanner();renderDailyChart();renderOutlook();checkAch();
+  save();renderTxLists();renderSummary();renderInvestPlanner();renderDailyChart();renderOutlook();
 };
 // ลบรายการค่าใช้จ่ายตาม id → save → render
 const removeTx=id=>{S.transactions=S.transactions.filter(x=>x.id!==id);save();renderTxLists();renderSummary();renderInvestPlanner();renderDailyChart();renderOutlook()};
@@ -1703,15 +1639,6 @@ const renderDailyChart=()=>{
     </div>`;
   }).join('');
 };
-// render grid รางวัลทั้งหมด (unlocked = สีทอง, locked = เทา)
-const renderAch=()=>{
-  document.getElementById('achGrid').innerHTML=ACHS.map(a=>`<div class="ach ${unlocked.has(a.id)?'on':'off'}"><div class="ach-i">${a.i}</div><div class="ach-n">${a.n}</div><div class="ach-d">${a.d}</div>${unlocked.has(a.id)?'<div style="font-size:.61rem;color:var(--g2);margin-top:3px;font-weight:800">✅</div>':''}</div>`).join('');
-  document.getElementById('userStats').innerHTML=`<div style="font-size:.82rem">${
-    [['รางวัล',`${unlocked.size}/${ACHS.length}`],['Streak',`🔥 ${S.streak} เดือน`],['บันทึก',`${S.transactions.length} รายการ`],['เป้าสำเร็จ',`${S.goals.filter(g=>g.saved>=g.target).length}/${S.goals.length}`],['หนี้ที่ปิดแล้ว',`${S.debts.filter(d=>(d.remaining??d.totalAmount)<=0).length}/${S.debts.length}`]]
-    .map(([l,v])=>`<div style="display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--bdr)"><span class="tm">${l}</span><strong>${v}</strong></div>`).join('')
-  }</div>`;
-};
-
 /* ── BACKUP / RESTORE ── */
 // export ข้อมูลทั้งหมดเป็น JSON file ให้ดาวน์โหลด
 const doBackup=()=>{
@@ -1726,7 +1653,7 @@ document.getElementById('restoreFile').addEventListener('change',e=>{
   reader.onload=ev=>{
     try{
       const p=JSON.parse(ev.target.result);
-      Object.assign(S,{salary:+p.salary||0,otherIncomes:p.otherIncomes||[],fixedExpenses:p.fixedExpenses||[],debts:p.debts||[],transactions:p.transactions||[],goals:p.goals||[],monthlyHistory:p.monthlyHistory||[],streak:+p.streak||0,lastPositiveMonth:p.lastPositiveMonth||'',legacyWage:p.legacyWage??(p.paySettings?{paySettings:p.paySettings,payHistory:p.payHistory||[]}:null),investPlan:{...S.investPlan,...(p.investPlan||{})}});
+      Object.assign(S,{salary:+p.salary||0,otherIncomes:p.otherIncomes||[],fixedExpenses:p.fixedExpenses||[],debts:p.debts||[],transactions:p.transactions||[],goals:p.goals||[],legacyWage:p.legacyWage??(p.paySettings?{paySettings:p.paySettings,payHistory:p.payHistory||[]}:null),investPlan:{...S.investPlan,...(p.investPlan||{})}});
       save();init();modal('นำเข้าสำเร็จ ✅','ข้อมูลถูกนำเข้าเรียบร้อย');
     }catch(err){modal('เกิดข้อผิดพลาด','ไม่สามารถอ่านไฟล์ได้');}
   };
@@ -1754,19 +1681,6 @@ const renderPie=()=>{
 };
 const renderCharts=()=>{renderPie()};
 
-/* ── HISTORY CHART (CSS) ── */
-const renderHistChart=()=>{
-  const ctx=document.getElementById('historyChart');if(!ctx)return;
-  const hist=[...S.monthlyHistory].reverse().slice(-6);
-  if(!hist.length){ctx.innerHTML='<p class="fxs tm" style="text-align:center;padding:20px">ยังไม่มีประวัติ</p>';return;}
-  const maxVal=Math.max(...hist.map(h=>Math.max(h.income,h.expense,Math.abs(h.balance))),1);
-  ctx.style.cssText='display:grid;grid-template-columns:repeat('+hist.length+',1fr);align-items:end;gap:6px;height:200px;padding:8px 0 20px';
-  ctx.innerHTML=hist.map(h=>{
-    const ip=Math.max(4,(h.income/maxVal)*90),ep=Math.max(4,(h.expense/maxVal)*90),bp=Math.max(4,(Math.abs(h.balance)/maxVal)*90);
-    return`<div style="display:flex;flex-direction:column;align-items:center;gap:2px;height:100%"><div style="flex:1;width:100%;display:flex;align-items:flex-end;gap:2px"><div style="flex:1;height:${ip}%;background:rgba(139,92,246,.5);border-radius:3px 3px 0 0;min-height:4px"></div><div style="flex:1;height:${ep}%;background:rgba(239,68,68,.5);border-radius:3px 3px 0 0;min-height:4px"></div><div style="flex:1;height:${bp}%;background:${h.balance>=0?'rgba(16,185,129,.5)':'rgba(239,68,68,.3)'};border-radius:3px 3px 0 0;min-height:4px"></div></div><div style="font-size:.56rem;color:var(--mt);margin-top:3px">${h.month.slice(5)}</div></div>`;
-  }).join('');
-};
-
 /* ── INSIGHTS ── */
 const renderInsights=()=>{
   const ins=[];
@@ -1779,7 +1693,6 @@ const renderInsights=()=>{
   const dr=C.inc>0?Math.round((dp/C.inc)*100):0;
   if(dr>40)ins.push({i:'💳',t:'ภาระหนี้สูง',d:`ผ่อนหนี้ ${dr}% เกินเกณฑ์`});
   else if(dr>0)ins.push({i:'✅',t:'ภาระหนี้โอเค',d:`ผ่อนหนี้ ${dr}% ปลอดภัย`});
-  if(S.streak>=3)ins.push({i:'🔥',t:`Streak ${S.streak} เดือน!`,d:'ยอดบวกติดต่อกัน!'});
   if(ins.length===0)ins.push({i:'✨',t:'ดูดีทุกด้าน!',d:'กรอกข้อมูลเพิ่มเพื่อดู insights'});
   const box=document.getElementById('insightsBox');
   if(box)box.innerHTML=ins.slice(0,3).map(i=>`<div class="ins-item"><div class="ins-ico">${i.i}</div><div class="ins-body"><div class="ins-t">${i.t}</div><div class="ins-d">${i.d}</div></div></div>`).join('');
@@ -1909,7 +1822,7 @@ const clearInvAsset=()=>{S.investPlan.asset=null;S.investPlan.lastPrice=null;sav
 const saveInvestPlan=()=>{
   Object.assign(S.investPlan,invDraft());
   save();
-  renderInvestPlanner();renderOutlook();checkAch();
+  renderInvestPlanner();renderOutlook();
   celebrate('💰','บันทึกแผนลงทุนแล้ว!','เชื่อมกับหน้า 🔮 อนาคตให้อัตโนมัติ');
 };
 
@@ -1988,7 +1901,7 @@ const renderInvSelectedAsset=()=>{
 // ป้ายกำกับแกน X แบบย่อ (3 ตัวอักษรแรกของเดือน + ปี พ.ศ. 2 หลัก) — ใช้เฉพาะบนกราฟ ไม่ใช่ตัวเลขจริงที่ไหนอื่น
 const olShortLabel=off=>{const n=new Date(),d=new Date(n.getFullYear(),n.getMonth()+off,1);return TH_MONTHS_FULL[d.getMonth()].slice(0,3)+(d.getFullYear()+543).toString().slice(-2)};
 
-// กราฟแท่งเงินสด vs มูลค่าพอร์ต (จำลอง) — pattern เดียวกับ renderHistChart ที่ใช้อยู่แล้วในแอป (CSS bar ล้วน ไม่ใช้ library)
+// กราฟแท่งเงินสด vs มูลค่าพอร์ต (จำลอง) — CSS bar ล้วน ไม่ใช้ library
 const renderInvChart=rows=>{
   const el=document.getElementById('invChart');const leg=document.getElementById('invChartLegend');
   if(!el)return;
@@ -2090,7 +2003,7 @@ const addGoalSaved=(id,amt)=>{
   const g=S.goals.find(x=>x.id===id);if(!g||!amt)return;
   g.saved=Math.min(g.target,g.saved+amt);
   if(g.saved>=g.target)setTimeout(()=>celebrate(g.icon,'ถึงเป้าหมายแล้ว!',`"${g.name}" ออมครบ!`),200);
-  save();renderGoals();checkAch();
+  save();renderGoals();
 };
 const renderGoals=()=>{
   const el=document.getElementById('goalsList');
@@ -2107,44 +2020,6 @@ const renderGoals=()=>{
   const pct=tT>0?Math.min(100,tS/tT*100):0;
   document.getElementById('goalSummary').innerHTML=`<div class="srow"><div class="sb sbl"><div class="sl">เป้าหมาย</div><div class="sv">${S.goals.length} รายการ</div></div><div class="sb sg"><div class="sl">ออมรวม</div><div class="sv">${FM.compact(tS)}</div></div></div><div class="pbw"><div class="pbh"><span class="fw8">รวมทุกเป้าหมาย</span><span>${pct.toFixed(1)}%</span></div><div class="pbb"><div class="pbf kok" style="width:${pct}%"></div></div></div>`;
 };
-
-/* ── HISTORY ── */
-const saveSnap=()=>{
-  const ym=new Date().toISOString().slice(0,7);
-  const snap={month:ym,income:C.inc,expense:C.exp,balance:C.bal,spent:S.transactions.filter(t=>t.date.startsWith(ym)).reduce((s,t)=>s+t.amount,0)};
-  const ex=S.monthlyHistory.findIndex(h=>h.month===ym);
-  if(ex>=0)S.monthlyHistory[ex]=snap;else S.monthlyHistory.unshift(snap);
-  if(S.monthlyHistory.length>24)S.monthlyHistory=S.monthlyHistory.slice(0,24);
-  save();
-};
-const updateStreak=()=>{
-  saveSnap();const ym=new Date().toISOString().slice(0,7);
-  if(C.bal>0){if(S.lastPositiveMonth!==ym){S.streak++;S.lastPositiveMonth=ym;}}else S.streak=0;
-  save();document.getElementById('streakNum').textContent=S.streak;document.getElementById('hStreak').textContent=S.streak+' เดือน';
-};
-const renderHistList=()=>{
-  const el=document.getElementById('historyList');if(!el)return;
-  el.innerHTML=S.monthlyHistory.length?S.monthlyHistory.slice(0,12).map(h=>`<div class="li" style="flex-direction:column;align-items:stretch;gap:5px"><div style="display:flex;justify-content:space-between;align-items:center"><strong class="mono" style="font-size:.87rem">${h.month}</strong><span style="font-weight:800;color:${h.balance>0?'var(--p2)':'var(--r)'};font-family:'IBM Plex Mono',monospace;font-size:.87rem">${FM.cur(h.balance)}</span></div><div style="display:grid;grid-template-columns:1fr 1fr;gap:5px;font-size:.71rem;color:var(--mt)"><span>รายรับ: <strong class="tp mono">${FM.compact(h.income)}</strong></span><span>รายจ่าย: <strong class="tr2 mono">${FM.compact(h.expense)}</strong></span></div></div>`).join(''):'<div class="empty"><div class="ei">📅</div><p>ยังไม่มีประวัติ</p></div>';
-};
-
-/* ── ACHIEVEMENTS ── */
-const ACHS=[
-  {id:'a1',i:'💜',n:'รายรับแรก',d:'กรอกรายรับ',c:()=>C.inc>0},
-  {id:'a2',i:'🎉',n:'ไม่มีหนี้',d:'ไม่มีหนี้สิน',c:()=>S.debts.length===0&&C.inc>0},
-  {id:'a3',i:'✅',n:'ยอดบวก',d:'ยอดคงเหลือบวก',c:()=>C.bal>0},
-  {id:'a4',i:'🔮',n:'มองอนาคต',d:'มีข้อมูลพอคาดการณ์ 5 เดือน',c:()=>C.inc>0&&S.transactions.length>0},
-  {id:'a5',i:'🏦',n:'นักออม 10K',d:'ออมรวมเกิน 10,000',c:()=>S.goals.reduce((s,g)=>s+g.saved,0)>=10000},
-  {id:'a6',i:'💎',n:'นักออม 100K',d:'ออมรวมเกิน 100,000',c:()=>S.goals.reduce((s,g)=>s+g.saved,0)>=100000},
-  {id:'a7',i:'🔥',n:'Hot Streak',d:'ยอดบวก 3 เดือนติด',c:()=>S.streak>=3},
-  {id:'a8',i:'⚡',n:'Super Streak',d:'ยอดบวก 6 เดือนติด',c:()=>S.streak>=6},
-  {id:'a9',i:'📊',n:'นักลงทุน',d:'มีแผนลงทุนแล้ว',c:()=>{const p=S.investPlan;if(!p.asset)return false;const s=computeSurplus();if(!s.ready)return false;const buf=computeBuffer(s.surplus,p);return computeInvestAmount(s.surplus,buf,p).amt>0;}},
-  {id:'a10',i:'🏆',n:'บรรลุเป้า',d:'ออมครบเป้า',c:()=>S.goals.some(g=>g.saved>=g.target)},
-  {id:'a11',i:'📝',n:'นักจดบัญชี',d:'บันทึก 7 วัน',c:()=>new Set(S.transactions.map(t=>t.date)).size>=7},
-  {id:'a12',i:'🕊️',n:'ปลดหนี้',d:'ไม่มีหนี้+มีรายรับ',c:()=>S.debts.length===0&&C.inc>0&&S.monthlyHistory.length>0},
-  {id:'a13',i:'🌅',n:'อนาคตสดใส',d:'คาดการณ์ 5 เดือนไม่มีเดือนติดลบ',c:()=>{const o=computeOutlook();return o.ready&&o.months.every(m=>m.net>=0&&m.end>=0)}},
-];
-let unlocked=new Set(JSON.parse(localStorage.getItem('achs8')||'[]'));
-const checkAch=()=>{ACHS.forEach(a=>{if(!unlocked.has(a.id)&&a.c()){unlocked.add(a.id);localStorage.setItem('achs8',JSON.stringify([...unlocked]));setTimeout(()=>celebrate(a.i,`ปลดล็อก: ${a.n}!`,a.d),400)}})};
 
 const init=()=>{
   const sal=document.getElementById('salary');
