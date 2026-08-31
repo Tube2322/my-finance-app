@@ -860,6 +860,8 @@ input[type=range]::-moz-range-track{background:var(--bg2);height:6px;border-radi
           <button class="tab" data-period="60" onclick="setInvPeriod(60)">5 ปี</button>
           <button class="tab" data-period="120" onclick="setInvPeriod(120)">10 ปี</button>
         </div>
+        <div id="invChart"></div>
+        <div id="invChartLegend" class="cal-leg mt1"></div>
         <div id="invTimeline"></div>
       </div>
       <div class="card csm">
@@ -1983,12 +1985,36 @@ const renderInvSelectedAsset=()=>{
   </div>`;
 };
 
+// ป้ายกำกับแกน X แบบย่อ (3 ตัวอักษรแรกของเดือน + ปี พ.ศ. 2 หลัก) — ใช้เฉพาะบนกราฟ ไม่ใช่ตัวเลขจริงที่ไหนอื่น
+const olShortLabel=off=>{const n=new Date(),d=new Date(n.getFullYear(),n.getMonth()+off,1);return TH_MONTHS_FULL[d.getMonth()].slice(0,3)+(d.getFullYear()+543).toString().slice(-2)};
+
+// กราฟแท่งเงินสด vs มูลค่าพอร์ต (จำลอง) — pattern เดียวกับ renderHistChart ที่ใช้อยู่แล้วในแอป (CSS bar ล้วน ไม่ใช้ library)
+const renderInvChart=rows=>{
+  const el=document.getElementById('invChart');const leg=document.getElementById('invChartLegend');
+  if(!el)return;
+  if(!rows.length){el.innerHTML='';if(leg)leg.innerHTML='';return;}
+  const maxVal=Math.max(...rows.map(x=>Math.max(Math.abs(x.cashEnd),x.portfolioValue)),1);
+  el.style.cssText=`display:grid;grid-template-columns:repeat(${rows.length},1fr);align-items:end;gap:${rows.length>8?3:6}px;height:170px;padding:8px 0 4px`;
+  el.innerHTML=rows.map(x=>{
+    const cp=Math.max(3,(Math.abs(x.cashEnd)/maxVal)*100),pp=Math.max(3,(x.portfolioValue/maxVal)*100);
+    return`<div style="display:flex;flex-direction:column;align-items:center;gap:2px;height:100%">
+      <div style="flex:1;width:100%;display:flex;align-items:flex-end;gap:2px">
+        <div style="flex:1;height:${cp}%;background:${x.cashEnd>=0?'rgba(139,92,246,.55)':'rgba(239,68,68,.5)'};border-radius:3px 3px 0 0;min-height:3px" title="เงินสด ${FM.cur(x.cashEnd)}"></div>
+        <div style="flex:1;height:${pp}%;background:rgba(16,185,129,.55);border-radius:3px 3px 0 0;min-height:3px" title="พอร์ต ${FM.cur(x.portfolioValue)}"></div>
+      </div>
+      <div style="font-size:.56rem;color:var(--mt);white-space:nowrap">${olShortLabel(x.m)}</div>
+    </div>`;
+  }).join('');
+  if(leg)leg.innerHTML=`<div class="leg"><div class="legdot" style="background:rgba(139,92,246,.55)"></div>เงินสด (Actual+Planned)</div><div class="leg"><div class="legdot" style="background:rgba(16,185,129,.55)"></div>มูลค่าพอร์ต (Simulated)</div>`;
+};
+
 // Timeline — ใช้ computeOutlook(investPlan) เครื่องเดียวกับหน้าอนาคต ขยายเป็น N เดือนตามช่วงที่เลือก
 const renderInvTimeline=plan=>{
   const el=document.getElementById('invTimeline');if(!el)return;
   const o=computeOutlook(plan,invPeriod);
-  if(!o.ready){el.innerHTML='<p class="fxs tm">ยังไม่มีข้อมูลพอคำนวณ</p>';return;}
+  if(!o.ready){el.innerHTML='<p class="fxs tm">ยังไม่มีข้อมูลพอคำนวณ</p>';renderInvChart([]);return;}
   const rows=o.months.filter((_,i)=>invPeriod<=12?true:(i+1)%Math.ceil(invPeriod/12)===0||i===o.months.length-1);
+  renderInvChart(rows);
   el.innerHTML=rows.map(x=>`
     <div style="padding:8px 0;border-bottom:1px solid var(--bdr)">
       <div class="fw8 fxs mb1">📅 ${x.label}</div>
