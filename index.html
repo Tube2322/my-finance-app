@@ -2025,14 +2025,51 @@ const renderInvTimeline=plan=>{
 };
 
 // Smart Suggestion — สร้างจากตัวเลขที่คำนวณจริงเท่านั้น
+// สร้างคำแนะนำจากตัวเลขที่คำนวณจริงเท่านั้น (ไม่มีข้อความทั่วไปลอยๆ) — แต่ละข้อมีเงื่อนไขของตัวเอง มีได้ตั้งแต่ 0-6 ข้อ ตามสถานการณ์จริง
 const renderInvInsight=(s,buf,inv,plan)=>{
   const el=document.getElementById('invInsight');if(!el)return;
   const ins=[];
+
+  // 1. สรุปการจัดสรรพื้นฐาน
   ins.push({i:'💡',t:`เดือนนี้คุณมีเงินเหลือหลังหักภาระ ${FM.cur(s.surplus)} และตั้งเงินสำรองไว้ ${FM.cur(buf.bufferAmt)} ดังนั้นระบบประเมินว่าสามารถจัดสรรเพื่อลงทุนได้สูงสุดประมาณ ${FM.cur(buf.recommendedMax)}`});
+
+  // 2. เตือนถ้าแผนกินเข้าเงินสำรอง
   if(inv.overBuffer)ins.push({i:'⚠️',t:`แผนลงทุนนี้ทำให้เงินสดคงเหลือต่ำกว่าเงินสำรองขั้นต่ำ ${FM.cur(buf.bufferAmt-inv.cashAfter)}`});
-  const o=computeOutlook(plan);
-  if(o.ready&&o.riskMonth&&o.status!=='good')ins.push({i:'📉',t:`หากลงทุนตามแผนเดิม เดือน ${o.riskMonth.label} อาจมีเงินสดเหลือต่ำที่สุด เนื่องจากมีภาระรายจ่ายและการชำระหนี้สูง`});
-  el.innerHTML=ins.map(x=>`<div class="ins-item"><div class="ins-ico">${x.i}</div><div class="ins-body"><div class="ins-d">${x.t}</div></div></div>`).join('');
+
+  // 3. เดือนเสี่ยงที่สุดใน 5 เดือนข้างหน้า (คำนวณรวมแผนลงทุนนี้ด้วย)
+  const o5=computeOutlook(plan);
+  if(o5.ready&&o5.riskMonth&&o5.status!=='good')ins.push({i:'📉',t:`หากลงทุนตามแผนเดิม เดือน ${o5.riskMonth.label} อาจมีเงินสดเหลือต่ำที่สุด เนื่องจากมีภาระรายจ่ายและการชำระหนี้สูง`});
+
+  // 4. ยังมีที่ว่างให้ลงทุนเพิ่มได้อีกเท่าไร (เฉพาะตอนเลือกน้อยกว่าเพดานแนะนำ)
+  if(!inv.overSurplus&&inv.amt<buf.recommendedMax-1){
+    ins.push({i:'🔍',t:`ตอนนี้เลือกลงทุน ${FM.cur(inv.amt)} จากเพดานที่แนะนำ ${FM.cur(buf.recommendedMax)} — ยังเหลือที่ว่างอีก ${FM.cur(buf.recommendedMax-inv.amt)} หากต้องการเร่งลงทุนมากขึ้นโดยยังมีเงินสำรองพอ`});
+  }
+
+  // 5. ผลลัพธ์ 1 ปีข้างหน้าถ้ามีสินทรัพย์ + เงินลงทุนแล้ว (เงินต้นสะสม vs มูลค่าพอร์ตจำลองตามสมมติฐานผลตอบแทน)
+  if(plan.asset&&inv.amt>0){
+    const o12=computeOutlook(plan,12);
+    if(o12.ready){
+      const totalInvested=o12.months.reduce((sum,m)=>sum+m.invested,0);
+      const finalPortfolio=o12.months[11].portfolioValue;
+      if(totalInvested>0)ins.push({i:'📈',t:`ถ้าลงทุนใน ${esc(plan.asset.symbol)} ต่อเนื่องแบบนี้ครบ 1 ปี จะลงเงินต้นรวม ${FM.cur(totalInvested)} และตามสมมติฐานผลตอบแทน ${plan.assumedReturnPct}%/ปีที่ตั้งไว้ มูลค่าพอร์ตจำลองจะอยู่ที่ประมาณ ${FM.cur(finalPortfolio)} (เพิ่มขึ้น ${FM.cur(finalPortfolio-totalInvested)} จากเงินต้น)`});
+    }
+    if(plan.lastPrice?.price)ins.push({i:'🧮',t:`ราคาล่าสุดของ ${esc(plan.asset.symbol)} ที่ดึงมาคือ ${FM.cur(plan.lastPrice.price)}/หน่วย เงินลงทุน ${FM.cur(inv.amt)} จะซื้อได้ประมาณ ${(inv.amt/plan.lastPrice.price).toFixed(plan.lastPrice.price<10?0:2)} หน่วยต่อรอบ`});
+  }else if(inv.amt>0&&!plan.asset){
+    ins.push({i:'🎯',t:'ยังไม่ได้เลือกสินทรัพย์ที่จะลงทุน — เลือกที่การ์ด "เลือกแผนการลงทุน" ด้านบน เพื่อให้ระบบจำลองมูลค่าพอร์ตให้'});
+  }
+
+  // 6. เช็คความสมเหตุสมผลของสมมติฐานผลตอบแทน (ตลาดหุ้นโลกระยะยาวเฉลี่ยราว 7-10%/ปี)
+  if(plan.assumedReturnPct>20)ins.push({i:'🧐',t:`สมมติฐานผลตอบแทน ${plan.assumedReturnPct}%/ปี สูงกว่าค่าเฉลี่ยตลาดทั่วไปในระยะยาวมาก (ทั่วไปอยู่ราว 7-10%/ปี) ผลจำลองระยะยาวอาจดูดีเกินจริง ลองปรับให้ระมัดระวังขึ้น`});
+  else if(plan.assumedReturnPct<0)ins.push({i:'🧐',t:'ผลตอบแทนที่ตั้งไว้เป็นค่าติดลบ มูลค่าพอร์ตจำลองจะลดลงเรื่อยๆ ตรวจสอบว่าตั้งใจกรอกแบบนี้จริงหรือไม่'});
+
+  // 7. ข้อสังเกตเรื่องความถี่ — ลงทุนครั้งเดียวพลาดโอกาสให้ระบบคำนวณเงินเหลือใหม่ทุกเดือน
+  if(plan.frequency==='once'&&inv.amt>0)ins.push({i:'🔁',t:'ตอนนี้ตั้งเป็น "ลงทุนครั้งเดียว" — ถ้าเปลี่ยนเป็น "ทุกเดือน" ระบบจะประเมินเงินลงทุนใหม่จากเงินเหลือจริงของแต่ละเดือนให้อัตโนมัติ'});
+
+  // 8. ไม่มีภาระหนี้แล้ว
+  if(s.debtMonthly===0&&s.surplus>0)ins.push({i:'🕊️',t:'ตอนนี้ไม่มีภาระหนี้ที่ต้องผ่อนแล้ว เงินเหลือทั้งหมดจึงพร้อมนำไปจัดสรรเพื่อออม/ลงทุนได้เต็มที่'});
+
+  if(!ins.length)ins.push({i:'✨',t:'กรอกข้อมูลรายรับ/รายจ่าย/หนี้ให้ครบที่หน้าหลักก่อน เพื่อดูคำแนะนำ'});
+  el.innerHTML=ins.slice(0,6).map(x=>`<div class="ins-item"><div class="ins-ico">${x.i}</div><div class="ins-body"><div class="ins-d">${x.t}</div></div></div>`).join('');
 };
 
 /* ── GOALS ── */
