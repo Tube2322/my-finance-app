@@ -555,7 +555,7 @@ input[type=range]::-moz-range-track{background:var(--bg2);height:6px;border-radi
     <button class="dnav on" data-s="dashboard">🏠 หน้าหลัก <span class="bx" id="bdgD">0</span></button>
     <button class="dnav" data-s="outlook">🔮 อนาคต</button>
     <button class="dnav" data-s="budget">💰 ลงทุน</button>
-    <button class="dnav" data-s="goals">🎯 เป้าหมาย</button>
+    <button class="dnav" data-s="goals">🎮 จำลองชีวิต</button>
   </nav>
   <div class="hdr-r">
     <button class="hbtn" id="darkBtn">🌙</button>
@@ -569,7 +569,7 @@ input[type=range]::-moz-range-track{background:var(--bg2);height:6px;border-radi
   <button class="bnav on" data-s="dashboard"><div class="bi">🏠</div><span>หน้าหลัก</span><span class="bx" id="bdgM">0</span></button>
   <button class="bnav" data-s="outlook"><div class="bi">🔮</div><span>อนาคต</span></button>
   <button class="bnav" data-s="budget"><div class="bi">💰</div><span>ลงทุน</span></button>
-  <button class="bnav" data-s="goals"><div class="bi">🎯</div><span>เป้าหมาย</span></button>
+  <button class="bnav" data-s="goals"><div class="bi">🎮</div><span>จำลอง</span></button>
 </nav>
 
 <main class="page">
@@ -854,34 +854,7 @@ input[type=range]::-moz-range-track{background:var(--bg2);height:6px;border-radi
 
 <!-- ════════════ 4. เป้าหมาย ════════════ -->
 <div class="sec" id="s-goals">
-  <div class="pttl">🎯 เป้าหมายออมเงิน</div>
-  <div class="cols2">
-    <div>
-      <div class="card">
-        <div class="ct mb2"><div class="ci" style="background:rgba(139,92,246,.1)">✨</div><span>เพิ่มเป้าหมายใหม่</span></div>
-        <div class="g2">
-          <div class="fg"><label class="fl">ชื่อเป้าหมาย</label><input type="text" id="gName" class="inp" placeholder="เช่น เที่ยวญี่ปุ่น"></div>
-          <div class="fg"><label class="fl">ไอคอน</label>
-            <select id="gIcon" class="inp"><option value="✈️">✈️ ท่องเที่ยว</option><option value="🏠">🏠 บ้าน</option><option value="🚗">🚗 รถ</option><option value="💻">💻 อุปกรณ์</option><option value="🎓">🎓 ศึกษา</option><option value="💍">💍 แต่งงาน</option><option value="🏥">🏥 ฉุกเฉิน</option><option value="🎯">🎯 อื่นๆ</option></select>
-          </div>
-          <div class="fg"><label class="fl">เป้าหมาย (฿)</label><div class="ipr"><span class="pre">฿</span><input type="text" inputmode="decimal" id="gTarget" class="inp" placeholder="100,000" oninput="FM.clean(this)" onfocus="FM.unformat(this)" onblur="FM.format(this)"></div></div>
-          <div class="fg"><label class="fl">มีอยู่แล้ว (฿)</label><div class="ipr"><span class="pre">฿</span><input type="text" inputmode="decimal" id="gSaved" class="inp" placeholder="0" oninput="FM.clean(this)" onfocus="FM.unformat(this)" onblur="FM.format(this)"></div></div>
-          <div class="fg"><label class="fl">ออม/เดือน (฿)</label><div class="ipr"><span class="pre">฿</span><input type="text" inputmode="decimal" id="gMonthly" class="inp" placeholder="ใช้ยอดคงเหลือ" oninput="FM.clean(this)"></div></div>
-          <div class="fg"><label class="fl">ความสำคัญ</label>
-            <select id="gPriority" class="inp"><option value="high">🔴 สูง</option><option value="medium">🟡 กลาง</option><option value="low">🟢 ต่ำ</option></select>
-          </div>
-        </div>
-        <button class="btn bP bFull" onclick="addGoal()">+ เพิ่มเป้าหมาย</button>
-      </div>
-      <div id="goalsList"></div>
-    </div>
-    <div class="stick">
-      <div class="card csm">
-        <div class="ct mb2"><div class="ci" style="background:rgba(139,92,246,.1)">📊</div><span>ภาพรวมเป้าหมาย</span></div>
-        <div id="goalSummary"></div>
-      </div>
-    </div>
-  </div>
+  <div id="simRoot"></div>
 </div>
 <!-- END เป้าหมาย -->
 
@@ -945,7 +918,7 @@ const cb=k=>{const m=CAT[k]||CAT.other;return`<span class="tag" style="backgroun
 /* ── STATE ── */
 let S={
   salary:0,otherIncomes:[],fixedExpenses:[],debts:[],
-  transactions:[],goals:[],
+  transactions:[],
   // legacy: ข้อมูลของฟีเจอร์คำนวณค่าแรงเดิม ไม่มีหน้าจอไหนใช้แล้ว แต่เก็บผ่านไว้
   // เพื่อไม่ลบข้อมูลเก่าของผู้ใช้ทิ้ง และให้ไฟล์ backup รุ่นก่อนยัง restore ได้
   legacyWage:null,
@@ -957,6 +930,8 @@ let S={
     asset:null,lastPrice:null,
     assumedReturnPct:7,assumedDividendPct:0,
   },
+  // 🎮 PART 1: Simulation World / Time / Event / Economy Engine
+  simWorlds:[],activeSimId:null,
 };
 // ── COMPUTED: ยอดรวมที่คำนวณจาก S (ไม่ได้ save ลง localStorage)
 let C={inc:0,exp:0,bal:0};
@@ -975,9 +950,9 @@ const load=()=>{
       salary:+p.salary||0,otherIncomes:p.otherIncomes||[],
       fixedExpenses:p.fixedExpenses||[],debts:p.debts||[],
       transactions:p.transactions||[],
-      goals:p.goals||[],
       legacyWage:p.legacyWage??(p.paySettings?{paySettings:p.paySettings,payHistory:p.payHistory||[]}:null),
       investPlan:{...S.investPlan,...(p.investPlan||{})},
+      simWorlds:p.simWorlds||[],activeSimId:p.activeSimId??null,
     });
   }catch(e){}
 };
@@ -1024,7 +999,7 @@ const navigate=sec=>{
     if(el)el.style.display=(id===sec)?'block':'none';
   });
   if(sec==='budget')renderInvestPlanner();
-  if(sec==='goals')renderGoals();
+  if(sec==='goals')renderSimRoot();
   if(sec==='outlook')renderOutlook();
   try{window.scrollTo({top:0,behavior:'instant'});}catch(e){}
 };
@@ -1642,7 +1617,7 @@ const renderDailyChart=()=>{
 /* ── BACKUP / RESTORE ── */
 // export ข้อมูลทั้งหมดเป็น JSON file ให้ดาวน์โหลด
 const doBackup=()=>{
-  const blob=new Blob([JSON.stringify({...S,ver:10,exportDate:new Date().toISOString()},null,2)],{type:'application/json'});
+  const blob=new Blob([JSON.stringify({...S,ver:11,exportDate:new Date().toISOString()},null,2)],{type:'application/json'});
   const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=`fintrack_${new Date().toISOString().slice(0,10)}.json`;a.click();
 };
 document.getElementById('backupBtn').addEventListener('click',doBackup);
@@ -1653,7 +1628,7 @@ document.getElementById('restoreFile').addEventListener('change',e=>{
   reader.onload=ev=>{
     try{
       const p=JSON.parse(ev.target.result);
-      Object.assign(S,{salary:+p.salary||0,otherIncomes:p.otherIncomes||[],fixedExpenses:p.fixedExpenses||[],debts:p.debts||[],transactions:p.transactions||[],goals:p.goals||[],legacyWage:p.legacyWage??(p.paySettings?{paySettings:p.paySettings,payHistory:p.payHistory||[]}:null),investPlan:{...S.investPlan,...(p.investPlan||{})}});
+      Object.assign(S,{salary:+p.salary||0,otherIncomes:p.otherIncomes||[],fixedExpenses:p.fixedExpenses||[],debts:p.debts||[],transactions:p.transactions||[],legacyWage:p.legacyWage??(p.paySettings?{paySettings:p.paySettings,payHistory:p.payHistory||[]}:null),investPlan:{...S.investPlan,...(p.investPlan||{})},simWorlds:p.simWorlds||[],activeSimId:p.activeSimId??null});
       save();init();modal('นำเข้าสำเร็จ ✅','ข้อมูลถูกนำเข้าเรียบร้อย');
     }catch(err){modal('เกิดข้อผิดพลาด','ไม่สามารถอ่านไฟล์ได้');}
   };
@@ -1985,40 +1960,359 @@ const renderInvInsight=(s,buf,inv,plan)=>{
   el.innerHTML=ins.slice(0,6).map(x=>`<div class="ins-item"><div class="ins-ico">${x.i}</div><div class="ins-body"><div class="ins-d">${x.t}</div></div></div>`).join('');
 };
 
-/* ── GOALS ── */
-const addGoal=()=>{
-  const name=document.getElementById('gName').value.trim();
-  const icon=document.getElementById('gIcon').value;
-  const target=FM.parse(document.getElementById('gTarget').value);
-  const saved=FM.parse(document.getElementById('gSaved').value);
-  const monthly=FM.parse(document.getElementById('gMonthly').value);
-  const priority=document.getElementById('gPriority').value;
-  if(!name||!target){modal('ข้อมูลไม่ครบ','กรุณากรอกชื่อและยอดเป้าหมาย');return;}
-  S.goals.push({id:'g'+Date.now(),name,icon,target,saved,monthly,priority,createdAt:new Date().toISOString()});
-  ['gName','gTarget','gSaved','gMonthly'].forEach(id=>document.getElementById(id).value='');
-  save();renderGoals();
+/* ════════════════════════════════
+   🎮 PART 1: SIMULATION WORLD, PLAYER & TIME ENGINE
+   ─────────────────────────────────
+   ขอบเขตที่ตัดจาก spec เต็ม (แจ้งผู้ใช้แล้วในแชท):
+   - ไม่มี Historical Snapshot mode — แอปไม่เก็บประวัติย้อนหลังแล้ว (ลบ monthlyHistory ไปพร้อมแท็บประวัติ) เหลือ Actual/Custom
+   - เวลาเดินเป็น "เดือน" เท่านั้น — ข้อมูลจริงทั้งแอปเป็นตัวเลขระดับเดือนอยู่แล้ว (มาจาก computeOutlook)
+   - Event pool มีแค่หมวด Economic/Personal — Market/Business ต้องรอ PART 2 (มีระบบธุรกิจก่อนถึงจะมีอะไรให้กระทบ)
+   - Account system ย่อเป็น audit log กลางเส้นเดียวแทนหลายบัญชีแยก — หลักการ "ห้าม UI แก้ค่าตรงๆ ต้องผ่าน engine" ยังคงอยู่ครบ
+════════════════════════════════ */
+const SIM_TH_MONTHS=['มกราคม','กุมภาพันธ์','มีนาคม','เมษายน','พฤษภาคม','มิถุนายน','กรกฎาคม','สิงหาคม','กันยายน','ตุลาคม','พฤศจิกายน','ธันวาคม'];
+const simDateLabel=ym=>{const[y,m]=ym.split('-').map(Number);return`${SIM_TH_MONTHS[m-1]} ${y+543}`};
+const simAddMonths=(ym,n)=>{const[y,m]=ym.split('-').map(Number);const d=new Date(y,m-1+n,1);return`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`};
+const simMonthsBetween=(a,b)=>{const[ay,am]=a.split('-').map(Number),[by,bm]=b.split('-').map(Number);return(by-ay)*12+(bm-am);};
+const SIM_STATUS={draft:{t:'ร่าง',cls:'ol-watch'},active:{t:'กำลังเล่น',cls:'ol-good'},paused:{t:'หยุดชั่วคราว',cls:'ol-risk'},completed:{t:'จบแล้ว',cls:'ol-good'},archived:{t:'เก็บเข้าคลัง',cls:'ol-danger'}};
+
+// เหตุการณ์โลกจำลอง — หมวด Economic/Personal เท่านั้น (Market/Business รอ PART 2)
+// apply = ใช้ผลทันทีอัตโนมัติ, decision = ต้องให้ผู้ใช้เลือกก่อนถึงจะมีผล (กฎ "ห้ามเป็นแค่ dialog สวยงาม")
+const SIM_EVENTS=[
+  {id:'inflation_up',cat:'economic',name:'เงินเฟ้อพุ่ง',prob:.08,cooldown:6,
+    apply:sim=>{sim.economy.inflation=Math.min(15,sim.economy.inflation+1.5);sim.economy.interestRate=Math.min(12,sim.economy.interestRate+0.5);
+      simLog(sim,'📈','เงินเฟ้อพุ่งขึ้น','เงินเฟ้อ +1.5% ดอกเบี้ยขยับตาม +0.5%');}},
+  {id:'recession_shock',cat:'economic',name:'เศรษฐกิจถดถอยกะทันหัน',prob:.04,cooldown:12,
+    apply:sim=>{sim.economy.index=Math.max(0,sim.economy.index-25);sim.economy.momentum=-2;sim.economy.trendMonths=0;
+      simLog(sim,'📉','เศรษฐกิจถดถอยกะทันหัน','Economy Index ร่วงแรง อาจกระทบดอกเบี้ยและความเชื่อมั่นในเดือนถัดไป');}},
+  {id:'boom',cat:'economic',name:'เศรษฐกิจเติบโตดี',prob:.07,cooldown:8,
+    apply:sim=>{sim.economy.index=Math.min(100,sim.economy.index+12);sim.economy.momentum=Math.min(3,sim.economy.momentum+1);
+      simLog(sim,'📈','เศรษฐกิจเติบโตดี','Economy Index ปรับขึ้น ความเชื่อมั่นดีขึ้น');}},
+  {id:'bonus',cat:'personal',name:'โบนัสก้อนพิเศษ',prob:.06,cooldown:10,
+    apply:sim=>{const amt=Math.round((sim.player.monthlyIncome||0)*0.5);sim.player.cash+=amt;
+      simLog(sim,'🎁','โบนัสพิเศษเข้า',`+${FM.cur(amt)}`);}},
+  {id:'unexpected_expense',cat:'personal',name:'ค่าใช้จ่ายฉุกเฉิน',prob:.09,cooldown:6,
+    decision:sim=>{const amt=Math.round((sim.player.monthlyIncome||10000)*0.3);
+      return{title:'⚠️ ค่าใช้จ่ายฉุกเฉิน',msg:`เกิดเหตุไม่คาดคิด ต้องจ่าย ${FM.cur(amt)} จะจัดการอย่างไร?`,
+        choices:[
+          {id:'cash',label:`จ่ายจากเงินสด (-${FM.cur(amt)})`,apply:s=>{s.player.cash-=amt;simLog(s,'⚠️','ค่าใช้จ่ายฉุกเฉิน — จ่ายจากเงินสด',`-${FM.cur(amt)}`);}},
+          {id:'debt',label:'กู้ยืมจ่ายก่อน (เพิ่มหนี้ใหม่ 12%/ปี ผ่อน 6 เดือน)',apply:s=>{s.player.debts.push({name:'หนี้ฉุกเฉิน',remaining:amt,monthly:Math.round(amt/6),rate:12});simLog(s,'💳','ค่าใช้จ่ายฉุกเฉิน — กู้ยืมจ่าย',`หนี้ใหม่ ${FM.cur(amt)}`);}},
+        ]};}},
+];
+
+const simActive=()=>S.simWorlds.find(w=>w.id===S.activeSimId)||null;
+const simLog=(sim,icon,text,detail)=>{sim.log.unshift({date:sim.currentDate,icon,text,detail:detail||''});if(sim.log.length>200)sim.log.length=200;};
+const simSnapshot=sim=>{
+  sim.snapshots.unshift({date:sim.currentDate,cash:sim.player.cash,debt:sim.player.debts.reduce((s,d)=>s+d.remaining,0),
+    investmentValue:sim.player.investment.value,netWorth:sim.player.netWorth,economyIndex:sim.economy.index});
+  if(sim.snapshots.length>240)sim.snapshots.length=240;
 };
-const removeGoal=id=>{S.goals=S.goals.filter(x=>x.id!==id);save();renderGoals()};
-const addGoalSaved=(id,amt)=>{
-  const g=S.goals.find(x=>x.id===id);if(!g||!amt)return;
-  g.saved=Math.min(g.target,g.saved+amt);
-  if(g.saved>=g.target)setTimeout(()=>celebrate(g.icon,'ถึงเป้าหมายแล้ว!',`"${g.name}" ออมครบ!`),200);
-  save();renderGoals();
+
+// สร้างโลกจำลองใหม่ — 'actual' ดึงจากข้อมูลจริงผ่าน computeSurplus()/S.debts (ไม่แตะ S จริง แค่อ่าน snapshot ครั้งเดียว), 'custom' รับค่าจากผู้ใช้ตรงๆ
+const simCreateWorld=(name,mode,customVals)=>{
+  const now=new Date();const ym=`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
+  let player;
+  if(mode==='actual'){
+    const s=computeSurplus();
+    player={cash:Math.max(0,s.surplus),monthlyIncome:s.income,fixedExpenses:s.fixedExp,variableExpenses:s.variableExp,
+      debts:S.debts.filter(d=>(d.remaining??d.totalAmount)>0).map(d=>({name:d.name,remaining:d.remaining??d.totalAmount,monthly:d.monthlyPayment,rate:d.interestRate||0})),
+      investment:{value:0,assumedReturnPct:S.investPlan.assumedReturnPct||7},
+      netWorth:0};
+  }else{
+    player={cash:customVals.cash,monthlyIncome:customVals.income,fixedExpenses:customVals.expenses,variableExpenses:0,
+      debts:customVals.debt>0?[{name:'หนี้เริ่มต้น',remaining:customVals.debt,monthly:Math.round(customVals.debt*0.05),rate:10}]:[],
+      investment:{value:customVals.investment||0,assumedReturnPct:7},
+      netWorth:0};
+  }
+  player.netWorth=player.cash+player.investment.value-player.debts.reduce((s,d)=>s+d.remaining,0);
+  const sim={
+    id:'sim'+Date.now(),name,description:'',createdAt:now.toISOString(),updatedAt:now.toISOString(),
+    startMode:mode,startDate:ym,currentDate:ym,status:'active',
+    player,
+    economy:{index:60,status:'stable',inflation:2.5,interestRate:6,demand:60,confidence:60,momentum:0,trendMonths:0},
+    scheduledEvents:[],eventCooldowns:{},pendingDecision:null,
+    log:[],snapshots:[],
+  };
+  simLog(sim,'🌍','สร้างโลกจำลอง',`เริ่มจาก${mode==='actual'?'ข้อมูลจริง':'ค่าที่กำหนดเอง'} — เงินสดตั้งต้น ${FM.cur(player.cash)}`);
+  simSnapshot(sim);
+  S.simWorlds.push(sim);S.activeSimId=sim.id;save();
+  return sim;
 };
-const renderGoals=()=>{
-  const el=document.getElementById('goalsList');
-  const bpg=S.goals.length>0?C.bal/S.goals.length:C.bal;
-  el.innerHTML=S.goals.length?S.goals.map(g=>{
-    const m=g.monthly>0?g.monthly:bpg;const rem=Math.max(0,g.target-g.saved);
-    const mos=m>0?Math.ceil(rem/m):0;const y=Math.floor(mos/12),mn=mos%12;
-    const time=rem===0?'✅ ถึงเป้าแล้ว!':mos>0?((y>0?y+'ปี ':'')+((mn>0||y===0)?mn+'เดือน':'')):'—';
-    const pct=Math.min(100,g.target>0?g.saved/g.target*100:0);
-    const prC={high:'var(--r)',medium:'var(--y)',low:'var(--g2)'}[g.priority];
-    return`<div class="card" style="margin-bottom:11px"><div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:11px"><div style="display:flex;align-items:center;gap:9px"><span style="font-size:2rem;line-height:1">${g.icon}</span><div><div style="font-weight:800;font-size:.92rem">${esc(g.name)}</div><span class="pill" style="background:${prC}18;color:${prC};margin-top:3px">${{high:'🔴 สูง',medium:'🟡 กลาง',low:'🟢 ต่ำ'}[g.priority]}</span></div></div><button class="btn bGh" onclick="removeGoal('${g.id}')">✕</button></div><div class="srow"><div class="sb sg"><div class="sl">ออมแล้ว</div><div class="sv">${FM.compact(g.saved)}</div></div><div class="sb sbl"><div class="sl">เป้าหมาย</div><div class="sv">${FM.compact(g.target)}</div></div></div><div class="pbw"><div class="pbh"><span class="fw8">${pct.toFixed(1)}%</span><span>~${time}</span></div><div class="pbb"><div class="pbf kok" style="width:${pct}%"></div></div></div><div class="irow mt2"><div class="ipr" style="flex:1"><span class="pre">฿</span><input type="text" inputmode="decimal" placeholder="เพิ่มเงินออม" class="inp" id="ga_${g.id}" oninput="FM.clean(this)"></div><button class="btn bP bSm" onclick="addGoalSaved('${g.id}',FM.parse(document.getElementById('ga_${g.id}').value))">+ เพิ่ม</button></div></div>`;
-  }).join(''):'<div class="card" style="text-align:center;padding:28px"><div style="font-size:2.8rem;margin-bottom:10px">🎯</div><p class="tm">ยังไม่มีเป้าหมาย</p></div>';
-  const tT=S.goals.reduce((s,g)=>s+g.target,0),tS=S.goals.reduce((s,g)=>s+g.saved,0);
-  const pct=tT>0?Math.min(100,tS/tT*100):0;
-  document.getElementById('goalSummary').innerHTML=`<div class="srow"><div class="sb sbl"><div class="sl">เป้าหมาย</div><div class="sv">${S.goals.length} รายการ</div></div><div class="sb sg"><div class="sl">ออมรวม</div><div class="sv">${FM.compact(tS)}</div></div></div><div class="pbw"><div class="pbh"><span class="fw8">รวมทุกเป้าหมาย</span><span>${pct.toFixed(1)}%</span></div><div class="pbb"><div class="pbf kok" style="width:${pct}%"></div></div></div>`;
+
+/* ── 8-step pipeline ต่อ 1 เดือน (ย่อจาก 13 ขั้นของ spec — ตัด business/dividend/market เพราะยังไม่มีระบบธุรกิจใน PART 1) ──
+   ทุก step แยกฟังก์ชัน ตรวจสอบทีละอันได้ตามกฎ "ทุกขั้นตอนต้องตรวจสอบได้" (spec ข้อ 6) ── */
+const simStepScheduled=sim=>{
+  sim.scheduledEvents.filter(e=>e.active).forEach(e=>{
+    if(e.type==='income'){sim.player.cash+=e.amount;simLog(sim,'💰',`รายรับตามกำหนด: ${e.name}`,`+${FM.cur(e.amount)}`);}
+    else{sim.player.cash-=e.amount;simLog(sim,'💸',`รายจ่ายตามกำหนด: ${e.name}`,`-${FM.cur(e.amount)}`);}
+  });
+};
+const simStepIncome=sim=>{if(sim.player.monthlyIncome<=0)return;sim.player.cash+=sim.player.monthlyIncome;simLog(sim,'💰','รายรับประจำเข้า',`+${FM.cur(sim.player.monthlyIncome)}`);};
+const simStepExpense=sim=>{const total=sim.player.fixedExpenses+sim.player.variableExpenses;if(total<=0)return;sim.player.cash-=total;simLog(sim,'🧾','รายจ่ายประจำเดือน',`-${FM.cur(total)}`);};
+const simStepDebt=sim=>{
+  let paid=0,interest=0;
+  sim.player.debts.forEach(d=>{
+    if(d.remaining<=0)return;
+    const mRate=(d.rate+sim.economy.interestRate*0.1)/100/12; // ดอกเบี้ยเศรษฐกิจจำลองมีผลเสริมเล็กน้อยกับดอกเบี้ยหนี้จริง
+    const int=d.remaining*mRate;
+    const pay=Math.min(d.monthly,d.remaining+int);
+    d.remaining=Math.max(0,d.remaining+int-pay);
+    paid+=pay;interest+=int;
+    if(d.remaining<=0)simLog(sim,'🎉',`ปิดหนี้ "${d.name}" สำเร็จ!`,'');
+  });
+  sim.player.debts=sim.player.debts.filter(d=>d.remaining>0.5);
+  if(paid>0){sim.player.cash-=paid;simLog(sim,'💳','ชำระหนี้',`-${FM.cur(paid)} (ดอกเบี้ยรวม ${FM.cur(interest)})`);}
+};
+// การลงทุนใน PART 1 คือของที่มีอยู่แล้วโตตามสมมติฐานเฉยๆ — ระบบ "จัดสรร surplus ไปลงทุนอัตโนมัติทุกเดือน" เป็นของ PART 3 (Surplus Allocation) ยังไม่ทำที่นี่
+const simStepInvestment=sim=>{
+  const inv=sim.player.investment;if(inv.value<=0)return;
+  const growth=inv.value*(inv.assumedReturnPct/100/12);
+  inv.value+=growth;
+  if(Math.abs(growth)>1)simLog(sim,'📈','มูลค่าพอร์ตปรับตามผลตอบแทนจำลอง',`${growth>=0?'+':''}${FM.cur(growth)}`);
+};
+const simStepEconomy=sim=>{
+  const e=sim.economy;
+  // momentum-based drift — ห้ามกระโดดข้ามสถานะ ต้องผ่านช่วงเปลี่ยนผ่าน (spec ข้อ 9)
+  e.trendMonths++;
+  if(e.trendMonths>4&&Math.random()<0.3)e.momentum+=(Math.random()<0.5?-1:1);
+  e.momentum=Math.max(-3,Math.min(3,e.momentum));
+  e.index=Math.max(0,Math.min(100,e.index+e.momentum*3+(Math.random()*4-2)));
+  e.demand=Math.max(0,Math.min(100,e.demand+(e.index-60)*0.05+(Math.random()*3-1.5)));
+  e.confidence=Math.max(0,Math.min(100,e.confidence+(e.index-e.confidence)*0.1));
+  e.interestRate=Math.max(0.5,Math.min(15,6+(50-e.index)*0.08));
+  e.status=e.index>=70?'growth':e.index>=45?'stable':e.index>=25?'slowdown':'recession';
+};
+const simStepEvents=sim=>{
+  const pool=SIM_EVENTS.filter(ev=>{
+    const last=sim.eventCooldowns[ev.id];
+    return last==null||simMonthsBetween(last,sim.currentDate)>=ev.cooldown;
+  });
+  for(const ev of pool){
+    if(Math.random()>ev.prob)continue;
+    sim.eventCooldowns[ev.id]=sim.currentDate;
+    if(ev.decision){
+      sim.pendingDecision={eventId:ev.id,...ev.decision(sim)};
+      simLog(sim,'❓',sim.pendingDecision.title,'รอการตัดสินใจของคุณ');
+      break; // มี decision ค้าง หยุด roll event เพิ่มในเดือนนี้ก่อน
+    }else{
+      ev.apply(sim);
+    }
+  }
+};
+const simStepFinalize=sim=>{
+  sim.player.netWorth=sim.player.cash+sim.player.investment.value-sim.player.debts.reduce((s,d)=>s+d.remaining,0);
+  simSnapshot(sim);
+  sim.updatedAt=new Date().toISOString();
+};
+const simStep=sim=>{
+  simStepScheduled(sim);
+  simStepIncome(sim);
+  simStepExpense(sim);
+  simStepDebt(sim);
+  simStepInvestment(sim);
+  simStepEconomy(sim);
+  simStepEvents(sim);
+  sim.currentDate=simAddMonths(sim.currentDate,1);
+  simStepFinalize(sim);
+};
+
+// เดินเวลา N เดือน — หยุดทันทีถ้ามี pendingDecision ค้าง (บังคับตอบก่อนเดินต่อ ตามกฎข้อ 11)
+const simAdvance=(sim,months)=>{
+  if(!sim||!months||months<1)return;
+  for(let i=0;i<months;i++){
+    if(sim.pendingDecision)break;
+    simStep(sim);
+  }
+  save();renderSimRoot();
+};
+const simApplyDecision=(sim,choiceId)=>{
+  const d=sim.pendingDecision;if(!d)return;
+  const choice=d.choices.find(c=>c.id===choiceId);if(!choice)return;
+  choice.apply(sim);
+  sim.pendingDecision=null;
+  simStepFinalize(sim);
+  save();renderSimRoot();
+};
+const simSetStatus=(sim,status)=>{sim.status=status;sim.updatedAt=new Date().toISOString();save();renderSimRoot();};
+const simDeleteWorld=id=>{
+  S.simWorlds=S.simWorlds.filter(w=>w.id!==id);
+  if(S.activeSimId===id)S.activeSimId=null;
+  save();renderSimRoot();
+};
+const simOpenWorld=id=>{S.activeSimId=id;save();renderSimRoot();};
+const simBackToList=()=>{S.activeSimId=null;save();renderSimRoot();};
+
+/* ── Scheduled Events (ผู้ใช้เพิ่มเอง ต่อโลกจำลอง) ── */
+const simAddScheduledEvent=sim=>{
+  const name=document.getElementById('simEvName').value.trim();
+  const amt=FM.parse(document.getElementById('simEvAmt').value);
+  const type=document.getElementById('simEvType').value;
+  if(!name||!amt){modal('ข้อมูลไม่ครบ','กรุณากรอกชื่อและจำนวน');return;}
+  sim.scheduledEvents.push({id:'se'+Date.now(),name,type,amount:amt,frequency:'monthly',active:true});
+  document.getElementById('simEvName').value='';document.getElementById('simEvAmt').value='';
+  save();renderSimRoot();
+};
+const simRemoveScheduledEvent=(sim,id)=>{sim.scheduledEvents=sim.scheduledEvents.filter(e=>e.id!==id);save();renderSimRoot();};
+
+/* ── Render ── */
+const renderSimRoot=()=>{
+  const el=document.getElementById('simRoot');if(!el)return;
+  const active=simActive();
+  if(active)renderSimActiveInto(el,active);else renderSimListInto(el);
+};
+
+let simNewMode='actual';
+const simSetNewMode=m=>{
+  simNewMode=m;
+  document.getElementById('simModeActualBtn').classList.toggle('on',m==='actual');
+  document.getElementById('simModeCustomBtn').classList.toggle('on',m==='custom');
+  document.getElementById('simCustomBox').style.display=m==='custom'?'':'none';
+};
+const simCreateWorldFromForm=()=>{
+  const name=document.getElementById('simNewName').value.trim();
+  if(!name){modal('ยังไม่ได้ตั้งชื่อ','กรุณาตั้งชื่อโลกจำลองก่อน');return;}
+  if(simNewMode==='actual'){
+    const s=computeSurplus();
+    if(!s.ready){modal('ข้อมูลไม่พอ','กรุณากรอกรายรับที่หน้าหลักก่อน ถึงจะดึงข้อมูลจริงมาตั้งต้นได้');return;}
+    simCreateWorld(name,'actual');
+  }else{
+    simCreateWorld(name,'custom',{
+      cash:FM.parse(document.getElementById('simCCash').value),
+      income:FM.parse(document.getElementById('simCIncome').value),
+      expenses:FM.parse(document.getElementById('simCExpense').value),
+      debt:FM.parse(document.getElementById('simCDebt').value),
+      investment:FM.parse(document.getElementById('simCInvest').value),
+    });
+  }
+  celebrate('🌍','สร้างโลกจำลองแล้ว!','เริ่มเดินเวลาเพื่อดูอนาคตได้เลย');
+  renderSimRoot();
+};
+
+const renderSimListInto=el=>{
+  const rows=S.simWorlds.map(w=>{
+    const st=SIM_STATUS[w.status];
+    return`<div class="li" style="cursor:pointer;flex-direction:column;align-items:stretch;gap:6px" onclick="simOpenWorld('${w.id}')">
+      <div style="display:flex;align-items:center;justify-content:space-between">
+        <div class="lin">🌍 ${esc(w.name)}</div>
+        <span class="ol-badge ${st.cls}">${st.t}</span>
+      </div>
+      <div class="lim">📅 ${simDateLabel(w.currentDate)} · Net Worth <strong class="${w.player.netWorth>=0?'tp':'tr2'} mono">${FM.cur(w.player.netWorth)}</strong></div>
+      <button class="btn bGh bSm" style="align-self:flex-end" onclick="event.stopPropagation();simDeleteWorld('${w.id}')">🗑️ ลบโลกนี้</button>
+    </div>`;
+  }).join('');
+  el.innerHTML=`
+    <div class="pttl">🎮 จำลองชีวิตการเงิน</div>
+    <div class="card">
+      <div class="ct mb2"><div class="ci" style="background:rgba(139,92,246,.1)">🌍</div><span>โลกจำลองของคุณ</span></div>
+      ${S.simWorlds.length?rows:'<div class="empty"><div class="ei">🎮</div><p>ยังไม่มีโลกจำลอง — สร้างโลกแรกเพื่อเริ่มทดลองอนาคตทางการเงิน</p></div>'}
+    </div>
+    <div class="card">
+      <div class="ct mb2"><div class="ci" style="background:rgba(139,92,246,.1)">✨</div><span>สร้างโลกจำลองใหม่</span></div>
+      <div class="fg"><label class="fl">ชื่อโลกจำลอง</label><input type="text" id="simNewName" class="inp" placeholder="เช่น แผน A: ลงทุนก่อน"></div>
+      <div class="slbl mt2">จุดเริ่มต้น</div>
+      <div style="display:flex;gap:6px;margin-bottom:11px">
+        <button class="ptp on" id="simModeActualBtn" onclick="simSetNewMode('actual')">📸 ใช้ข้อมูลจริงตอนนี้</button>
+        <button class="ptp" id="simModeCustomBtn" onclick="simSetNewMode('custom')">🎛️ กำหนดเอง</button>
+      </div>
+      <div id="simCustomBox" style="display:none">
+        <div class="g2">
+          <div class="fg"><label class="fl">เงินสดตั้งต้น (฿)</label><div class="ipr"><span class="pre">฿</span><input type="text" inputmode="decimal" id="simCCash" class="inp" placeholder="0" oninput="FM.clean(this)"></div></div>
+          <div class="fg"><label class="fl">รายรับ/เดือน (฿)</label><div class="ipr"><span class="pre">฿</span><input type="text" inputmode="decimal" id="simCIncome" class="inp" placeholder="0" oninput="FM.clean(this)"></div></div>
+          <div class="fg"><label class="fl">รายจ่าย/เดือน (฿)</label><div class="ipr"><span class="pre">฿</span><input type="text" inputmode="decimal" id="simCExpense" class="inp" placeholder="0" oninput="FM.clean(this)"></div></div>
+          <div class="fg"><label class="fl">หนี้รวม (฿)</label><div class="ipr"><span class="pre">฿</span><input type="text" inputmode="decimal" id="simCDebt" class="inp" placeholder="0" oninput="FM.clean(this)"></div></div>
+          <div class="fg"><label class="fl">เงินลงทุนตั้งต้น (฿)</label><div class="ipr"><span class="pre">฿</span><input type="text" inputmode="decimal" id="simCInvest" class="inp" placeholder="0" oninput="FM.clean(this)"></div></div>
+        </div>
+      </div>
+      <button class="btn bP bFull mt2" onclick="simCreateWorldFromForm()">+ สร้างโลกจำลอง</button>
+    </div>`;
+};
+
+const renderSimActiveInto=(el,sim)=>{
+  const st=SIM_STATUS[sim.status];
+  const debtTotal=sim.player.debts.reduce((s,d)=>s+d.remaining,0);
+  const econ=sim.economy;
+  const econBadge={growth:{i:'🟢',t:'Growth'},stable:{i:'🟡',t:'Stable'},slowdown:{i:'🟠',t:'Slowdown'},recession:{i:'🔴',t:'Recession'}}[econ.status];
+  el.innerHTML=`
+    <button class="btn bO bSm mb2" onclick="simBackToList()">← กลับรายการโลกจำลอง</button>
+    <div class="pttl" style="margin-bottom:4px">🌍 ${esc(sim.name)} <span class="ol-badge ${st.cls}" style="margin-left:6px;vertical-align:middle">${st.t}</span></div>
+    <p class="fsm tm mb2">📅 ตอนนี้: ${simDateLabel(sim.currentDate)} (เริ่ม ${simDateLabel(sim.startDate)})</p>
+
+    <div class="cols2">
+    <div>
+      <div class="card">
+        <div class="ct mb2"><div class="ci" style="background:rgba(139,92,246,.1)">👤</div><span>สถานะผู้เล่น</span></div>
+        <div class="srow">
+          <div class="sb sg"><div class="sl">เงินสด</div><div class="sv">${FM.cur(sim.player.cash)}</div></div>
+          <div class="sb sr"><div class="sl">หนี้รวม</div><div class="sv">${FM.cur(debtTotal)}</div></div>
+        </div>
+        <div class="srow">
+          <div class="sb sbl"><div class="sl">รายรับ/เดือน</div><div class="sv">${FM.cur(sim.player.monthlyIncome)}</div></div>
+          <div class="sb sy"><div class="sl">มูลค่าลงทุน</div><div class="sv">${FM.cur(sim.player.investment.value)}</div></div>
+        </div>
+        <div class="bal"><div class="bal-l">Net Worth (สินทรัพย์สุทธิ)</div><div class="bal-n ${sim.player.netWorth>=0?'bpos':'bneg'}">${FM.cur(sim.player.netWorth)}</div></div>
+      </div>
+
+      <div class="card">
+        <div class="ct mb2"><div class="ci" style="background:rgba(59,130,246,.1)">🌐</div><span>เศรษฐกิจจำลอง</span></div>
+        <div class="pbw mb2"><div class="pbh"><span>Economy Index</span><span class="fw8">${econ.index.toFixed(0)}/100</span></div><div class="pbb"><div class="pbf ${econ.index>=70?'kok':econ.index>=45?'kwarn':'kover'}" style="width:${econ.index}%"></div></div></div>
+        <span class="ol-badge ${econ.status==='growth'?'ol-good':econ.status==='stable'?'ol-watch':econ.status==='slowdown'?'ol-risk':'ol-danger'}">${econBadge.i} ${econBadge.t}</span>
+        <div class="g2 mt2">
+          <div class="pr"><span class="fxs tm">เงินเฟ้อ</span><strong class="fxs">${econ.inflation.toFixed(1)}%</strong></div>
+          <div class="pr"><span class="fxs tm">ดอกเบี้ย</span><strong class="fxs">${econ.interestRate.toFixed(1)}%</strong></div>
+          <div class="pr"><span class="fxs tm">ความต้องการตลาด</span><strong class="fxs">${econ.demand.toFixed(0)}</strong></div>
+          <div class="pr"><span class="fxs tm">ความเชื่อมั่น</span><strong class="fxs">${econ.confidence.toFixed(0)}</strong></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="ct mb2"><div class="ci" style="background:rgba(245,158,11,.1)">⏱️</div><span>เดินเวลา</span></div>
+        ${sim.pendingDecision?'<p class="fxs tr2 mb2">⚠️ มีเหตุการณ์รอการตัดสินใจ — ต้องตอบก่อนเดินเวลาต่อ (ดูด้านล่าง)</p>':''}
+        <div class="chiprow">
+          <button class="qchip" ${sim.pendingDecision?'disabled style="opacity:.4;pointer-events:none"':''} onclick="simAdvance(simActive(),1)">▶ 1 เดือน</button>
+          <button class="qchip" ${sim.pendingDecision?'disabled style="opacity:.4;pointer-events:none"':''} onclick="simAdvance(simActive(),3)">▶▶ 3 เดือน</button>
+          <button class="qchip" ${sim.pendingDecision?'disabled style="opacity:.4;pointer-events:none"':''} onclick="simAdvance(simActive(),12)">▶▶▶ 1 ปี</button>
+        </div>
+        <div class="irow mt2">
+          <input type="number" id="simCustomMonths" class="inp" placeholder="กำหนดเอง (เดือน)" min="1" max="120" style="flex:1">
+          <button class="btn bP bSm" ${sim.pendingDecision?'disabled style="opacity:.4;pointer-events:none"':''} onclick="simAdvance(simActive(),+document.getElementById('simCustomMonths').value||0)">เดินเวลา</button>
+        </div>
+        <div class="irow mt2">
+          <button class="btn bO bFull" onclick="simSetStatus(simActive(),'${sim.status==='paused'?'active':'paused'}')">${sim.status==='paused'?'▶ Resume':'⏸ Pause'}</button>
+        </div>
+      </div>
+
+      ${sim.pendingDecision?`
+      <div class="card" style="border-color:var(--r)">
+        <div class="ct mb2"><div class="ci" style="background:rgba(239,68,68,.1)">❓</div><span>${esc(sim.pendingDecision.title)}</span></div>
+        <p class="fsm mb2">${esc(sim.pendingDecision.msg)}</p>
+        ${sim.pendingDecision.choices.map(c=>`<button class="btn bO bFull mt1" onclick="simApplyDecision(simActive(),'${c.id}')">${esc(c.label)}</button>`).join('')}
+      </div>`:''}
+
+      <div class="card">
+        <div class="ct mb2"><div class="ci" style="background:rgba(139,92,246,.1)">📅</div><span>รายการตามกำหนดเวลา</span></div>
+        <div>${sim.scheduledEvents.length?sim.scheduledEvents.map(e=>`<div class="li"><div class="lib"><div class="lin">${esc(e.name)}</div><div class="lim">${e.type==='income'?'รายรับ':'รายจ่าย'}ทุกเดือน</div></div><span class="lia ${e.type==='income'?'tp':'tr2'}">${e.type==='income'?'+':'-'}${FM.cur(e.amount)}</span><button class="btn bGh" onclick="simRemoveScheduledEvent(simActive(),'${e.id}')">✕</button></div>`).join(''):'<p class="fxs tm">ยังไม่มีรายการ</p>'}</div>
+        <div class="irow mt2">
+          <input type="text" id="simEvName" class="inp" placeholder="ชื่อรายการ" style="flex:2">
+          <div class="ipr" style="flex:1;min-width:70px"><span class="pre">฿</span><input type="text" inputmode="decimal" id="simEvAmt" class="inp" placeholder="0" oninput="FM.clean(this)"></div>
+          <select id="simEvType" class="inp" style="flex:1;min-width:80px"><option value="expense">รายจ่าย</option><option value="income">รายรับ</option></select>
+          <button class="btn bP bIco" onclick="simAddScheduledEvent(simActive())">+</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="stick">
+      <div class="card csm">
+        <div class="ct mb2"><div class="ci" style="background:rgba(139,92,246,.1)">📜</div><span>Simulation Log</span></div>
+        <div style="max-height:340px;overflow-y:auto">${sim.log.length?sim.log.slice(0,40).map(l=>`<div class="ins-item"><div class="ins-ico">${l.icon}</div><div class="ins-body"><div class="ins-t" style="font-size:.78rem">${esc(l.text)}</div><div class="ins-d">${simDateLabel(l.date)}${l.detail?' · '+esc(l.detail):''}</div></div></div>`).join(''):'<p class="fxs tm">ยังไม่มีเหตุการณ์</p>'}</div>
+      </div>
+      <div class="card csm">
+        <div class="ct mb2"><div class="ci" style="background:rgba(59,130,246,.1)">📈</div><span>Snapshot Timeline</span></div>
+        <div class="tbl-wrap"><table style="width:100%;border-collapse:collapse;font-size:.74rem">
+          <thead><tr style="background:var(--s2)"><th style="padding:5px 7px;text-align:left;color:var(--mt);font-weight:700">เดือน</th><th style="padding:5px 7px;text-align:right;color:var(--mt);font-weight:700">Net Worth</th><th style="padding:5px 7px;text-align:right;color:var(--mt);font-weight:700">หนี้</th></tr></thead>
+          <tbody>${sim.snapshots.slice(0,12).map(sn=>`<tr><td style="padding:4px 7px;border-bottom:1px solid var(--bdr)">${sn.date}</td><td style="padding:4px 7px;border-bottom:1px solid var(--bdr);text-align:right;color:${sn.netWorth>=0?'var(--p2)':'var(--r)'}">${FM.compact(sn.netWorth)}</td><td style="padding:4px 7px;border-bottom:1px solid var(--bdr);text-align:right">${sn.debt>0?FM.compact(sn.debt):'—'}</td></tr>`).join('')}</tbody>
+        </table></div>
+      </div>
+    </div>
+    </div>`;
 };
 
 const init=()=>{
@@ -2030,7 +2324,7 @@ const init=()=>{
   document.getElementById('txDate').value=today;
   document.getElementById('dStartDate').value=today;
   // แสดง dashboard เริ่มต้น
-  ['outlook','budget','goals','history','achievements'].forEach(id=>{
+  ['outlook','budget','goals'].forEach(id=>{
     const el=document.getElementById('s-'+id);if(el)el.style.display='none';
   });
   const dash=document.getElementById('s-dashboard');if(dash)dash.style.display='block';
