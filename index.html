@@ -941,6 +941,31 @@ let currentMood='';
 /* ── PERSIST ── */
 // บันทึก state ทั้งหมดลง localStorage (key: ft8)
 const save=()=>{try{localStorage.setItem('ft8',JSON.stringify(S));}catch(e){}};
+// แปลงข้อมูลธุรกิจรุ่นเก่า (V1 เดี่ยว: player.business) เป็นรุ่นใหม่ (V2 array: player.businesses) — อ้าง BIZ_INDUSTRIES ได้เพราะฟังก์ชันนี้ถูกเรียกหลังสคริปต์ parse ครบแล้วเท่านั้น
+const migrateBizV1=biz=>{
+  const ind=BIZ_INDUSTRIES[biz.industry]||BIZ_INDUSTRIES.food;
+  return{
+    id:biz.id||'biz'+Date.now()+Math.random().toString(36).slice(2,5),
+    name:biz.name,industry:biz.industry,positioning:biz.positioning||'mass',status:biz.status||'startup',
+    cash:biz.cash||0,price:biz.price||ind.avgPrice,quality:biz.quality||ind.avgQuality,marketing:biz.marketing??30,
+    employees:biz.employees||2,
+    branches:biz.branches||1,capacity:biz.capacity||0,reputation:biz.reputation||50,
+    marketShare:biz.marketShare||0,monthsOpen:biz.monthsOpen||0,profitHistory:biz.profitHistory||[],
+    loans:biz.loans||[],
+    competitors:(biz.competitors||[]).map(c=>({...c,cash:c.cash??(30000+Math.random()*150000),monthsNegative:c.monthsNegative||0})),
+    priceWar:biz.priceWar||{active:false,monthsLeft:0,cooldown:0},
+    supplyDisruption:biz.supplyDisruption||{active:false,monthsLeft:0,cooldown:0},
+  };
+};
+const migrateSimWorld=w=>{
+  w={...w,strategy:w.strategy||'manual',realTime:w.realTime||{enabled:false,scaleMinutesPerMonth:60,lastProcessedAt:new Date().toISOString()}};
+  if(w.player&&w.player.businesses===undefined){
+    const old=w.player.business;
+    w.player={...w.player,businesses:old?[migrateBizV1(old)]:[]};
+    delete w.player.business;
+  }
+  return w;
+};
 // โหลด state จาก localStorage — ถ้าไม่มีข้อมูลใช้ค่า default
 const load=()=>{
   try{
@@ -952,7 +977,7 @@ const load=()=>{
       transactions:p.transactions||[],
       legacyWage:p.legacyWage??(p.paySettings?{paySettings:p.paySettings,payHistory:p.payHistory||[]}:null),
       investPlan:{...S.investPlan,...(p.investPlan||{})},
-      simWorlds:(p.simWorlds||[]).map(w=>({...w,strategy:w.strategy||'manual',realTime:w.realTime||{enabled:false,scaleMinutesPerMonth:60,lastProcessedAt:new Date().toISOString()}})),
+      simWorlds:(p.simWorlds||[]).map(migrateSimWorld),
       activeSimId:p.activeSimId??null,
     });
   }catch(e){}
@@ -1629,7 +1654,7 @@ document.getElementById('restoreFile').addEventListener('change',e=>{
   reader.onload=ev=>{
     try{
       const p=JSON.parse(ev.target.result);
-      Object.assign(S,{salary:+p.salary||0,otherIncomes:p.otherIncomes||[],fixedExpenses:p.fixedExpenses||[],debts:p.debts||[],transactions:p.transactions||[],legacyWage:p.legacyWage??(p.paySettings?{paySettings:p.paySettings,payHistory:p.payHistory||[]}:null),investPlan:{...S.investPlan,...(p.investPlan||{})},simWorlds:p.simWorlds||[],activeSimId:p.activeSimId??null});
+      Object.assign(S,{salary:+p.salary||0,otherIncomes:p.otherIncomes||[],fixedExpenses:p.fixedExpenses||[],debts:p.debts||[],transactions:p.transactions||[],legacyWage:p.legacyWage??(p.paySettings?{paySettings:p.paySettings,payHistory:p.payHistory||[]}:null),investPlan:{...S.investPlan,...(p.investPlan||{})},simWorlds:(p.simWorlds||[]).map(migrateSimWorld),activeSimId:p.activeSimId??null});
       save();init();modal('นำเข้าสำเร็จ ✅','ข้อมูลถูกนำเข้าเรียบร้อย');
     }catch(err){modal('เกิดข้อผิดพลาด','ไม่สามารถอ่านไฟล์ได้');}
   };
@@ -2074,12 +2099,12 @@ const simCreateWorld=(name,mode,customVals,strategy)=>{
     player={cash:Math.max(0,s.surplus),monthlyIncome:s.income,fixedExpenses:s.fixedExp,variableExpenses:s.variableExp,
       debts:S.debts.filter(d=>(d.remaining??d.totalAmount)>0).map(d=>({name:d.name,remaining:d.remaining??d.totalAmount,monthly:d.monthlyPayment,rate:d.interestRate||0})),
       investment:{value:0,assumedReturnPct:S.investPlan.assumedReturnPct||7},
-      business:null,netWorth:0};
+      businesses:[],netWorth:0};
   }else{
     player={cash:customVals.cash,monthlyIncome:customVals.income,fixedExpenses:customVals.expenses,variableExpenses:0,
       debts:customVals.debt>0?[{name:'หนี้เริ่มต้น',remaining:customVals.debt,monthly:Math.round(customVals.debt*0.05),rate:10}]:[],
       investment:{value:customVals.investment||0,assumedReturnPct:7},
-      business:null,netWorth:0};
+      businesses:[],netWorth:0};
   }
   player.netWorth=player.cash+player.investment.value-player.debts.reduce((s,d)=>s+d.remaining,0);
   const sim={
@@ -2349,7 +2374,7 @@ window.addEventListener('storage',e=>{
   if(e.key!=='ft8'||!e.newValue)return;
   try{
     const p=JSON.parse(e.newValue);
-    S.simWorlds=(p.simWorlds||[]).map(w=>({...w,strategy:w.strategy||'manual',realTime:w.realTime||{enabled:false,scaleMinutesPerMonth:60,lastProcessedAt:new Date().toISOString()}}));
+    S.simWorlds=(p.simWorlds||[]).map(migrateSimWorld);
     S.activeSimId=p.activeSimId??S.activeSimId;
     if(document.getElementById('s-goals')?.style.display==='block')renderSimRoot();
   }catch(err){}
@@ -2370,20 +2395,23 @@ const simAddScheduledEvent=sim=>{
 const simRemoveScheduledEvent=(sim,id)=>{sim.scheduledEvents=sim.scheduledEvents.filter(e=>e.id!==id);save();renderSimRoot();};
 
 /* ════════════════════════════════
-   🏢 PART D: BUSINESS GAMEPLAY — Competition, Market Share, Lifecycle, AI Advisor
+   🏢 PART D: BUSINESS GAMEPLAY V2 — Multi-Business, Employees, Branches, Loans, Market Positioning
    ─────────────────────────────────
    ขอบเขตที่ตัดจาก concept/spec เต็ม (แจ้งผู้ใช้แล้วในแชท):
-   - 1 ธุรกิจต่อโลกจำลอง (ไม่รองรับหลายธุรกิจพร้อมกัน)
-   - คู่แข่ง 4 ราย/ธุรกิจ ระดับ Aggregate เท่านั้น (ไม่มีบัญชี/พนักงาน/ลูกค้ารายบุคคล) ตรงตามที่ spec อนุญาต
+   - คู่แข่งเป็น Aggregate เท่านั้น (ไม่มีพนักงาน/สาขาของคู่แข่ง) — คู่แข่งมี cash พอให้ "ล้มละลายออกจากตลาดได้จริง" เท่านั้น
    - Brand กับ Customer Satisfaction รวมเป็นค่าเดียว "reputation" ลดความซับซ้อนของสูตร Attractiveness Score
+   - แต่ละธุรกิจมีตลาด/คู่แข่งของตัวเอง (ไม่ใช่ตลาดกลางที่ทุกธุรกิจแย่งกัน) — ทำให้เปิดหลายธุรกิจพร้อมกันได้โดยไม่ต้องจำลองเศรษฐกิจมหภาคข้ามธุรกิจ
    - AI Advisor คือฟังก์ชันกฎเกณฑ์อ่านตัวเลขจาก engine ตรงๆ (ไม่ใช่เรียก LLM จริง — แอปนี้ไม่มี backend เรียก API ภายนอก)
 ════════════════════════════════ */
-// baseDemand = จำนวนหน่วยขายรวมทั้งตลาด/เดือน (คูณ avgPrice = ขนาดตลาดรวมเป็นเงิน) — ตั้งให้ที่ market share เฉลี่ย (~17% เมื่อมีคู่แข่ง 4 ราย) ธุรกิจเริ่มต้นพอถึงจุดคุ้มทุนได้จริง ไม่ขาดทุนเพราะ fixedCost ทับด่านเดียว
+// baseDemand = จำนวนหน่วยขายรวมทั้งตลาด/เดือน (คูณ avgPrice = ขนาดตลาดรวมเป็นเงิน) — ตั้งให้ครอบคลุม fixedCost+wage(2คน)+cogs ที่ market share เฉลี่ย (~18%) แล้วยังเหลือกำไรพอสมควร (รวม wage cost เข้าสมการตั้งแต่ตอนตั้งค่าแล้ว ต่างจากรุ่นก่อนที่ลืมรวม)
+// unitsPerEmployee = จำนวนหน่วยที่พนักงาน 1 คนรองรับได้/เดือน (เพดานรายรับจริง ไม่ใช่แค่คะแนน)
+// maxUnitsPerBranch = เพดานต่อสาขา — จ้างเกินนี้ไม่เพิ่มกำลังผลิต ต้องขยายสาขาแทน ทำให้ "จ้างเพิ่ม" กับ "ขยายสาขา" มีบทบาทต่างกันจริง
 const BIZ_INDUSTRIES={
-  food:{l:'ร้านอาหาร',i:'🍜',baseDemand:1000,avgPrice:150,avgQuality:3,unitMarketingCost:150,fixedCost:8000,cogsRatio:0.42},
-  software:{l:'ซอฟต์แวร์',i:'💻',baseDemand:260,avgPrice:990,avgQuality:3,unitMarketingCost:400,fixedCost:18000,cogsRatio:0.18},
-  retail:{l:'ร้านค้าปลีก',i:'🛍️',baseDemand:930,avgPrice:280,avgQuality:3,unitMarketingCost:180,fixedCost:10000,cogsRatio:0.55},
+  food:{l:'ร้านอาหาร',i:'🍜',baseDemand:2500,avgPrice:150,avgQuality:3,unitMarketingCost:150,fixedCostPerBranch:8000,cogsRatio:0.42,wagePerEmployee:9000,unitsPerEmployee:260,maxUnitsPerBranch:1300,hireCost:3000,expansionCost:60000},
+  software:{l:'ซอฟต์แวร์',i:'💻',baseDemand:780,avgPrice:990,avgQuality:3,unitMarketingCost:400,fixedCostPerBranch:18000,cogsRatio:0.18,wagePerEmployee:28000,unitsPerEmployee:85,maxUnitsPerBranch:425,hireCost:15000,expansionCost:150000},
+  retail:{l:'ร้านค้าปลีก',i:'🛍️',baseDemand:2150,avgPrice:280,avgQuality:3,unitMarketingCost:180,fixedCostPerBranch:10000,cogsRatio:0.55,wagePerEmployee:11000,unitsPerEmployee:230,maxUnitsPerBranch:1150,hireCost:4000,expansionCost:80000},
 };
+const bizCapacityUnits=(biz,ind)=>Math.min(biz.employees*ind.unitsPerEmployee,biz.branches*ind.maxUnitsPerBranch);
 const BIZ_COMP_STRATS={
   cost_leader:{l:'Cost Leader',i:'💲',priceMul:0.75,qualityMul:0.85,marketingMul:0.9,rep:45},
   premium:{l:'Premium Brand',i:'⭐',priceMul:1.35,qualityMul:1.3,marketingMul:0.8,rep:70},
@@ -2392,35 +2420,47 @@ const BIZ_COMP_STRATS={
   balanced:{l:'Balanced',i:'⚖️',priceMul:1.0,qualityMul:1.0,marketingMul:1.0,rep:50},
 };
 const BIZ_STATUS={startup:{t:'เพิ่งเริ่ม',cls:'ol-watch'},growth:{t:'กำลังโต',cls:'ol-good'},stable:{t:'คงที่',cls:'ol-good'},decline:{t:'ถดถอย',cls:'ol-risk'},distressed:{t:'วิกฤต',cls:'ol-danger'},closed:{t:'ปิดกิจการแล้ว',cls:'ol-danger'}};
-
-const simStartBusiness=(sim,name,industryKey,startCapital)=>{
+// ตลาดแมส vs เฉพาะกลุ่ม (concept "ตลาด & ซัพพลายเชน") — niche = ตลาดเล็กกว่าแต่ลูกค้าสนใจคุณภาพ/แบรนด์มากกว่าราคา
+const BIZ_POSITIONING={
+  mass:{l:'ตลาดแมส',i:'🌐',demandMul:1,otherMarketPct:12,priceWeight:1,qualityWeight:1},
+  niche:{l:'เฉพาะกลุ่ม',i:'🎯',demandMul:0.55,otherMarketPct:6,priceWeight:0.6,qualityWeight:1.4},
+};
+const findBiz=(sim,bizId)=>sim.player.businesses.find(b=>b.id===bizId);
+const newCompetitor=(ind,strategyKey,currentDate)=>{
+  const st=BIZ_COMP_STRATS[strategyKey];
+  return{id:'c'+Date.now()+Math.random().toString(36).slice(2,5),name:`คู่แข่ง ${st.l}`,strategy:strategyKey,
+    price:Math.round(ind.avgPrice*st.priceMul*(0.9+Math.random()*0.2)),
+    quality:Math.max(1,Math.min(5,Math.round(ind.avgQuality*st.qualityMul))),
+    marketing:Math.round(40*st.marketingMul),reputation:st.rep,
+    cash:30000+Math.random()*150000,monthsNegative:0,marketShare:0,lastReactMonth:currentDate};
+};
+const simStartBusiness=(sim,name,industryKey,startCapital,positioning)=>{
   const ind=BIZ_INDUSTRIES[industryKey];
   const chosen=Object.keys(BIZ_COMP_STRATS).sort(()=>Math.random()-0.5).slice(0,4);
-  const competitors=chosen.map((k,i)=>{
-    const st=BIZ_COMP_STRATS[k];
-    return{id:'c'+i,name:`คู่แข่ง ${st.l}`,strategy:k,
-      price:Math.round(ind.avgPrice*st.priceMul*(0.9+Math.random()*0.2)),
-      quality:Math.max(1,Math.min(5,Math.round(ind.avgQuality*st.qualityMul))),
-      marketing:Math.round(40*st.marketingMul),reputation:st.rep,
-      marketShare:0,lastReactMonth:sim.currentDate};
-  });
+  const competitors=chosen.map(k=>newCompetitor(ind,k,sim.currentDate));
   sim.player.cash-=startCapital;
-  sim.player.business={
-    name,industry:industryKey,status:'startup',
-    cash:startCapital,price:ind.avgPrice,quality:ind.avgQuality,marketing:30,capacity:70,
-    reputation:50,marketShare:0,monthsOpen:0,profitHistory:[],
-    competitors,priceWar:{active:false,monthsLeft:0,cooldown:0},
+  const biz={
+    id:'biz'+Date.now()+Math.random().toString(36).slice(2,5),
+    name,industry:industryKey,positioning:positioning||'mass',status:'startup',
+    cash:startCapital,price:ind.avgPrice,quality:ind.avgQuality,marketing:30,
+    employees:2,branches:1,capacity:0,reputation:50,marketShare:0,monthsOpen:0,profitHistory:[],
+    loans:[],competitors,priceWar:{active:false,monthsLeft:0,cooldown:0},
+    supplyDisruption:{active:false,monthsLeft:0,cooldown:0},
   };
-  simLog(sim,'🏢',`เปิดธุรกิจใหม่: "${name}"`,`${ind.i} ${ind.l} — ทุนเริ่มต้น ${FM.cur(startCapital)}`);
+  sim.player.businesses.push(biz);
+  simLog(sim,'🏢',`เปิดธุรกิจใหม่: "${name}"`,`${ind.i} ${ind.l} (${BIZ_POSITIONING[biz.positioning].l}) — ทุนเริ่มต้น ${FM.cur(startCapital)}`);
+  return biz;
 };
 
 // Market Attractiveness Score (ย่อจาก spec 6 องค์ประกอบเหลือ 5 — รวม Brand+Satisfaction เป็น reputation ตัวเดียว)
-const bizAttractiveness=(p,avgPrice)=>{
-  const priceScore=Math.min(100,(avgPrice/Math.max(1,p.price))*50);
-  const qualityScore=(p.quality/5)*100;
+// availPct = ความพร้อมให้บริการเป็น % (0-100) — ผู้เล่นคำนวณจากกำลังการผลิตจริงเทียบขนาดตลาด, คู่แข่ง (aggregate) ใช้ค่ากลาง 80
+const bizAttractiveness=(p,avgPrice,weight,availPct)=>{
+  weight=weight||{priceWeight:1,qualityWeight:1};
+  const priceScore=Math.min(100,(avgPrice/Math.max(1,p.price))*50)*weight.priceWeight;
+  const qualityScore=(p.quality/5)*100*weight.qualityWeight;
   const marketingScore=Math.sqrt(Math.max(0,p.marketing))*10; // diminishing returns (spec ข้อ 9)
   const brandScore=p.reputation;
-  const availabilityScore=p.capacity??80;
+  const availabilityScore=availPct??80;
   return Math.max(1,priceScore+qualityScore+marketingScore+brandScore+availabilityScore);
 };
 
@@ -2441,6 +2481,28 @@ const simBizCompetitorAI=(sim,biz,ind,avgPrice)=>{
     if(reacted)c.lastReactMonth=sim.currentDate;
   });
 };
+// คู่แข่งมี cash จริง — ขาดทุนต่อเนื่อง 3 เดือนจนติดลบ = ออกจากตลาดจริง, ตลาดมีที่ว่างก็มีรายใหม่เข้ามาได้ (spec ข้อ 10: คู่แข่งออกจากตลาด/รายใหม่เข้าตลาด)
+const simBizCompetitorLifecycle=(sim,biz,ind,totalMarketRevenue)=>{
+  biz.competitors.forEach(c=>{
+    const compRevenue=totalMarketRevenue*(c.marketShare/100);
+    const compCost=compRevenue*ind.cogsRatio+c.marketing*ind.unitMarketingCost/10+ind.fixedCostPerBranch*0.6;
+    const compProfit=compRevenue-compCost;
+    c.cash+=compProfit;
+    c.monthsNegative=compProfit<0?(c.monthsNegative||0)+1:0;
+  });
+  biz.competitors.filter(c=>c.cash<0&&c.monthsNegative>=3).forEach(c=>{
+    biz.competitors=biz.competitors.filter(x=>x.id!==c.id);
+    simLog(sim,'🚪','คู่แข่งออกจากตลาด',`"${c.name}" ถอนตัวเพราะขาดทุนต่อเนื่อง — เหลือคู่แข่ง ${biz.competitors.length} ราย`);
+  });
+  if(biz.competitors.length<4&&Math.random()<0.10){
+    const used=biz.competitors.map(c=>c.strategy);
+    const avail=Object.keys(BIZ_COMP_STRATS).filter(k=>!used.includes(k));
+    const k=avail.length?avail[Math.floor(Math.random()*avail.length)]:Object.keys(BIZ_COMP_STRATS)[Math.floor(Math.random()*5)];
+    const nc=newCompetitor(ind,k,sim.currentDate);
+    biz.competitors.push(nc);
+    simLog(sim,'📈','คู่แข่งรายใหม่เข้าตลาด',`"${nc.name}" เริ่มแข่งขันใน "${biz.name}"`);
+  }
+};
 const simBizPriceWarCheck=(sim,biz,avgPrice)=>{
   const pw=biz.priceWar;
   if(pw.active){
@@ -2452,8 +2514,36 @@ const simBizPriceWarCheck=(sim,biz,avgPrice)=>{
   const costLeaderReacted=biz.competitors.some(c=>c.strategy==='cost_leader'&&simMonthsBetween(c.lastReactMonth,sim.currentDate)<=1);
   if(biz.price<avgPrice*0.85&&costLeaderReacted){pw.active=true;pw.monthsLeft=4;simLog(sim,'⚔️','เกิด Price War!',`คู่แข่งเริ่มลดราคาแข่งเพราะ "${biz.name}" ตัดราคาต่อเนื่อง`);}
 };
+// Supply Chain Disruption — ต้นทุนวัตถุดิบพุ่งชั่วคราว (concept "ตลาด & ซัพพลายเชน")
+const simBizSupplyCheck=(sim,biz,ind)=>{
+  const sd=biz.supplyDisruption;
+  if(sd.active){
+    sd.monthsLeft--;
+    if(sd.monthsLeft<=0){sd.active=false;sd.cooldown=6;simLog(sim,'📦','Supply Chain กลับสู่ปกติ',`"${biz.name}"`);}
+    return ind.cogsRatio*1.35;
+  }
+  if(sd.cooldown>0){sd.cooldown--;return ind.cogsRatio;}
+  if(Math.random()<0.04){sd.active=true;sd.monthsLeft=2;simLog(sim,'📦','ปัญหา Supply Chain',`"${biz.name}" ต้นทุนวัตถุดิบพุ่งขึ้นชั่วคราว`);return ind.cogsRatio*1.35;}
+  return ind.cogsRatio;
+};
+// สินเชื่อธุรกิจ — ดอกเบี้ยขึ้นกับสถานะธุรกิจ (เสี่ยงมาก = แพงกว่า เหมือนโลกจริง)
+const simBizStepLoans=(sim,biz)=>{
+  let paid=0,interest=0;
+  biz.loans.forEach(ln=>{
+    if(ln.remaining<=0)return;
+    const mRate=ln.rate/100/12;
+    const int=ln.remaining*mRate;
+    const pay=Math.min(ln.monthly,ln.remaining+int);
+    ln.remaining=Math.max(0,ln.remaining+int-pay);
+    paid+=pay;interest+=int;
+  });
+  biz.loans=biz.loans.filter(ln=>ln.remaining>0.5);
+  if(paid>0){biz.cash-=paid;simLog(sim,'🏦','ชำระสินเชื่อธุรกิจ',`-${FM.cur(paid)} (ดอกเบี้ยรวม ${FM.cur(interest)})`);}
+  return paid;
+};
 const simBizLifecycle=(sim,biz,ind)=>{
-  const burn=ind.fixedCost+(biz.marketing*ind.unitMarketingCost/10);
+  const loanMonthly=biz.loans.reduce((s,l)=>s+l.monthly,0);
+  const burn=ind.fixedCostPerBranch*biz.branches+(biz.marketing*ind.unitMarketingCost/10)+biz.employees*ind.wagePerEmployee+loanMonthly;
   const runway=burn>0?biz.cash/burn:Infinity;
   const avgProfit3=biz.profitHistory.slice(0,3).reduce((s,x)=>s+x,0)/Math.min(3,biz.profitHistory.length||1);
   let status;
@@ -2473,125 +2563,251 @@ const simBizDistressDecision=(sim,biz)=>{
     choices:[
       {id:'inject',label:`เพิ่มทุนจากเงินส่วนตัว (-${FM.cur(need)})`,apply:s=>{s.player.cash-=need;biz.cash+=need;simLog(s,'💰','เพิ่มทุนให้ธุรกิจ',`-${FM.cur(need)} จากเงินส่วนตัว`);}},
       {id:'cut',label:'ลดต้นทุน (ตัด Marketing เหลือ 0 เดือนนี้)',apply:s=>{biz.marketing=0;simLog(s,'✂️','ลดต้นทุนฉุกเฉิน','ตัด Marketing เหลือ 0');}},
-      {id:'close',label:'ปิดกิจการ',apply:s=>{if(biz.cash>0)s.player.cash+=biz.cash;simLog(s,'🚪',`ปิดกิจการ "${biz.name}"`,'');s.player.business=null;}},
+      {id:'close',label:'ปิดกิจการ',apply:s=>{if(biz.cash>0)s.player.cash+=biz.cash;simLog(s,'🚪',`ปิดกิจการ "${biz.name}"`,'');s.player.businesses=s.player.businesses.filter(b=>b.id!==biz.id);}},
     ]};
   simLog(sim,'⚠️',`ธุรกิจ "${biz.name}" ขาดสภาพคล่อง`,'รอการตัดสินใจของคุณ');
 };
-const simStepBusiness=sim=>{
-  const biz=sim.player.business;if(!biz||biz.status==='closed')return;
+const simStepOneBusiness=(sim,biz)=>{
+  if(biz.status==='closed')return;
   const ind=BIZ_INDUSTRIES[biz.industry];
+  const posCfg=BIZ_POSITIONING[biz.positioning]||BIZ_POSITIONING.mass;
   biz.monthsOpen++;
+  biz.capacity=bizCapacityUnits(biz,ind);
   const all=[biz,...biz.competitors];
   const avgPrice=all.reduce((s,p)=>s+p.price,0)/all.length;
-  const scores=all.map(p=>bizAttractiveness(p,avgPrice));
+  const refDemandUnits=ind.baseDemand*posCfg.demandMul*0.2; // ฐานอ้างอิง: กำลังผลิตที่พอรองรับ 20% ของตลาด = availability เต็ม 100
+  const playerAvailPct=Math.min(100,bizCapacityUnits(biz,ind)/refDemandUnits*100);
+  const scores=all.map((p,i)=>bizAttractiveness(p,avgPrice,i===0?posCfg:null,i===0?playerAvailPct:80));
   const totalScore=scores.reduce((s,x)=>s+x,0);
-  const OTHER_MARKET_PCT=12; // กันไว้ให้ผู้เล่นรายเล็กนอกโมเดล (ดูตัวอย่างใน spec: Other Market 15%) — กัน share รวมเกิน 100%
-  const shares=scores.map(s=>(s/totalScore)*(100-OTHER_MARKET_PCT));
+  const shares=scores.map(s=>(s/totalScore)*(100-posCfg.otherMarketPct)); // กันไว้ให้รายเล็กนอกโมเดล — กัน share รวมเกิน 100%
   biz.marketShare=shares[0];
   biz.competitors.forEach((c,i)=>c.marketShare=shares[i+1]);
 
-  const demandMul=Math.max(0.3,sim.economy.demand/60);
-  const totalMarketRevenue=ind.baseDemand*ind.avgPrice*demandMul*(biz.priceWar.active?1.1:1);
-  const revenue=totalMarketRevenue*(biz.marketShare/100);
+  const demandMul=Math.max(0.3,sim.economy.demand/60)*posCfg.demandMul;
+  const totalMarketUnits=ind.baseDemand*demandMul*(biz.priceWar.active?1.1:1);
+  const totalMarketRevenue=totalMarketUnits*ind.avgPrice;
+  // กำลังการผลิตเป็นเพดานรายรับจริง — demand เกินกำลังผลิต = เสียโอกาสขาย + ลูกค้าผิดหวัง (reputation ลด)
+  const demandUnits=totalMarketUnits*(biz.marketShare/100);
+  const capUnits=bizCapacityUnits(biz,ind);
+  const soldUnits=Math.min(demandUnits,capUnits);
+  const lostUnits=demandUnits-soldUnits;
+  if(lostUnits>demandUnits*0.05){
+    biz.reputation=Math.max(0,biz.reputation-1.5);
+    simLog(sim,'🚧','กำลังการผลิตไม่พอ',`"${biz.name}" ขายไม่ทัน ${Math.round(lostUnits)} หน่วย — เสียโอกาสขายและชื่อเสียงลดลง ควรจ้างเพิ่มหรือขยายสาขา`);
+  }else if(biz.reputation<70){
+    biz.reputation=Math.min(70,biz.reputation+0.4); // บริการได้ครบตามดีมานด์ ชื่อเสียงค่อยๆ ฟื้น
+  }
+  const revenue=soldUnits*biz.price;
   const marketingCost=biz.marketing*ind.unitMarketingCost/10;
-  const cogs=revenue*ind.cogsRatio;
-  const profit=revenue-ind.fixedCost-marketingCost-cogs;
-  biz.cash+=profit;
-  biz.profitHistory.unshift(profit);if(biz.profitHistory.length>12)biz.profitHistory.length=12;
-  simLog(sim,profit>=0?'🏢':'⚠️',`ผลประกอบการ "${biz.name}"`,`รายรับ ${FM.cur(revenue)} ต้นทุนรวม ${FM.cur(ind.fixedCost+marketingCost+cogs)} → ${profit>=0?'กำไร':'ขาดทุน'} ${FM.cur(Math.abs(profit))}`);
+  const wageCost=biz.employees*ind.wagePerEmployee;
+  const fixedCost=ind.fixedCostPerBranch*biz.branches;
+  const effCogsRatio=simBizSupplyCheck(sim,biz,ind);
+  const cogs=revenue*effCogsRatio;
+  const opProfit=revenue-fixedCost-marketingCost-wageCost-cogs;
+  biz.cash+=opProfit;
+  const loanPaid=simBizStepLoans(sim,biz);
+  biz.profitHistory.unshift(opProfit-loanPaid);if(biz.profitHistory.length>12)biz.profitHistory.length=12;
+  simLog(sim,opProfit>=0?'🏢':'⚠️',`ผลประกอบการ "${biz.name}"`,`รายรับ ${FM.cur(revenue)} ต้นทุนรวม ${FM.cur(fixedCost+marketingCost+wageCost+cogs)} → ${opProfit>=0?'กำไร':'ขาดทุน'} ${FM.cur(Math.abs(opProfit))}`);
 
   simBizCompetitorAI(sim,biz,ind,avgPrice);
+  simBizCompetitorLifecycle(sim,biz,ind,totalMarketRevenue);
   simBizPriceWarCheck(sim,biz,avgPrice);
   simBizLifecycle(sim,biz,ind);
   if(biz.cash<0&&!sim.pendingDecision)simBizDistressDecision(sim,biz);
 };
+const simStepBusiness=sim=>{(sim.player.businesses||[]).forEach(biz=>simStepOneBusiness(sim,biz));};
 
 // ── Player actions (การตัดสินใจของผู้เล่น — engine เท่านั้นที่แก้ state ได้) ──
-const simBizSetPrice=(sim,val)=>{sim.player.business.price=Math.max(1,+val||1);save();renderSimRoot();};
-const simBizSetMarketing=(sim,val)=>{sim.player.business.marketing=Math.max(0,Math.min(100,+val||0));save();renderSimRoot();};
-const simBizInvestQuality=sim=>{
-  const biz=sim.player.business;if(!biz||biz.quality>=5)return;
+const simBizSetPrice=(sim,bizId,val)=>{const b=findBiz(sim,bizId);if(!b)return;b.price=Math.max(1,+val||1);save();renderSimRoot();};
+const simBizSetMarketing=(sim,bizId,val)=>{const b=findBiz(sim,bizId);if(!b)return;b.marketing=Math.max(0,Math.min(100,+val||0));save();renderSimRoot();};
+const simBizInvestQuality=(sim,bizId)=>{
+  const biz=findBiz(sim,bizId);if(!biz||biz.quality>=5)return;
   const cost=5000*biz.quality;
   if(biz.cash<cost){modal('เงินสดธุรกิจไม่พอ',`ต้องใช้ ${FM.cur(cost)} เพื่อยกระดับคุณภาพ`);return;}
   biz.cash-=cost;biz.quality=Math.min(5,biz.quality+1);
   simLog(sim,'⭐','ยกระดับคุณภาพสินค้า/บริการ',`Quality → ${biz.quality}/5 (-${FM.cur(cost)} จากเงินสดธุรกิจ)`);
   save();renderSimRoot();
 };
-const simBizWithdraw=sim=>{
-  const biz=sim.player.business;if(!biz)return;
+const simBizHire=(sim,bizId,count)=>{
+  const biz=findBiz(sim,bizId);if(!biz||count<=0)return;
+  const ind=BIZ_INDUSTRIES[biz.industry];
+  const cost=ind.hireCost*count;
+  if(biz.cash<cost){modal('เงินสดธุรกิจไม่พอ',`ต้องใช้ ${FM.cur(cost)} เพื่อจ้างพนักงาน ${count} คน`);return;}
+  biz.cash-=cost;biz.employees+=count;
+  simLog(sim,'👥','จ้างพนักงานเพิ่ม',`+${count} คน (-${FM.cur(cost)} ค่าจ้างงาน) รวม ${biz.employees} คน`);
+  save();renderSimRoot();
+};
+const simBizFire=(sim,bizId,count)=>{
+  const biz=findBiz(sim,bizId);if(!biz)return;
+  const n=Math.min(count,biz.employees-1); // เหลืออย่างน้อย 1 คนเสมอ
+  if(n<=0)return;
+  biz.employees-=n;
+  simLog(sim,'👥','ปลดพนักงาน',`-${n} คน เหลือ ${biz.employees} คน`);
+  save();renderSimRoot();
+};
+const simBizExpand=(sim,bizId)=>{
+  const biz=findBiz(sim,bizId);if(!biz)return;
+  const ind=BIZ_INDUSTRIES[biz.industry];
+  const cost=ind.expansionCost*biz.branches;
+  if(biz.cash<cost){modal('เงินสดธุรกิจไม่พอ',`ต้องใช้ ${FM.cur(cost)} เพื่อขยายสาขา`);return;}
+  biz.cash-=cost;biz.branches+=1;
+  simLog(sim,'🏗️','ขยายสาขาใหม่',`สาขาที่ ${biz.branches} (-${FM.cur(cost)}) — Fixed Cost/เดือนเพิ่มขึ้นตามจำนวนสาขา`);
+  save();renderSimRoot();
+};
+const simBizTakeLoan=(sim,bizId,amount)=>{
+  const biz=findBiz(sim,bizId);if(!biz||amount<=0)return;
+  const riskPremium={startup:4,growth:0,stable:0,decline:3,distressed:8,closed:0}[biz.status]||0;
+  const rate=8+riskPremium,months=24,mRate=rate/100/12;
+  const monthly=Math.round(amount*mRate/(1-Math.pow(1+mRate,-months)));
+  biz.loans.push({id:'ln'+Date.now(),remaining:amount,rate,monthly});
+  biz.cash+=amount;
+  simLog(sim,'🏦','ขอสินเชื่อธุรกิจ',`+${FM.cur(amount)} ดอกเบี้ย ${rate}%/ปี ผ่อน ${months} เดือน (${FM.cur(monthly)}/เดือน)`);
+  save();renderSimRoot();
+};
+const simBizWithdraw=(sim,bizId)=>{
+  const biz=findBiz(sim,bizId);if(!biz)return;
   const amt=Math.round(biz.cash*0.5);
   if(amt<=0){modal('ไม่มีเงินสดให้ถอน','เงินสดธุรกิจไม่พอถอน');return;}
   biz.cash-=amt;sim.player.cash+=amt;
   simLog(sim,'💰','ถอนเงินปันผลจากธุรกิจ',`+${FM.cur(amt)} เข้าเงินส่วนตัว`);
   save();renderSimRoot();
 };
-const simBizCloseVoluntary=sim=>{
-  const biz=sim.player.business;if(!biz)return;
+const simBizCloseVoluntary=(sim,bizId)=>{
+  const biz=findBiz(sim,bizId);if(!biz)return;
   if(biz.cash>0)sim.player.cash+=biz.cash;
   simLog(sim,'🚪',`ปิดกิจการ "${biz.name}" (ตัดสินใจเอง)`,'');
-  sim.player.business=null;save();renderSimRoot();
+  sim.player.businesses=sim.player.businesses.filter(b=>b.id!==bizId);
+  save();renderSimRoot();
 };
 const simStartBusinessFromForm=sim=>{
   const name=document.getElementById('bizName').value.trim();
   const industry=document.getElementById('bizIndustry').value;
+  const positioning=document.getElementById('bizPositioning').value;
   const capital=FM.parse(document.getElementById('bizCapital').value);
   if(!name){modal('ยังไม่ได้ตั้งชื่อ','กรุณาตั้งชื่อธุรกิจก่อน');return;}
   if(capital<=0||capital>sim.player.cash){modal('ทุนไม่ถูกต้อง',`ทุนต้องมากกว่า 0 และไม่เกินเงินสดที่มี (${FM.cur(sim.player.cash)})`);return;}
-  simStartBusiness(sim,name,industry,capital);
+  simStartBusiness(sim,name,industry,capital,positioning);
+  ['bizName','bizCapital'].forEach(id=>document.getElementById(id).value='');
   celebrate('🏢','เปิดธุรกิจแล้ว!','เริ่มแข่งขันในตลาดได้เลย');
   save();renderSimRoot();
 };
 
 // 🤖 AI Advisor (concept ข้อ 15) — วิเคราะห์/อธิบาย/เตือนความเสี่ยงจากตัวเลข engine ตรงๆ ห้ามสร้างตัวเลขเอง
-const bizAdvisorInsights=sim=>{
-  const biz=sim.player.business;if(!biz)return[];
+const bizAdvisorInsights=(sim,biz)=>{
   const ind=BIZ_INDUSTRIES[biz.industry];
-  const burn=ind.fixedCost+(biz.marketing*ind.unitMarketingCost/10);
+  const loanMonthly=biz.loans.reduce((s,l)=>s+l.monthly,0);
+  const burn=ind.fixedCostPerBranch*biz.branches+(biz.marketing*ind.unitMarketingCost/10)+biz.employees*ind.wagePerEmployee+loanMonthly;
   const runway=burn>0?biz.cash/burn:Infinity;
   const ins=[];
-  if(runway<3)ins.push({i:'🚨',t:`Cash Runway เหลือ ${runway.toFixed(1)} เดือน — เสี่ยงขาดสภาพคล่องสูง ควรลด Marketing หรือเพิ่มทุนก่อนถึงจุดวิกฤต`});
+  if(runway<3)ins.push({i:'🚨',t:`Cash Runway เหลือ ${runway.toFixed(1)} เดือน — เสี่ยงขาดสภาพคล่องสูง ควรลด Marketing/พนักงาน หรือเพิ่มทุนก่อนถึงจุดวิกฤต`});
   else if(runway<6)ins.push({i:'⚠️',t:`Cash Runway ${runway.toFixed(1)} เดือน — เริ่มตึง ควรจับตากระแสเงินสดใกล้ชิด`});
-  const avgCompPrice=biz.competitors.reduce((s,c)=>s+c.price,0)/biz.competitors.length;
+  const capUnits=bizCapacityUnits(biz,ind);
+  const branchCeiling=biz.branches*ind.maxUnitsPerBranch;
+  const branchFillPct=capUnits/branchCeiling*100;
+  if(branchFillPct>=99)ins.push({i:'🏗️',t:`พนักงานเต็มเพดานสาขาแล้ว (${Math.round(capUnits)} หน่วย/เดือน) — จ้างเพิ่มจะไม่เพิ่มกำลังผลิตอีก ต้องขยายสาขาถ้าอยากรับ demand มากขึ้น`});
+  else if(branchFillPct<50)ins.push({i:'👥',t:`กำลังผลิตใช้แค่ ${Math.round(branchFillPct)}% ของเพดานสาขาที่มี — ยังจ้างพนักงานเพิ่มได้อีกโดยไม่ต้องลงทุนขยายสาขา`});
+  const avgCompPrice=biz.competitors.length?biz.competitors.reduce((s,c)=>s+c.price,0)/biz.competitors.length:biz.price;
   if(biz.price<avgCompPrice*0.8)ins.push({i:'💲',t:`ราคาคุณต่ำกว่าค่าเฉลี่ยตลาด ${Math.round((1-biz.price/avgCompPrice)*100)}% — ได้ market share เพิ่ม แต่ margin จะบางลง`});
   if(biz.priceWar.active)ins.push({i:'⚔️',t:'กำลังอยู่ในภาวะ Price War — คู่แข่งบางรายอาจถอนตัวถ้าเงินทุนไม่พอ หรือคุณอาจต้องขึ้นราคาก่อนเงินสดหมด'});
-  const topComp=[...biz.competitors].sort((a,b)=>b.marketShare-a.marketShare)[0];
+  const topComp=biz.competitors.length?[...biz.competitors].sort((a,b)=>b.marketShare-a.marketShare)[0]:null;
   if(topComp&&topComp.marketShare>biz.marketShare*1.5)ins.push({i:'⚔️',t:`"${topComp.name}" ครองส่วนแบ่งตลาดมากกว่าคุณเกือบเท่าตัว (${topComp.marketShare.toFixed(0)}% เทียบกับ ${biz.marketShare.toFixed(0)}%)`});
+  if(loanMonthly>0)ins.push({i:'🏦',t:`ผ่อนสินเชื่อธุรกิจรวม ${FM.cur(loanMonthly)}/เดือน — รวมอยู่ใน burn rate ด้านบนแล้ว`});
   const avgProfit3=biz.profitHistory.slice(0,3).reduce((s,x)=>s+x,0)/Math.min(3,biz.profitHistory.length||1);
-  if(avgProfit3<0)ins.push({i:'📉',t:`กำไรเฉลี่ย 3 เดือนล่าสุดติดลบ ${FM.cur(Math.abs(avgProfit3))}/เดือน — ต้นทุนคงที่รวมต้นทุนขายอาจสูงกว่ารายรับที่ทำได้จริง`});
+  if(avgProfit3<0)ins.push({i:'📉',t:`กำไรเฉลี่ย 3 เดือนล่าสุดติดลบ ${FM.cur(Math.abs(avgProfit3))}/เดือน — ต้นทุนรวม (คงที่+ค่าจ้าง+ขาย) อาจสูงกว่ารายรับที่ทำได้จริง`});
   if(!ins.length)ins.push({i:'✅',t:'ตัวเลขธุรกิจโดยรวมยังอยู่ในเกณฑ์ปกติ ไม่มีความเสี่ยงเร่งด่วนตอนนี้'});
-  return ins.slice(0,5);
+  return ins.slice(0,6);
 };
-const renderBizDashboard=sim=>{
-  const biz=sim.player.business;
+const BIZ_SHARE_COLORS=['#3b82f6','#f59e0b','#ec4899','#06b6d4','#84cc16'];
+const bizStars=q=>'⭐'.repeat(q)+'☆'.repeat(5-q);
+// Market Share เป็นแท่งซ้อนสี — เห็นภาพรวมตลาดทั้งหมดในบรรทัดเดียว (คุณ + คู่แข่งแต่ละราย + ตลาดรายย่อยที่กันไว้)
+const renderBizShareBar=biz=>{
+  const otherPct=Math.max(0,100-biz.marketShare-biz.competitors.reduce((s,c)=>s+c.marketShare,0));
+  return`
+  <div style="display:flex;height:24px;border-radius:8px;overflow:hidden;margin-bottom:7px;box-shadow:inset 0 0 0 1px var(--bdr)">
+    <div style="width:${biz.marketShare}%;background:var(--gh);display:flex;align-items:center;justify-content:center;font-size:.62rem;font-weight:800;color:#fff" title="คุณ ${biz.marketShare.toFixed(1)}%">${biz.marketShare>=8?biz.marketShare.toFixed(0)+'%':''}</div>
+    ${biz.competitors.map((c,i)=>`<div style="width:${c.marketShare}%;background:${BIZ_SHARE_COLORS[i%BIZ_SHARE_COLORS.length]}" title="${esc(c.name)} ${c.marketShare.toFixed(1)}%"></div>`).join('')}
+    <div style="width:${otherPct}%;background:var(--bg2)" title="ตลาดรายย่อยอื่นๆ ${otherPct.toFixed(1)}%"></div>
+  </div>
+  <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px">
+    <span style="display:flex;align-items:center;gap:3px;font-size:.66rem;color:var(--mt)"><span style="width:8px;height:8px;border-radius:2px;background:var(--p);display:inline-block"></span>คุณ ${biz.marketShare.toFixed(1)}%</span>
+    ${biz.competitors.map((c,i)=>`<span style="display:flex;align-items:center;gap:3px;font-size:.66rem;color:var(--mt)"><span style="width:8px;height:8px;border-radius:2px;background:${BIZ_SHARE_COLORS[i%BIZ_SHARE_COLORS.length]};display:inline-block"></span>${esc(c.name)} ${c.marketShare.toFixed(1)}%</span>`).join('')}
+    <span style="display:flex;align-items:center;gap:3px;font-size:.66rem;color:var(--mt)"><span style="width:8px;height:8px;border-radius:2px;background:var(--bg2);display:inline-block;box-shadow:inset 0 0 0 1px var(--bdr2)"></span>รายย่อยอื่นๆ ${otherPct.toFixed(1)}%</span>
+  </div>`;
+};
+// กำไร/ขาดทุนรายเดือน แบบแท่งเหนือ-ใต้เส้นฐาน (เห็นเทรนด์ทันทีไม่ต้องไล่อ่าน log)
+const renderBizProfitChart=biz=>{
+  const hist=biz.profitHistory.slice(0,8).slice().reverse();
+  if(hist.length<2)return'';
+  const maxAbs=Math.max(...hist.map(Math.abs),1);
+  return`<div class="slbl">กำไร/ขาดทุนรายเดือน (${hist.length} เดือนล่าสุด)</div>
+  <div style="display:grid;grid-template-columns:repeat(${hist.length},1fr);gap:3px;height:52px;margin-bottom:10px">
+    ${hist.map(p=>{
+      const pct=Math.min(100,(Math.abs(p)/maxAbs)*100);
+      return`<div style="position:relative;height:100%" title="${p>=0?'+':''}${FM.compact(p)}">
+        <div style="position:absolute;left:0;right:0;top:50%;height:1px;background:var(--bdr2)"></div>
+        <div style="position:absolute;left:1px;right:1px;${p>=0?'bottom':'top'}:50%;height:${pct/2}%;background:${p>=0?'var(--g)':'var(--r)'};border-radius:2px;min-height:2px"></div>
+      </div>`;
+    }).join('')}
+  </div>`;
+};
+const renderBizDashboard=(sim,biz)=>{
   const ind=BIZ_INDUSTRIES[biz.industry];
   const st=BIZ_STATUS[biz.status];
-  const burn=ind.fixedCost+(biz.marketing*ind.unitMarketingCost/10);
+  const pos=BIZ_POSITIONING[biz.positioning];
+  const loanMonthly=biz.loans.reduce((s,l)=>s+l.monthly,0);
+  const burn=ind.fixedCostPerBranch*biz.branches+(biz.marketing*ind.unitMarketingCost/10)+biz.employees*ind.wagePerEmployee+loanMonthly;
   const runway=burn>0?biz.cash/burn:Infinity;
-  const advisor=bizAdvisorInsights(sim);
+  const capUnits=bizCapacityUnits(biz,ind);
+  const capPct=Math.min(100,capUnits/(biz.branches*ind.maxUnitsPerBranch)*100);
+  const advisor=bizAdvisorInsights(sim,biz);
   return`
   <div class="card">
-    <div class="ch"><div class="ct"><div class="ci" style="background:rgba(16,185,129,.1)">${ind.i}</div><span>${esc(biz.name)}</span></div><span class="ol-badge ${st.cls}">${st.t}</span></div>
-    ${biz.priceWar.active?'<div class="pill mb2" style="background:rgba(239,68,68,.12);color:var(--r)">⚔️ อยู่ในภาวะ Price War</div>':''}
-    <div class="srow">
-      <div class="sb sg"><div class="sl">เงินสดธุรกิจ</div><div class="sv">${FM.cur(biz.cash)}</div></div>
-      <div class="sb sbl"><div class="sl">Market Share</div><div class="sv">${biz.marketShare.toFixed(1)}%</div></div>
+    <div style="background:var(--gh);border-radius:var(--rL);padding:14px 16px;margin-bottom:13px;color:#fff;position:relative;overflow:hidden">
+      <div style="position:absolute;right:-8px;top:-14px;font-size:4rem;opacity:.18;pointer-events:none">${ind.i}</div>
+      <div style="position:relative;z-index:1">
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap">
+          <div style="font-weight:900;font-size:1.05rem">${ind.i} ${esc(biz.name)}</div>
+          <span style="background:rgba(255,255,255,.25);color:#fff;padding:3px 11px;border-radius:99px;font-size:.7rem;font-weight:800">${st.t}</span>
+        </div>
+        <div style="font-size:.72rem;opacity:.85;margin-top:2px">${ind.l} · ${pos.i} ${pos.l}</div>
+        <div style="font-size:1.55rem;font-weight:900;font-family:'IBM Plex Mono',monospace;margin-top:9px;line-height:1.1">${FM.cur(biz.cash)}</div>
+        <div style="font-size:.68rem;opacity:.8">เงินสดธุรกิจ</div>
+      </div>
     </div>
+    <div class="chiprow mb1">
+      ${biz.priceWar.active?'<span class="pill" style="background:rgba(239,68,68,.12);color:var(--r)">⚔️ Price War</span>':''}
+      ${biz.supplyDisruption.active?'<span class="pill" style="background:rgba(245,158,11,.15);color:var(--y2)">📦 Supply Chain ปัญหา</span>':''}
+      <span class="pill" style="background:rgba(139,92,246,.1);color:var(--p2)">${bizStars(biz.quality)}</span>
+    </div>
+    <div class="slbl">Market Share</div>
+    ${renderBizShareBar(biz)}
+    <div class="pbw mb2"><div class="pbh"><span class="fxs tm">👥 กำลังผลิต ${Math.round(capUnits)} หน่วย/เดือน (เพดานสาขา ${biz.branches*ind.maxUnitsPerBranch})</span><span class="fw8 fxs">${capPct.toFixed(0)}%</span></div><div class="pbb"><div class="pbf ${capPct>=99?'kover':capPct<50?'kwarn':'kok'}" style="width:${capPct}%"></div></div></div>
+    ${renderBizProfitChart(biz)}
     <div class="g2 mt1 mb2">
       <div class="pr"><span class="fxs tm">⏳ Cash Runway</span><strong class="fxs">${isFinite(runway)?runway.toFixed(1)+' เดือน':'∞'}</strong></div>
       <div class="pr"><span class="fxs tm">📅 เปิดมา</span><strong class="fxs">${biz.monthsOpen} เดือน</strong></div>
+      <div class="pr"><span class="fxs tm">👥 พนักงาน</span><strong class="fxs">${biz.employees} คน</strong></div>
+      <div class="pr"><span class="fxs tm">🏬 สาขา</span><strong class="fxs">${biz.branches}</strong></div>
     </div>
-    <div class="fg"><label class="fl">ราคา (${FM.cur(biz.price)})</label><input type="range" min="${Math.round(ind.avgPrice*0.4)}" max="${Math.round(ind.avgPrice*2)}" value="${biz.price}" oninput="simBizSetPrice(simActive(),this.value)"></div>
-    <div class="fg"><label class="fl">Marketing (${biz.marketing}/100)</label><input type="range" min="0" max="100" value="${biz.marketing}" oninput="simBizSetMarketing(simActive(),this.value)"></div>
+    <div class="fg"><label class="fl">ราคา (${FM.cur(biz.price)})</label><input type="range" min="${Math.round(ind.avgPrice*0.4)}" max="${Math.round(ind.avgPrice*2)}" value="${biz.price}" oninput="simBizSetPrice(simActive(),'${biz.id}',this.value)"></div>
+    <div class="fg"><label class="fl">Marketing (${biz.marketing}/100)</label><input type="range" min="0" max="100" value="${biz.marketing}" oninput="simBizSetMarketing(simActive(),'${biz.id}',this.value)"></div>
     <div class="chiprow mb2">
-      <button class="btn bO bSm" onclick="simBizInvestQuality(simActive())">⭐ ยกระดับคุณภาพ (${biz.quality}/5)</button>
-      <button class="btn bO bSm" onclick="simBizWithdraw(simActive())">💰 ถอนปันผล 50%</button>
-      <button class="btn bGh bSm" onclick="simBizCloseVoluntary(simActive())">🚪 ปิดกิจการ</button>
+      <button class="btn bO bSm" onclick="simBizInvestQuality(simActive(),'${biz.id}')">⭐ ยกระดับคุณภาพ (${biz.quality}/5)</button>
+      <button class="btn bO bSm" onclick="simBizHire(simActive(),'${biz.id}',1)">👥 จ้างเพิ่ม 1 (-${FM.cur(ind.hireCost)})</button>
+      <button class="btn bO bSm" onclick="simBizFire(simActive(),'${biz.id}',1)">✂️ ปลด 1</button>
+      <button class="btn bO bSm" onclick="simBizExpand(simActive(),'${biz.id}')">🏗️ ขยายสาขา (-${FM.cur(ind.expansionCost*biz.branches)})</button>
     </div>
-    <div class="slbl">คู่แข่งในตลาด</div>
-    ${biz.competitors.map(c=>{const cs=BIZ_COMP_STRATS[c.strategy];return`<div class="li"><div class="lib"><div class="lin">${cs.i} ${esc(c.name)}</div><div class="lim">ราคา ${FM.cur(c.price)} · Quality ${c.quality}/5</div></div><span class="lia">${c.marketShare.toFixed(1)}%</span></div>`;}).join('')}
+    <div class="chiprow mb2">
+      <button class="btn bO bSm" onclick="simBizWithdraw(simActive(),'${biz.id}')">💰 ถอนปันผล 50%</button>
+      <button class="btn bO bSm" onclick="simBizTakeLoan(simActive(),'${biz.id}',${Math.round(ind.fixedCostPerBranch*3)})">🏦 กู้สินเชื่อธุรกิจ (${FM.cur(Math.round(ind.fixedCostPerBranch*3))})</button>
+      <button class="btn bGh bSm" onclick="simBizCloseVoluntary(simActive(),'${biz.id}')">🚪 ปิดกิจการ</button>
+    </div>
+    ${biz.loans.length?`<div class="slbl">สินเชื่อธุรกิจ</div>${biz.loans.map(l=>`<div class="li"><div class="lib"><div class="lin">คงเหลือ ${FM.cur(l.remaining)}</div><div class="lim">${l.rate}%/ปี</div></div><span class="lia tr2">-${FM.cur(l.monthly)}/เดือน</span></div>`).join('')}`:''}
+    <div class="slbl">คู่แข่งในตลาด (${biz.competitors.length} ราย)</div>
+    ${biz.competitors.length?biz.competitors.map((c,i)=>{const cs=BIZ_COMP_STRATS[c.strategy];return`<div class="li"><div style="width:4px;align-self:stretch;border-radius:2px;background:${BIZ_SHARE_COLORS[i%BIZ_SHARE_COLORS.length]};flex-shrink:0"></div><div class="lib"><div class="lin">${cs.i} ${esc(c.name)}</div><div class="lim">ราคา ${FM.cur(c.price)} · ${bizStars(c.quality)}</div></div><span class="lia">${c.marketShare.toFixed(1)}%</span></div>`;}).join(''):'<p class="fxs tm">ตอนนี้ไม่มีคู่แข่งในตลาด — ครองตลาดคนเดียวชั่วคราว</p>'}
   </div>
   <div class="card">
-    <div class="ct mb2"><div class="ci" style="background:rgba(139,92,246,.1)">🤖</div><span>AI Advisor</span></div>
+    <div class="ct mb2"><div class="ci" style="background:rgba(139,92,246,.1)">🤖</div><span>AI Advisor — ${esc(biz.name)}</span></div>
     ${advisor.map(x=>`<div class="ins-item"><div class="ins-ico">${x.i}</div><div class="ins-body"><div class="ins-d">${esc(x.t)}</div></div></div>`).join('')}
   </div>`;
 };
@@ -2727,17 +2943,22 @@ const renderSimActiveInto=(el,sim)=>{
         <div class="chiprow">${Object.entries(SIM_STRATEGIES).filter(([k])=>k!==sim.strategy).map(([k,v])=>`<button class="qchip" onclick="simSetStrategy(simActive(),'${k}')">เปลี่ยนเป็น ${v.i} ${v.t}</button>`).join('')}</div>
       </div>
 
-      ${!sim.player.business?`
       <div class="card">
-        <div class="ct mb2"><div class="ci" style="background:rgba(16,185,129,.1)">🏢</div><span>เปิดธุรกิจใหม่</span></div>
-        <p class="fxs tm mb2">เข้าสู่ตลาดจริงที่มีคู่แข่งแข่งขันด้วย — ราคา/คุณภาพ/การตลาดของคุณมีผลต่อ Market Share จริง (concept ข้อ 6/7)</p>
+        <div class="ct mb2"><div class="ci" style="background:rgba(16,185,129,.1)">🏢</div><span>${sim.player.businesses.length?'เปิดธุรกิจใหม่ (อีกกิจการ)':'เปิดธุรกิจใหม่'}</span></div>
+        <p class="fxs tm mb2">เข้าสู่ตลาดจริงที่มีคู่แข่งแข่งขันด้วย — ราคา/คุณภาพ/การตลาด/พนักงาน/สาขาของคุณมีผลต่อ Market Share จริง เปิดได้หลายกิจการพร้อมกัน แต่ละกิจการมีตลาด/คู่แข่งของตัวเอง</p>
         <div class="fg"><label class="fl">ชื่อธุรกิจ</label><input type="text" id="bizName" class="inp" placeholder="เช่น ร้านก๋วยเตี๋ยวนัว"></div>
-        <div class="fg"><label class="fl">อุตสาหกรรม</label>
-          <select id="bizIndustry" class="inp">${Object.entries(BIZ_INDUSTRIES).map(([k,v])=>`<option value="${k}">${v.i} ${v.l}</option>`).join('')}</select>
+        <div class="g2">
+          <div class="fg"><label class="fl">อุตสาหกรรม</label>
+            <select id="bizIndustry" class="inp">${Object.entries(BIZ_INDUSTRIES).map(([k,v])=>`<option value="${k}">${v.i} ${v.l}</option>`).join('')}</select>
+          </div>
+          <div class="fg"><label class="fl">ตำแหน่งตลาด</label>
+            <select id="bizPositioning" class="inp">${Object.entries(BIZ_POSITIONING).map(([k,v])=>`<option value="${k}">${v.i} ${v.l}</option>`).join('')}</select>
+          </div>
         </div>
         <div class="fg"><label class="fl">ทุนเริ่มต้น (฿) — หักจากเงินสดส่วนตัว</label><div class="ipr"><span class="pre">฿</span><input type="text" inputmode="decimal" id="bizCapital" class="inp" placeholder="50000" oninput="FM.clean(this)"></div></div>
         <button class="btn bG bFull" onclick="simStartBusinessFromForm(simActive())">+ เปิดธุรกิจ</button>
-      </div>`:renderBizDashboard(sim)}
+      </div>
+      ${sim.player.businesses.map(biz=>renderBizDashboard(sim,biz)).join('')}
 
       <div class="card">
         <div class="ct mb2"><div class="ci" style="background:rgba(59,130,246,.1)">🌐</div><span>เศรษฐกิจจำลอง</span></div>
