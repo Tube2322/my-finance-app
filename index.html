@@ -952,7 +952,8 @@ const load=()=>{
       transactions:p.transactions||[],
       legacyWage:p.legacyWage??(p.paySettings?{paySettings:p.paySettings,payHistory:p.payHistory||[]}:null),
       investPlan:{...S.investPlan,...(p.investPlan||{})},
-      simWorlds:p.simWorlds||[],activeSimId:p.activeSimId??null,
+      simWorlds:(p.simWorlds||[]).map(w=>({...w,strategy:w.strategy||'manual',realTime:w.realTime||{enabled:false,scaleMinutesPerMonth:60,lastProcessedAt:new Date().toISOString()}})),
+      activeSimId:p.activeSimId??null,
     });
   }catch(e){}
 };
@@ -999,7 +1000,7 @@ const navigate=sec=>{
     if(el)el.style.display=(id===sec)?'block':'none';
   });
   if(sec==='budget')renderInvestPlanner();
-  if(sec==='goals')renderSimRoot();
+  if(sec==='goals'){simRTEnterWorld();renderSimRoot();}else{simRTStopTimer();}
   if(sec==='outlook')renderOutlook();
   try{window.scrollTo({top:0,behavior:'instant'});}catch(e){}
 };
@@ -1997,6 +1998,29 @@ const SIM_EVENTS=[
           {id:'cash',label:`จ่ายจากเงินสด (-${FM.cur(amt)})`,apply:s=>{s.player.cash-=amt;simLog(s,'⚠️','ค่าใช้จ่ายฉุกเฉิน — จ่ายจากเงินสด',`-${FM.cur(amt)}`);}},
           {id:'debt',label:'กู้ยืมจ่ายก่อน (เพิ่มหนี้ใหม่ 12%/ปี ผ่อน 6 เดือน)',apply:s=>{s.player.debts.push({name:'หนี้ฉุกเฉิน',remaining:amt,monthly:Math.round(amt/6),rate:12});simLog(s,'💳','ค่าใช้จ่ายฉุกเฉิน — กู้ยืมจ่าย',`หนี้ใหม่ ${FM.cur(amt)}`);}},
         ]};}},
+  // เฉพาะคนมีเงินสดพอ — dilemma ของสาย "ลงทุน/เสี่ยง" (concept ข้อ 1: ทุกเส้นทางมี dilemma ของตัวเอง)
+  {id:'invest_opportunity',cat:'economic',name:'โอกาสลงทุนพิเศษ',prob:.05,cooldown:8,
+    eligible:sim=>sim.player.cash>5000,
+    decision:sim=>{const amt=Math.round(sim.player.cash*0.3);const bonusPct=Math.round(8+Math.random()*10);
+      return{title:'📈 โอกาสลงทุนพิเศษ',msg:`มีโอกาสลงทุนพิเศษเข้ามา ใส่เงิน ${FM.cur(amt)} วันนี้ มีลุ้นผลตอบแทนสูงกว่าปกติ (~${bonusPct}%) แต่ไม่มีระบบรับประกันกำไร อาจขาดทุนได้เช่นกัน`,
+        choices:[
+          {id:'take',label:`ลงทุน (-${FM.cur(amt)})`,apply:s=>{
+            const win=Math.random()<0.55;
+            const result=win?amt*(1+bonusPct/100):amt*(0.5+Math.random()*0.4);
+            s.player.cash-=amt;s.player.investment.value+=result;
+            simLog(s,win?'🎉':'📉',win?'โอกาสลงทุนพิเศษ — ได้ผลตอบแทนดี':'โอกาสลงทุนพิเศษ — ขาดทุน',`มูลค่าที่ได้ ${FM.cur(result)} (ลงทุนไป ${FM.cur(amt)})`);
+          }},
+          {id:'skip',label:'ไม่เอา ปลอดภัยไว้ก่อน',apply:s=>{simLog(s,'🛡️','ไม่ลงทุนโอกาสพิเศษ','เลือกความปลอดภัย');}},
+        ]};}},
+  // เฉพาะคนมีหนี้ดอกเบี้ยสูง — dilemma ของสาย "ล้างหนี้"
+  {id:'debt_refinance',cat:'personal',name:'ข้อเสนอ Refinance หนี้',prob:.06,cooldown:10,
+    eligible:sim=>sim.player.debts.some(d=>d.rate>8),
+    decision:sim=>{const d=[...sim.player.debts].sort((a,b)=>b.rate-a.rate)[0];const fee=Math.round(d.remaining*0.02);const newRate=Math.max(3,d.rate-4);
+      return{title:'💳 ข้อเสนอ Refinance หนี้',msg:`ธนาคารเสนอ refinance หนี้ "${d.name}" จาก ${d.rate}%/ปี เหลือ ${newRate}%/ปี มีค่าธรรมเนียม ${FM.cur(fee)}`,
+        choices:[
+          {id:'accept',label:`Refinance (-${FM.cur(fee)})`,apply:s=>{const target=s.player.debts.find(x=>x.name===d.name);if(!target)return;s.player.cash-=fee;target.rate=newRate;simLog(s,'💳','Refinance หนี้สำเร็จ',`"${d.name}" ดอกเบี้ยลดเหลือ ${newRate}%/ปี (-${FM.cur(fee)} ค่าธรรมเนียม)`);}},
+          {id:'decline',label:'ปฏิเสธ',apply:s=>{simLog(s,'🚪','ปฏิเสธข้อเสนอ Refinance','');}},
+        ]};}},
 ];
 
 const simActive=()=>S.simWorlds.find(w=>w.id===S.activeSimId)||null;
@@ -2007,8 +2031,42 @@ const simSnapshot=sim=>{
   if(sim.snapshots.length>240)sim.snapshots.length=240;
 };
 
+// 🩺 Cash Flow vs Vanity (concept ข้อ 9): Net Worth สูงไม่ได้แปลว่าปลอดภัย ต้องดู runway + ภาระหนี้/รายรับควบคู่กัน
+// Growth วัดหลายมิติ (concept ข้อ 12) — คะแนนนี้คือ "ความมั่นคง" หนึ่งในหลายมิติ ไม่ใช่คะแนนรวมของเกม
+const simHealthScore=sim=>{
+  const burn=sim.player.fixedExpenses+sim.player.variableExpenses+sim.player.debts.reduce((s,d)=>s+d.monthly,0);
+  const runway=burn>0?sim.player.cash/burn:Infinity;
+  const debtMonthly=sim.player.debts.reduce((s,d)=>s+d.monthly,0);
+  const debtRatio=sim.player.monthlyIncome>0?debtMonthly/sim.player.monthlyIncome:0;
+  const monthCashFlow=sim.player.monthlyIncome-burn;
+  let score=100;
+  if(runway<3)score-=40;else if(runway<6)score-=20;else if(runway<12)score-=5;
+  if(debtRatio>0.4)score-=25;else if(debtRatio>0.25)score-=10;
+  if(monthCashFlow<0)score-=15;
+  score=Math.max(0,Math.min(100,Math.round(score)));
+  const tier=score>=75?{cls:'ol-good',t:'มั่นคง'}:score>=50?{cls:'ol-watch',t:'ต้องระวัง'}:score>=25?{cls:'ol-risk',t:'มีความเสี่ยง'}:{cls:'ol-danger',t:'วิกฤต'};
+  return{score,runway,debtRatio,monthCashFlow,tier};
+};
+// "WHY DID THIS HAPPEN?" (concept ข้อ 8/14) — เจาะรายเดือนว่าเงินสดมาจากไหน/ไปไหน แยกจาก Net Worth ที่รวมของไม่ใช่เงินสดด้วย
+const simShowMonthBreakdown=date=>{
+  const sim=simActive();if(!sim)return;
+  const sn=sim.snapshots.find(s=>s.date===date);if(!sn)return;
+  const items=sn.ledger||[];
+  const cashTotal=items.reduce((s,x)=>s+x.amt,0);
+  const lines=items.length
+    ?items.map(x=>`${x.amt>=0?'+':''}${FM.cur(x.amt)}  ${x.label}`)
+    :['ไม่มีรายการเงินสดเปลี่ยนแปลงเดือนนี้'];
+  lines.push('───────────────',`สรุปเงินสดเปลี่ยนแปลงเดือนนี้: ${cashTotal>=0?'+':''}${FM.cur(cashTotal)}`,
+    `Net Worth ปลายเดือน: ${FM.cur(sn.netWorth)} (รวมมูลค่าพอร์ต/หนี้คงเหลือที่ไม่ใช่เงินสดด้วย)`);
+  const mm=document.getElementById('mMsg');
+  mm.style.whiteSpace='pre-line';
+  mm.textContent=lines.join('\n');
+  document.getElementById('mTitle').textContent='📅 ทำไมถึงเปลี่ยนแปลง — '+simDateLabel(date);
+  document.getElementById('modalOv').classList.add('on');
+};
+
 // สร้างโลกจำลองใหม่ — 'actual' ดึงจากข้อมูลจริงผ่าน computeSurplus()/S.debts (ไม่แตะ S จริง แค่อ่าน snapshot ครั้งเดียว), 'custom' รับค่าจากผู้ใช้ตรงๆ
-const simCreateWorld=(name,mode,customVals)=>{
+const simCreateWorld=(name,mode,customVals,strategy)=>{
   const now=new Date();const ym=`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
   let player;
   if(mode==='actual'){
@@ -2016,12 +2074,12 @@ const simCreateWorld=(name,mode,customVals)=>{
     player={cash:Math.max(0,s.surplus),monthlyIncome:s.income,fixedExpenses:s.fixedExp,variableExpenses:s.variableExp,
       debts:S.debts.filter(d=>(d.remaining??d.totalAmount)>0).map(d=>({name:d.name,remaining:d.remaining??d.totalAmount,monthly:d.monthlyPayment,rate:d.interestRate||0})),
       investment:{value:0,assumedReturnPct:S.investPlan.assumedReturnPct||7},
-      netWorth:0};
+      business:null,netWorth:0};
   }else{
     player={cash:customVals.cash,monthlyIncome:customVals.income,fixedExpenses:customVals.expenses,variableExpenses:0,
       debts:customVals.debt>0?[{name:'หนี้เริ่มต้น',remaining:customVals.debt,monthly:Math.round(customVals.debt*0.05),rate:10}]:[],
       investment:{value:customVals.investment||0,assumedReturnPct:7},
-      netWorth:0};
+      business:null,netWorth:0};
   }
   player.netWorth=player.cash+player.investment.value-player.debts.reduce((s,d)=>s+d.remaining,0);
   const sim={
@@ -2031,6 +2089,10 @@ const simCreateWorld=(name,mode,customVals)=>{
     economy:{index:60,status:'stable',inflation:2.5,interestRate:6,demand:60,confidence:60,momentum:0,trendMonths:0},
     scheduledEvents:[],eventCooldowns:{},pendingDecision:null,
     log:[],snapshots:[],
+    // ⏱️ PART C: Real-Time Time Engine — ดู simCatchUp/simRTTick ด้านล่าง
+    realTime:{enabled:false,scaleMinutesPerMonth:60,lastProcessedAt:now.toISOString()},
+    // 🧭 กลยุทธ์เริ่มต้น — ไม่มีเส้นทางถูกตายตัว แต่ละทางมี mechanic ต่างกันจริง ไม่ใช่แค่ป้ายชื่อ (ดู simStepAutopilot)
+    strategy:strategy||'manual',
   };
   simLog(sim,'🌍','สร้างโลกจำลอง',`เริ่มจาก${mode==='actual'?'ข้อมูลจริง':'ค่าที่กำหนดเอง'} — เงินสดตั้งต้น ${FM.cur(player.cash)}`);
   simSnapshot(sim);
@@ -2038,16 +2100,21 @@ const simCreateWorld=(name,mode,customVals)=>{
   return sim;
 };
 
-/* ── 8-step pipeline ต่อ 1 เดือน (ย่อจาก 13 ขั้นของ spec — ตัด business/dividend/market เพราะยังไม่มีระบบธุรกิจใน PART 1) ──
+/* ── ledger เงินสดต่อเดือน — เก็บเฉพาะรายการที่มีผลต่อเงินสดจริง เพื่อตอบคำถาม "เงินมาจากไหน/ไปไหน" (concept ข้อ 8/9)
+   แยกจาก Net Worth เพราะ Net Worth รวมมูลค่าพอร์ต/หนี้ที่ไม่ใช่เงินสดด้วย — ดู simShowMonthBreakdown ── */
+let simCashLedger=[];
+const simLedgerPush=(label,amt)=>simCashLedger.push({label,amt});
+
+/* ── 9-step pipeline ต่อ 1 เดือน (ย่อจาก 13 ขั้นของ spec — ตัด business/dividend/market เพราะยังไม่มีระบบธุรกิจใน PART 1) ──
    ทุก step แยกฟังก์ชัน ตรวจสอบทีละอันได้ตามกฎ "ทุกขั้นตอนต้องตรวจสอบได้" (spec ข้อ 6) ── */
 const simStepScheduled=sim=>{
   sim.scheduledEvents.filter(e=>e.active).forEach(e=>{
-    if(e.type==='income'){sim.player.cash+=e.amount;simLog(sim,'💰',`รายรับตามกำหนด: ${e.name}`,`+${FM.cur(e.amount)}`);}
-    else{sim.player.cash-=e.amount;simLog(sim,'💸',`รายจ่ายตามกำหนด: ${e.name}`,`-${FM.cur(e.amount)}`);}
+    if(e.type==='income'){sim.player.cash+=e.amount;simLedgerPush(`รายรับตามกำหนด: ${e.name}`,e.amount);simLog(sim,'💰',`รายรับตามกำหนด: ${e.name}`,`+${FM.cur(e.amount)}`);}
+    else{sim.player.cash-=e.amount;simLedgerPush(`รายจ่ายตามกำหนด: ${e.name}`,-e.amount);simLog(sim,'💸',`รายจ่ายตามกำหนด: ${e.name}`,`-${FM.cur(e.amount)}`);}
   });
 };
-const simStepIncome=sim=>{if(sim.player.monthlyIncome<=0)return;sim.player.cash+=sim.player.monthlyIncome;simLog(sim,'💰','รายรับประจำเข้า',`+${FM.cur(sim.player.monthlyIncome)}`);};
-const simStepExpense=sim=>{const total=sim.player.fixedExpenses+sim.player.variableExpenses;if(total<=0)return;sim.player.cash-=total;simLog(sim,'🧾','รายจ่ายประจำเดือน',`-${FM.cur(total)}`);};
+const simStepIncome=sim=>{if(sim.player.monthlyIncome<=0)return;sim.player.cash+=sim.player.monthlyIncome;simLedgerPush('รายรับประจำ',sim.player.monthlyIncome);simLog(sim,'💰','รายรับประจำเข้า',`+${FM.cur(sim.player.monthlyIncome)}`);};
+const simStepExpense=sim=>{const total=sim.player.fixedExpenses+sim.player.variableExpenses;if(total<=0)return;sim.player.cash-=total;simLedgerPush('รายจ่ายประจำเดือน',-total);simLog(sim,'🧾','รายจ่ายประจำเดือน',`-${FM.cur(total)}`);};
 const simStepDebt=sim=>{
   let paid=0,interest=0;
   sim.player.debts.forEach(d=>{
@@ -2060,14 +2127,27 @@ const simStepDebt=sim=>{
     if(d.remaining<=0)simLog(sim,'🎉',`ปิดหนี้ "${d.name}" สำเร็จ!`,'');
   });
   sim.player.debts=sim.player.debts.filter(d=>d.remaining>0.5);
-  if(paid>0){sim.player.cash-=paid;simLog(sim,'💳','ชำระหนี้',`-${FM.cur(paid)} (ดอกเบี้ยรวม ${FM.cur(interest)})`);}
+  if(paid>0){sim.player.cash-=paid;simLedgerPush('ชำระหนี้ประจำเดือน',-paid);simLog(sim,'💳','ชำระหนี้',`-${FM.cur(paid)} (ดอกเบี้ยรวม ${FM.cur(interest)})`);}
 };
-// การลงทุนใน PART 1 คือของที่มีอยู่แล้วโตตามสมมติฐานเฉยๆ — ระบบ "จัดสรร surplus ไปลงทุนอัตโนมัติทุกเดือน" เป็นของ PART 3 (Surplus Allocation) ยังไม่ทำที่นี่
+// 🧭 Autopilot ตามกลยุทธ์ที่เลือก — ทำให้แต่ละเส้นทางมี mechanic ต่างกันจริง ไม่ใช่แค่ป้ายชื่อ (concept ข้อ 1/5/14)
+const simStepAutopilot=sim=>{
+  if(sim.strategy==='invest'&&sim.player.cash>0){
+    const amt=Math.round(sim.player.cash*0.5);
+    if(amt>0){sim.player.cash-=amt;sim.player.investment.value+=amt;simLedgerPush('ลงทุนอัตโนมัติตามกลยุทธ์',-amt);simLog(sim,'📈','ลงทุนอัตโนมัติตามกลยุทธ์',`-${FM.cur(amt)} → พอร์ตลงทุน`);}
+  }else if(sim.strategy==='debt'&&sim.player.cash>0&&sim.player.debts.length){
+    const target=[...sim.player.debts].sort((a,b)=>b.rate-a.rate)[0];
+    const extra=Math.min(sim.player.cash*0.5,target.remaining);
+    if(extra>0){sim.player.cash-=extra;target.remaining=Math.max(0,target.remaining-extra);simLedgerPush(`ชำระหนี้เพิ่มอัตโนมัติ: ${target.name}`,-extra);simLog(sim,'💳','ชำระหนี้เพิ่มอัตโนมัติตามกลยุทธ์',`-${FM.cur(extra)} → "${target.name}"`);}
+  }
+};
+// การลงทุนใน PART 1 คือของที่มีอยู่แล้วโตตามสมมติฐานเฉยๆ — ระบบ "จัดสรร surplus ไปลงทุนอัตโนมัติทุกเดือน" ทำผ่าน simStepAutopilot ด้านบนแล้ว (เฉพาะกลยุทธ์ invest)
 const simStepInvestment=sim=>{
   const inv=sim.player.investment;if(inv.value<=0)return;
-  const growth=inv.value*(inv.assumedReturnPct/100/12);
-  inv.value+=growth;
-  if(Math.abs(growth)>1)simLog(sim,'📈','มูลค่าพอร์ตปรับตามผลตอบแทนจำลอง',`${growth>=0?'+':''}${FM.cur(growth)}`);
+  // กลยุทธ์ "รับความเสี่ยงสูง" = ผันผวนสูงกว่าปกติทั้งขึ้นและลง ไม่มีระบบรับประกันกำไร (concept ข้อ 11)
+  const noise=(Math.random()*2-1)*(sim.strategy==='risk'?0.025:0.006);
+  const growth=inv.value*(inv.assumedReturnPct/100/12+noise);
+  inv.value=Math.max(0,inv.value+growth);
+  if(Math.abs(growth)>1)simLog(sim,'📈','มูลค่าพอร์ตปรับตามผลตอบแทนจำลอง (ไม่ใช่เงินสด)',`${growth>=0?'+':''}${FM.cur(growth)}`);
 };
 const simStepEconomy=sim=>{
   const e=sim.economy;
@@ -2082,9 +2162,11 @@ const simStepEconomy=sim=>{
   e.status=e.index>=70?'growth':e.index>=45?'stable':e.index>=25?'slowdown':'recession';
 };
 const simStepEvents=sim=>{
+  if(sim.pendingDecision)return; // ธุรกิจอาจตั้ง pendingDecision ไปแล้วเดือนนี้ (เช่นขาดสภาพคล่อง) ห้าม event ส่วนตัวทับ
   const pool=SIM_EVENTS.filter(ev=>{
     const last=sim.eventCooldowns[ev.id];
-    return last==null||simMonthsBetween(last,sim.currentDate)>=ev.cooldown;
+    const cooledDown=last==null||simMonthsBetween(last,sim.currentDate)>=ev.cooldown;
+    return cooledDown&&(!ev.eligible||ev.eligible(sim));
   });
   for(const ev of pool){
     if(Math.random()>ev.prob)continue;
@@ -2101,15 +2183,19 @@ const simStepEvents=sim=>{
 const simStepFinalize=sim=>{
   sim.player.netWorth=sim.player.cash+sim.player.investment.value-sim.player.debts.reduce((s,d)=>s+d.remaining,0);
   simSnapshot(sim);
+  sim.snapshots[0].ledger=simCashLedger.slice();
   sim.updatedAt=new Date().toISOString();
 };
 const simStep=sim=>{
+  simCashLedger=[];
   simStepScheduled(sim);
   simStepIncome(sim);
   simStepExpense(sim);
   simStepDebt(sim);
+  simStepAutopilot(sim);
   simStepInvestment(sim);
   simStepEconomy(sim);
+  simStepBusiness(sim);
   simStepEvents(sim);
   sim.currentDate=simAddMonths(sim.currentDate,1);
   simStepFinalize(sim);
@@ -2138,8 +2224,138 @@ const simDeleteWorld=id=>{
   if(S.activeSimId===id)S.activeSimId=null;
   save();renderSimRoot();
 };
-const simOpenWorld=id=>{S.activeSimId=id;save();renderSimRoot();};
-const simBackToList=()=>{S.activeSimId=null;save();renderSimRoot();};
+const simOpenWorld=id=>{S.activeSimId=id;save();simRTEnterWorld();renderSimRoot();};
+const simBackToList=()=>{S.activeSimId=null;simRTStopTimer();save();renderSimRoot();};
+
+/* ════════════════════════════════
+   ⏱️ PART C: REAL-TIME TIME ENGINE
+   ─────────────────────────────────
+   ขอบเขต client-only (แจ้งผู้ใช้แล้ว — แอปนี้ไม่มี backend/DB จริง):
+   - "Server Authority" จำลองด้วย localStorage + timestamp-based catch-up แทนที่จะนับถอยหลังทุกวินาที
+     (คำนวณ "ควรผ่านไปกี่เดือนแล้ว" จาก lastProcessedAt เทียบเวลาจริง ไม่ใช่ setInterval สั่งเดินเวลาตรงๆ
+     → ปิดเว็บ/รีเฟรช/เปิดหลาย tab แล้วค่าไม่เพี้ยน เพราะคำนวณจากผลต่างเวลาเสมอ)
+   - Multi-tab safety ใช้ localStorage lock แบบ expiry (ดีที่สุดเท่าที่ทำได้โดยไม่มี server จริง)
+   - Tick ระดับวินาทีมีไว้ "แสดงนาฬิกา/นับถอยหลัง" เท่านั้น ไม่ recalculate state ทุกวินาที (กฎข้อ 28)
+   - Business Hours/Activity Feed รอ PART A/B (ต้องมีระบบธุรกิจก่อนถึงจะมีเวลาเปิด-ปิดร้านให้ผูก)
+════════════════════════════════ */
+const simRTScaleMs=mins=>mins*60*1000;
+
+// คำนวณว่าควรเดินเวลาไปกี่เดือนแล้วนับจาก lastProcessedAt เทียบเวลาจริงตอนนี้ แล้วเดินเวลาจริง (event-based, ไม่ใช่ log ย้อนหลังเฉยๆ)
+// idempotent: ถ้าเรียกซ้ำโดยไม่มีเวลาผ่านเพิ่ม จะได้ processed:0 เสมอ เพราะ lastProcessedAt ขยับตามจำนวนเดือนที่ประมวลผลจริงเท่านั้น (ไม่ขยับไปเป็น "ตอนนี้" ตรงๆ กันเวลาเพี้ยนสะสม)
+const simCatchUp=sim=>{
+  if(!sim||!sim.realTime?.enabled||sim.status!=='active')return{processed:0,remaining:0};
+  const scaleMs=simRTScaleMs(sim.realTime.scaleMinutesPerMonth);
+  const last=new Date(sim.realTime.lastProcessedAt).getTime();
+  const elapsed=Date.now()-last;
+  const months=Math.floor(elapsed/scaleMs);
+  if(months<1)return{processed:0,remaining:0};
+  const cap=Math.min(months,240); // กันจำลองยาวเกินไปรวดเดียว (เช่นปิดเครื่องเป็นปี) — ที่เหลือประมวลผลต่อ tick ถัดไป
+  let done=0;
+  const logBefore=sim.log.length;
+  for(let i=0;i<cap;i++){
+    if(sim.pendingDecision)break; // มี decision ค้าง → หยุดรอผู้ใช้ตอบก่อน (กฎข้อ 22: Pause Decision Requirement)
+    simStep(sim);
+    done++;
+  }
+  sim.realTime.lastProcessedAt=new Date(last+done*scaleMs).toISOString();
+  // เหตุการณ์เด่นระหว่างหายไป (ตัด log ประจำ รายรับ/รายจ่ายทุกเดือน ออก กันรก) — concept "WHAT HAPPENED WHILE YOU WERE AWAY"
+  const notable=sim.log.slice(0,sim.log.length-logBefore).filter(l=>l.icon!=='💰'&&l.icon!=='🧾');
+  return{processed:done,remaining:months-done,notable};
+};
+
+// ── Multi-tab lock: กันสอง tab ประมวลผล catch-up ของโลกเดียวกันซ้อนกันจนเดือนถูกนับซ้ำ ──
+const simRTAcquireLock=id=>{
+  const key='simrt_lock_'+id,now=Date.now();
+  try{
+    const raw=localStorage.getItem(key);
+    if(raw){const l=JSON.parse(raw);if(l.exp>now)return null;}
+    const token=Math.random().toString(36).slice(2);
+    localStorage.setItem(key,JSON.stringify({token,exp:now+4000}));
+    return token;
+  }catch(e){return null;}
+};
+const simRTReleaseLock=(id,token)=>{
+  const key='simrt_lock_'+id;
+  try{const raw=localStorage.getItem(key);if(raw&&JSON.parse(raw).token===token)localStorage.removeItem(key);}catch(e){}
+};
+
+let simRTTimer=null;
+// เดินทุก 1 วินาที: อัปเดตนาฬิกา/นับถอยหลังเสมอ (เบา, UI-only) แต่ประมวลผล state จริงเฉพาะตอนครบรอบเดือนจำลอง (event-driven ตามกฎข้อ 28)
+const simRTTick=()=>{
+  const sim=simActive();
+  if(!sim||!sim.realTime?.enabled){simRTStopTimer();return;}
+  simRTUpdateClockUI(sim);
+  if(sim.status!=='active')return;
+  const scaleMs=simRTScaleMs(sim.realTime.scaleMinutesPerMonth);
+  if(Date.now()-new Date(sim.realTime.lastProcessedAt).getTime()<scaleMs)return; // ยังไม่ครบเดือน ไม่ต้องแตะ state
+  const token=simRTAcquireLock(sim.id);
+  if(!token)return; // อีก tab กำลังประมวลผลอยู่ รอ tick ถัดไป
+  const before=sim.pendingDecision;
+  const r=simCatchUp(sim);
+  simRTReleaseLock(sim.id,token);
+  if(r.processed>0){
+    if(r.processed>1)simLog(sim,'⏱️','Real-Time catch-up',`ประมวลผลอัตโนมัติ ${r.processed} เดือนที่ผ่านไประหว่างไม่ได้เปิดหน้านี้`);
+    save();renderSimRoot();
+    if(r.processed>1)simShowCatchUpSummary(sim,r);
+    else if(!before&&sim.pendingDecision)celebrate('❓','มีเหตุการณ์รอการตัดสินใจ','เลื่อนลงไปดูด้านล่าง');
+  }
+};
+// "WHAT HAPPENED WHILE YOU WERE AWAY" — สรุปแบบ list เหตุการณ์เด่น ไม่ใช่แค่ log บรรทัดเดียว
+const simShowCatchUpSummary=(sim,r)=>{
+  const lines=r.notable.length
+    ?r.notable.slice().reverse().map(l=>`📅 ${simDateLabel(l.date)}\n${l.icon} ${l.text}${l.detail?' — '+l.detail:''}`)
+    :['ไม่มีเหตุการณ์พิเศษ มีแค่รายรับ-รายจ่ายตามปกติ'];
+  const mm=document.getElementById('mMsg');
+  mm.style.whiteSpace='pre-line';
+  mm.textContent=`ผ่านไป ${r.processed} เดือนระหว่างที่ไม่ได้เปิดหน้านี้:\n\n`+lines.join('\n\n');
+  document.getElementById('mTitle').textContent='⏱️ ขณะที่คุณไม่อยู่...';
+  document.getElementById('modalOv').classList.add('on');
+};
+const simRTStopTimer=()=>{if(simRTTimer){clearInterval(simRTTimer);simRTTimer=null;}};
+const simRTStartTimer=()=>{simRTStopTimer();simRTTimer=setInterval(simRTTick,1000);};
+// เข้าหน้าโลกจำลอง (หรือกลับมาจากปิดแท็บ/สลับแท็บ) → catch-up ทันที 1 ครั้งก่อนเริ่ม timer แสดงผล
+const simRTEnterWorld=()=>{
+  const sim=simActive();if(!sim||!sim.realTime?.enabled)return;
+  const token=simRTAcquireLock(sim.id);
+  if(token){
+    const r=simCatchUp(sim);simRTReleaseLock(sim.id,token);
+    if(r.processed>1){simLog(sim,'⏱️','Real-Time catch-up',`ประมวลผลอัตโนมัติ ${r.processed} เดือนที่ผ่านไประหว่างไม่ได้เปิดหน้านี้`);save();setTimeout(()=>simShowCatchUpSummary(sim,r),50);}
+    else if(r.processed>0)save();
+  }
+  simRTStartTimer();
+};
+// อัปเดตเฉพาะตัวเลขนาฬิกา/countdown ใน DOM ตรงๆ ไม่ยิง renderSimRoot ทั้งหน้า (กันภาระ re-render ทุกวินาที)
+const simRTUpdateClockUI=sim=>{
+  const clk=document.getElementById('simRTClock');if(!clk)return;
+  clk.textContent=new Date().toLocaleTimeString('th-TH');
+  const bar=document.getElementById('simRTBar');
+  if(bar&&sim.realTime.enabled){
+    const scaleMs=simRTScaleMs(sim.realTime.scaleMinutesPerMonth);
+    const pct=Math.min(100,((Date.now()-new Date(sim.realTime.lastProcessedAt).getTime())/scaleMs)*100);
+    bar.style.width=pct+'%';
+  }
+};
+// เปิด/ปิดโหมด Real-Time ของโลกจำลองที่กำลังเปิดอยู่
+const simRTToggle=sim=>{
+  sim.realTime.enabled=!sim.realTime.enabled;
+  if(sim.realTime.enabled)sim.realTime.lastProcessedAt=new Date().toISOString();
+  save();
+  if(sim.realTime.enabled)simRTEnterWorld();else simRTStopTimer();
+  renderSimRoot();
+};
+const simRTSetScale=(sim,mins)=>{sim.realTime.scaleMinutesPerMonth=Math.max(1,+mins||60);save();renderSimRoot();};
+// อีก tab เขียน localStorage ทับ (เช่นประมวลผล catch-up ไปแล้ว) → โหลด state ใหม่กันข้อมูลเพี้ยน/ซ้ำ
+window.addEventListener('storage',e=>{
+  if(e.key!=='ft8'||!e.newValue)return;
+  try{
+    const p=JSON.parse(e.newValue);
+    S.simWorlds=(p.simWorlds||[]).map(w=>({...w,strategy:w.strategy||'manual',realTime:w.realTime||{enabled:false,scaleMinutesPerMonth:60,lastProcessedAt:new Date().toISOString()}}));
+    S.activeSimId=p.activeSimId??S.activeSimId;
+    if(document.getElementById('s-goals')?.style.display==='block')renderSimRoot();
+  }catch(err){}
+});
+// กลับมาโฟกัสแท็บ/ตื่นจาก background throttle → catch-up ทันที ไม่ต้องรอ tick ถัดไป
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')simRTEnterWorld();});
 
 /* ── Scheduled Events (ผู้ใช้เพิ่มเอง ต่อโลกจำลอง) ── */
 const simAddScheduledEvent=sim=>{
@@ -2152,6 +2368,233 @@ const simAddScheduledEvent=sim=>{
   save();renderSimRoot();
 };
 const simRemoveScheduledEvent=(sim,id)=>{sim.scheduledEvents=sim.scheduledEvents.filter(e=>e.id!==id);save();renderSimRoot();};
+
+/* ════════════════════════════════
+   🏢 PART D: BUSINESS GAMEPLAY — Competition, Market Share, Lifecycle, AI Advisor
+   ─────────────────────────────────
+   ขอบเขตที่ตัดจาก concept/spec เต็ม (แจ้งผู้ใช้แล้วในแชท):
+   - 1 ธุรกิจต่อโลกจำลอง (ไม่รองรับหลายธุรกิจพร้อมกัน)
+   - คู่แข่ง 4 ราย/ธุรกิจ ระดับ Aggregate เท่านั้น (ไม่มีบัญชี/พนักงาน/ลูกค้ารายบุคคล) ตรงตามที่ spec อนุญาต
+   - Brand กับ Customer Satisfaction รวมเป็นค่าเดียว "reputation" ลดความซับซ้อนของสูตร Attractiveness Score
+   - AI Advisor คือฟังก์ชันกฎเกณฑ์อ่านตัวเลขจาก engine ตรงๆ (ไม่ใช่เรียก LLM จริง — แอปนี้ไม่มี backend เรียก API ภายนอก)
+════════════════════════════════ */
+// baseDemand = จำนวนหน่วยขายรวมทั้งตลาด/เดือน (คูณ avgPrice = ขนาดตลาดรวมเป็นเงิน) — ตั้งให้ที่ market share เฉลี่ย (~17% เมื่อมีคู่แข่ง 4 ราย) ธุรกิจเริ่มต้นพอถึงจุดคุ้มทุนได้จริง ไม่ขาดทุนเพราะ fixedCost ทับด่านเดียว
+const BIZ_INDUSTRIES={
+  food:{l:'ร้านอาหาร',i:'🍜',baseDemand:1000,avgPrice:150,avgQuality:3,unitMarketingCost:150,fixedCost:8000,cogsRatio:0.42},
+  software:{l:'ซอฟต์แวร์',i:'💻',baseDemand:260,avgPrice:990,avgQuality:3,unitMarketingCost:400,fixedCost:18000,cogsRatio:0.18},
+  retail:{l:'ร้านค้าปลีก',i:'🛍️',baseDemand:930,avgPrice:280,avgQuality:3,unitMarketingCost:180,fixedCost:10000,cogsRatio:0.55},
+};
+const BIZ_COMP_STRATS={
+  cost_leader:{l:'Cost Leader',i:'💲',priceMul:0.75,qualityMul:0.85,marketingMul:0.9,rep:45},
+  premium:{l:'Premium Brand',i:'⭐',priceMul:1.35,qualityMul:1.3,marketingMul:0.8,rep:70},
+  aggressive:{l:'Aggressive Marketing',i:'📢',priceMul:1.0,qualityMul:0.95,marketingMul:1.7,rep:55},
+  niche:{l:'Niche',i:'🎯',priceMul:1.15,qualityMul:1.15,marketingMul:0.55,rep:60},
+  balanced:{l:'Balanced',i:'⚖️',priceMul:1.0,qualityMul:1.0,marketingMul:1.0,rep:50},
+};
+const BIZ_STATUS={startup:{t:'เพิ่งเริ่ม',cls:'ol-watch'},growth:{t:'กำลังโต',cls:'ol-good'},stable:{t:'คงที่',cls:'ol-good'},decline:{t:'ถดถอย',cls:'ol-risk'},distressed:{t:'วิกฤต',cls:'ol-danger'},closed:{t:'ปิดกิจการแล้ว',cls:'ol-danger'}};
+
+const simStartBusiness=(sim,name,industryKey,startCapital)=>{
+  const ind=BIZ_INDUSTRIES[industryKey];
+  const chosen=Object.keys(BIZ_COMP_STRATS).sort(()=>Math.random()-0.5).slice(0,4);
+  const competitors=chosen.map((k,i)=>{
+    const st=BIZ_COMP_STRATS[k];
+    return{id:'c'+i,name:`คู่แข่ง ${st.l}`,strategy:k,
+      price:Math.round(ind.avgPrice*st.priceMul*(0.9+Math.random()*0.2)),
+      quality:Math.max(1,Math.min(5,Math.round(ind.avgQuality*st.qualityMul))),
+      marketing:Math.round(40*st.marketingMul),reputation:st.rep,
+      marketShare:0,lastReactMonth:sim.currentDate};
+  });
+  sim.player.cash-=startCapital;
+  sim.player.business={
+    name,industry:industryKey,status:'startup',
+    cash:startCapital,price:ind.avgPrice,quality:ind.avgQuality,marketing:30,capacity:70,
+    reputation:50,marketShare:0,monthsOpen:0,profitHistory:[],
+    competitors,priceWar:{active:false,monthsLeft:0,cooldown:0},
+  };
+  simLog(sim,'🏢',`เปิดธุรกิจใหม่: "${name}"`,`${ind.i} ${ind.l} — ทุนเริ่มต้น ${FM.cur(startCapital)}`);
+};
+
+// Market Attractiveness Score (ย่อจาก spec 6 องค์ประกอบเหลือ 5 — รวม Brand+Satisfaction เป็น reputation ตัวเดียว)
+const bizAttractiveness=(p,avgPrice)=>{
+  const priceScore=Math.min(100,(avgPrice/Math.max(1,p.price))*50);
+  const qualityScore=(p.quality/5)*100;
+  const marketingScore=Math.sqrt(Math.max(0,p.marketing))*10; // diminishing returns (spec ข้อ 9)
+  const brandScore=p.reputation;
+  const availabilityScore=p.capacity??80;
+  return Math.max(1,priceScore+qualityScore+marketingScore+brandScore+availabilityScore);
+};
+
+const simBizCompetitorAI=(sim,biz,ind,avgPrice)=>{
+  biz.competitors.forEach(c=>{
+    if(simMonthsBetween(c.lastReactMonth,sim.currentDate)<2)return; // Reaction Delay + Strategy Cooldown (spec ข้อ 5)
+    const priceGapPct=(avgPrice-biz.price)/avgPrice;
+    let reacted=false;
+    if(c.strategy==='cost_leader'&&priceGapPct>0.15&&biz.marketShare>c.marketShare){
+      c.price=Math.max(Math.round(c.price*0.92),Math.round(ind.avgPrice*0.4));reacted=true;
+    }else if(c.strategy==='premium'&&biz.quality>=c.quality){
+      c.marketing=Math.min(100,Math.round(c.marketing*1.15));reacted=true;
+    }else if(c.strategy==='aggressive'){
+      c.marketing=Math.min(100,Math.round(c.marketing*(1+Math.random()*0.2)));reacted=true;
+    }else if(Math.random()<0.15){
+      c.price=Math.round(c.price*(0.97+Math.random()*0.06));reacted=true;
+    }
+    if(reacted)c.lastReactMonth=sim.currentDate;
+  });
+};
+const simBizPriceWarCheck=(sim,biz,avgPrice)=>{
+  const pw=biz.priceWar;
+  if(pw.active){
+    pw.monthsLeft--;
+    if(pw.monthsLeft<=0||biz.price>=avgPrice*0.92){pw.active=false;pw.cooldown=3;simLog(sim,'🏳️','Price War จบลง',`"${biz.name}" กลับสู่ภาวะปกติ`);}
+    return;
+  }
+  if(pw.cooldown>0){pw.cooldown--;return;}
+  const costLeaderReacted=biz.competitors.some(c=>c.strategy==='cost_leader'&&simMonthsBetween(c.lastReactMonth,sim.currentDate)<=1);
+  if(biz.price<avgPrice*0.85&&costLeaderReacted){pw.active=true;pw.monthsLeft=4;simLog(sim,'⚔️','เกิด Price War!',`คู่แข่งเริ่มลดราคาแข่งเพราะ "${biz.name}" ตัดราคาต่อเนื่อง`);}
+};
+const simBizLifecycle=(sim,biz,ind)=>{
+  const burn=ind.fixedCost+(biz.marketing*ind.unitMarketingCost/10);
+  const runway=burn>0?biz.cash/burn:Infinity;
+  const avgProfit3=biz.profitHistory.slice(0,3).reduce((s,x)=>s+x,0)/Math.min(3,biz.profitHistory.length||1);
+  let status;
+  if(biz.monthsOpen<=6)status='startup';
+  else if(runway<3)status='distressed';
+  else if(avgProfit3>0&&biz.marketShare>=(biz._lastShare??biz.marketShare))status='growth';
+  else if(avgProfit3>=0)status='stable';
+  else status='decline';
+  if(status!==biz.status){simLog(sim,'📊',`สถานะธุรกิจเปลี่ยนเป็น "${BIZ_STATUS[status].t}"`,`"${biz.name}"`);biz.status=status;}
+  biz._lastShare=biz.marketShare;
+};
+// เงินสดธุรกิจติดลบ → ต้องตัดสินใจก่อนเดินเวลาต่อ ไม่ Game Over ทันที (concept ข้อ 10)
+const simBizDistressDecision=(sim,biz)=>{
+  const need=Math.min(sim.player.cash,Math.abs(biz.cash)+10000);
+  sim.pendingDecision={eventId:'biz_distress',title:`⚠️ ธุรกิจ "${biz.name}" ขาดสภาพคล่อง`,
+    msg:`เงินสดธุรกิจติดลบ ${FM.cur(Math.abs(biz.cash))} ต้องตัดสินใจก่อนเดินเวลาต่อ`,
+    choices:[
+      {id:'inject',label:`เพิ่มทุนจากเงินส่วนตัว (-${FM.cur(need)})`,apply:s=>{s.player.cash-=need;biz.cash+=need;simLog(s,'💰','เพิ่มทุนให้ธุรกิจ',`-${FM.cur(need)} จากเงินส่วนตัว`);}},
+      {id:'cut',label:'ลดต้นทุน (ตัด Marketing เหลือ 0 เดือนนี้)',apply:s=>{biz.marketing=0;simLog(s,'✂️','ลดต้นทุนฉุกเฉิน','ตัด Marketing เหลือ 0');}},
+      {id:'close',label:'ปิดกิจการ',apply:s=>{if(biz.cash>0)s.player.cash+=biz.cash;simLog(s,'🚪',`ปิดกิจการ "${biz.name}"`,'');s.player.business=null;}},
+    ]};
+  simLog(sim,'⚠️',`ธุรกิจ "${biz.name}" ขาดสภาพคล่อง`,'รอการตัดสินใจของคุณ');
+};
+const simStepBusiness=sim=>{
+  const biz=sim.player.business;if(!biz||biz.status==='closed')return;
+  const ind=BIZ_INDUSTRIES[biz.industry];
+  biz.monthsOpen++;
+  const all=[biz,...biz.competitors];
+  const avgPrice=all.reduce((s,p)=>s+p.price,0)/all.length;
+  const scores=all.map(p=>bizAttractiveness(p,avgPrice));
+  const totalScore=scores.reduce((s,x)=>s+x,0);
+  const OTHER_MARKET_PCT=12; // กันไว้ให้ผู้เล่นรายเล็กนอกโมเดล (ดูตัวอย่างใน spec: Other Market 15%) — กัน share รวมเกิน 100%
+  const shares=scores.map(s=>(s/totalScore)*(100-OTHER_MARKET_PCT));
+  biz.marketShare=shares[0];
+  biz.competitors.forEach((c,i)=>c.marketShare=shares[i+1]);
+
+  const demandMul=Math.max(0.3,sim.economy.demand/60);
+  const totalMarketRevenue=ind.baseDemand*ind.avgPrice*demandMul*(biz.priceWar.active?1.1:1);
+  const revenue=totalMarketRevenue*(biz.marketShare/100);
+  const marketingCost=biz.marketing*ind.unitMarketingCost/10;
+  const cogs=revenue*ind.cogsRatio;
+  const profit=revenue-ind.fixedCost-marketingCost-cogs;
+  biz.cash+=profit;
+  biz.profitHistory.unshift(profit);if(biz.profitHistory.length>12)biz.profitHistory.length=12;
+  simLog(sim,profit>=0?'🏢':'⚠️',`ผลประกอบการ "${biz.name}"`,`รายรับ ${FM.cur(revenue)} ต้นทุนรวม ${FM.cur(ind.fixedCost+marketingCost+cogs)} → ${profit>=0?'กำไร':'ขาดทุน'} ${FM.cur(Math.abs(profit))}`);
+
+  simBizCompetitorAI(sim,biz,ind,avgPrice);
+  simBizPriceWarCheck(sim,biz,avgPrice);
+  simBizLifecycle(sim,biz,ind);
+  if(biz.cash<0&&!sim.pendingDecision)simBizDistressDecision(sim,biz);
+};
+
+// ── Player actions (การตัดสินใจของผู้เล่น — engine เท่านั้นที่แก้ state ได้) ──
+const simBizSetPrice=(sim,val)=>{sim.player.business.price=Math.max(1,+val||1);save();renderSimRoot();};
+const simBizSetMarketing=(sim,val)=>{sim.player.business.marketing=Math.max(0,Math.min(100,+val||0));save();renderSimRoot();};
+const simBizInvestQuality=sim=>{
+  const biz=sim.player.business;if(!biz||biz.quality>=5)return;
+  const cost=5000*biz.quality;
+  if(biz.cash<cost){modal('เงินสดธุรกิจไม่พอ',`ต้องใช้ ${FM.cur(cost)} เพื่อยกระดับคุณภาพ`);return;}
+  biz.cash-=cost;biz.quality=Math.min(5,biz.quality+1);
+  simLog(sim,'⭐','ยกระดับคุณภาพสินค้า/บริการ',`Quality → ${biz.quality}/5 (-${FM.cur(cost)} จากเงินสดธุรกิจ)`);
+  save();renderSimRoot();
+};
+const simBizWithdraw=sim=>{
+  const biz=sim.player.business;if(!biz)return;
+  const amt=Math.round(biz.cash*0.5);
+  if(amt<=0){modal('ไม่มีเงินสดให้ถอน','เงินสดธุรกิจไม่พอถอน');return;}
+  biz.cash-=amt;sim.player.cash+=amt;
+  simLog(sim,'💰','ถอนเงินปันผลจากธุรกิจ',`+${FM.cur(amt)} เข้าเงินส่วนตัว`);
+  save();renderSimRoot();
+};
+const simBizCloseVoluntary=sim=>{
+  const biz=sim.player.business;if(!biz)return;
+  if(biz.cash>0)sim.player.cash+=biz.cash;
+  simLog(sim,'🚪',`ปิดกิจการ "${biz.name}" (ตัดสินใจเอง)`,'');
+  sim.player.business=null;save();renderSimRoot();
+};
+const simStartBusinessFromForm=sim=>{
+  const name=document.getElementById('bizName').value.trim();
+  const industry=document.getElementById('bizIndustry').value;
+  const capital=FM.parse(document.getElementById('bizCapital').value);
+  if(!name){modal('ยังไม่ได้ตั้งชื่อ','กรุณาตั้งชื่อธุรกิจก่อน');return;}
+  if(capital<=0||capital>sim.player.cash){modal('ทุนไม่ถูกต้อง',`ทุนต้องมากกว่า 0 และไม่เกินเงินสดที่มี (${FM.cur(sim.player.cash)})`);return;}
+  simStartBusiness(sim,name,industry,capital);
+  celebrate('🏢','เปิดธุรกิจแล้ว!','เริ่มแข่งขันในตลาดได้เลย');
+  save();renderSimRoot();
+};
+
+// 🤖 AI Advisor (concept ข้อ 15) — วิเคราะห์/อธิบาย/เตือนความเสี่ยงจากตัวเลข engine ตรงๆ ห้ามสร้างตัวเลขเอง
+const bizAdvisorInsights=sim=>{
+  const biz=sim.player.business;if(!biz)return[];
+  const ind=BIZ_INDUSTRIES[biz.industry];
+  const burn=ind.fixedCost+(biz.marketing*ind.unitMarketingCost/10);
+  const runway=burn>0?biz.cash/burn:Infinity;
+  const ins=[];
+  if(runway<3)ins.push({i:'🚨',t:`Cash Runway เหลือ ${runway.toFixed(1)} เดือน — เสี่ยงขาดสภาพคล่องสูง ควรลด Marketing หรือเพิ่มทุนก่อนถึงจุดวิกฤต`});
+  else if(runway<6)ins.push({i:'⚠️',t:`Cash Runway ${runway.toFixed(1)} เดือน — เริ่มตึง ควรจับตากระแสเงินสดใกล้ชิด`});
+  const avgCompPrice=biz.competitors.reduce((s,c)=>s+c.price,0)/biz.competitors.length;
+  if(biz.price<avgCompPrice*0.8)ins.push({i:'💲',t:`ราคาคุณต่ำกว่าค่าเฉลี่ยตลาด ${Math.round((1-biz.price/avgCompPrice)*100)}% — ได้ market share เพิ่ม แต่ margin จะบางลง`});
+  if(biz.priceWar.active)ins.push({i:'⚔️',t:'กำลังอยู่ในภาวะ Price War — คู่แข่งบางรายอาจถอนตัวถ้าเงินทุนไม่พอ หรือคุณอาจต้องขึ้นราคาก่อนเงินสดหมด'});
+  const topComp=[...biz.competitors].sort((a,b)=>b.marketShare-a.marketShare)[0];
+  if(topComp&&topComp.marketShare>biz.marketShare*1.5)ins.push({i:'⚔️',t:`"${topComp.name}" ครองส่วนแบ่งตลาดมากกว่าคุณเกือบเท่าตัว (${topComp.marketShare.toFixed(0)}% เทียบกับ ${biz.marketShare.toFixed(0)}%)`});
+  const avgProfit3=biz.profitHistory.slice(0,3).reduce((s,x)=>s+x,0)/Math.min(3,biz.profitHistory.length||1);
+  if(avgProfit3<0)ins.push({i:'📉',t:`กำไรเฉลี่ย 3 เดือนล่าสุดติดลบ ${FM.cur(Math.abs(avgProfit3))}/เดือน — ต้นทุนคงที่รวมต้นทุนขายอาจสูงกว่ารายรับที่ทำได้จริง`});
+  if(!ins.length)ins.push({i:'✅',t:'ตัวเลขธุรกิจโดยรวมยังอยู่ในเกณฑ์ปกติ ไม่มีความเสี่ยงเร่งด่วนตอนนี้'});
+  return ins.slice(0,5);
+};
+const renderBizDashboard=sim=>{
+  const biz=sim.player.business;
+  const ind=BIZ_INDUSTRIES[biz.industry];
+  const st=BIZ_STATUS[biz.status];
+  const burn=ind.fixedCost+(biz.marketing*ind.unitMarketingCost/10);
+  const runway=burn>0?biz.cash/burn:Infinity;
+  const advisor=bizAdvisorInsights(sim);
+  return`
+  <div class="card">
+    <div class="ch"><div class="ct"><div class="ci" style="background:rgba(16,185,129,.1)">${ind.i}</div><span>${esc(biz.name)}</span></div><span class="ol-badge ${st.cls}">${st.t}</span></div>
+    ${biz.priceWar.active?'<div class="pill mb2" style="background:rgba(239,68,68,.12);color:var(--r)">⚔️ อยู่ในภาวะ Price War</div>':''}
+    <div class="srow">
+      <div class="sb sg"><div class="sl">เงินสดธุรกิจ</div><div class="sv">${FM.cur(biz.cash)}</div></div>
+      <div class="sb sbl"><div class="sl">Market Share</div><div class="sv">${biz.marketShare.toFixed(1)}%</div></div>
+    </div>
+    <div class="g2 mt1 mb2">
+      <div class="pr"><span class="fxs tm">⏳ Cash Runway</span><strong class="fxs">${isFinite(runway)?runway.toFixed(1)+' เดือน':'∞'}</strong></div>
+      <div class="pr"><span class="fxs tm">📅 เปิดมา</span><strong class="fxs">${biz.monthsOpen} เดือน</strong></div>
+    </div>
+    <div class="fg"><label class="fl">ราคา (${FM.cur(biz.price)})</label><input type="range" min="${Math.round(ind.avgPrice*0.4)}" max="${Math.round(ind.avgPrice*2)}" value="${biz.price}" oninput="simBizSetPrice(simActive(),this.value)"></div>
+    <div class="fg"><label class="fl">Marketing (${biz.marketing}/100)</label><input type="range" min="0" max="100" value="${biz.marketing}" oninput="simBizSetMarketing(simActive(),this.value)"></div>
+    <div class="chiprow mb2">
+      <button class="btn bO bSm" onclick="simBizInvestQuality(simActive())">⭐ ยกระดับคุณภาพ (${biz.quality}/5)</button>
+      <button class="btn bO bSm" onclick="simBizWithdraw(simActive())">💰 ถอนปันผล 50%</button>
+      <button class="btn bGh bSm" onclick="simBizCloseVoluntary(simActive())">🚪 ปิดกิจการ</button>
+    </div>
+    <div class="slbl">คู่แข่งในตลาด</div>
+    ${biz.competitors.map(c=>{const cs=BIZ_COMP_STRATS[c.strategy];return`<div class="li"><div class="lib"><div class="lin">${cs.i} ${esc(c.name)}</div><div class="lim">ราคา ${FM.cur(c.price)} · Quality ${c.quality}/5</div></div><span class="lia">${c.marketShare.toFixed(1)}%</span></div>`;}).join('')}
+  </div>
+  <div class="card">
+    <div class="ct mb2"><div class="ci" style="background:rgba(139,92,246,.1)">🤖</div><span>AI Advisor</span></div>
+    ${advisor.map(x=>`<div class="ins-item"><div class="ins-ico">${x.i}</div><div class="ins-body"><div class="ins-d">${esc(x.t)}</div></div></div>`).join('')}
+  </div>`;
+};
 
 /* ── Render ── */
 const renderSimRoot=()=>{
@@ -2167,13 +2610,28 @@ const simSetNewMode=m=>{
   document.getElementById('simModeCustomBtn').classList.toggle('on',m==='custom');
   document.getElementById('simCustomBox').style.display=m==='custom'?'':'none';
 };
+// 🧭 เส้นทางกลยุทธ์ — ไม่มีทางไหนถูกตายตัว ทุกทางมี mechanic+trade-off จริงใน simStepAutopilot/simStepInvestment
+const SIM_STRATEGIES={
+  manual:{i:'👔',t:'ทำงาน & สะสมเงิน',d:'เก็บเงินสดไว้เอง ไม่มีระบบอัตโนมัติ — ปลอดภัยสุด แต่โตช้าสุดถ้าไม่ตัดสินใจอะไรเพิ่ม'},
+  invest:{i:'📈',t:'เน้นลงทุน',d:'ลงทุนอัตโนมัติ 50% ของเงินสดคงเหลือทุกเดือน — โอกาสโตเร็วกว่า แต่เงินสดสำรองจะบางลง'},
+  debt:{i:'💳',t:'เน้นล้างหนี้',d:'ผ่อนหนี้ดอกเบี้ยสูงสุดเพิ่มอัตโนมัติ 50% ของเงินสดคงเหลือ — ลดภาระดอกเบี้ยเร็ว แต่สภาพคล่องระยะสั้นตึงกว่า'},
+  risk:{i:'⚠️',t:'รับความเสี่ยงสูง',d:'ผลตอบแทนการลงทุนผันผวนสูงกว่าปกติ (ทั้งขึ้นและลง) — ไม่มีระบบรับประกันกำไร'},
+};
+let simNewStrategy='manual';
+const simSetNewStrategy=s=>{simNewStrategy=s;renderSimStrategyPicker();};
+const renderSimStrategyPicker=()=>{
+  const el=document.getElementById('simStratPicker');if(!el)return;
+  el.innerHTML=Object.entries(SIM_STRATEGIES).map(([k,v])=>
+    `<button class="ptp ${simNewStrategy===k?'on':''}" style="flex:1 1 45%" onclick="simSetNewStrategy('${k}')">${v.i} ${v.t}</button>`).join('')
+    +`<div class="fxs tm mt1" style="flex-basis:100%">${esc(SIM_STRATEGIES[simNewStrategy].d)}</div>`;
+};
 const simCreateWorldFromForm=()=>{
   const name=document.getElementById('simNewName').value.trim();
   if(!name){modal('ยังไม่ได้ตั้งชื่อ','กรุณาตั้งชื่อโลกจำลองก่อน');return;}
   if(simNewMode==='actual'){
     const s=computeSurplus();
     if(!s.ready){modal('ข้อมูลไม่พอ','กรุณากรอกรายรับที่หน้าหลักก่อน ถึงจะดึงข้อมูลจริงมาตั้งต้นได้');return;}
-    simCreateWorld(name,'actual');
+    simCreateWorld(name,'actual',null,simNewStrategy);
   }else{
     simCreateWorld(name,'custom',{
       cash:FM.parse(document.getElementById('simCCash').value),
@@ -2181,11 +2639,13 @@ const simCreateWorldFromForm=()=>{
       expenses:FM.parse(document.getElementById('simCExpense').value),
       debt:FM.parse(document.getElementById('simCDebt').value),
       investment:FM.parse(document.getElementById('simCInvest').value),
-    });
+    },simNewStrategy);
   }
   celebrate('🌍','สร้างโลกจำลองแล้ว!','เริ่มเดินเวลาเพื่อดูอนาคตได้เลย');
   renderSimRoot();
 };
+// เปลี่ยนกลยุทธ์ระหว่างเล่น — concept ข้อ 14 "ปรับกลยุทธ์" ได้ตลอด ไม่ล็อกตั้งแต่ต้น
+const simSetStrategy=(sim,strat)=>{sim.strategy=strat;simLog(sim,'🧭','เปลี่ยนกลยุทธ์',`เป็น "${SIM_STRATEGIES[strat].t}"`);save();renderSimRoot();};
 
 const renderSimListInto=el=>{
   const rows=S.simWorlds.map(w=>{
@@ -2222,8 +2682,11 @@ const renderSimListInto=el=>{
           <div class="fg"><label class="fl">เงินลงทุนตั้งต้น (฿)</label><div class="ipr"><span class="pre">฿</span><input type="text" inputmode="decimal" id="simCInvest" class="inp" placeholder="0" oninput="FM.clean(this)"></div></div>
         </div>
       </div>
+      <div class="slbl mt2">เส้นทางกลยุทธ์ — ไม่มีทางไหนถูกตายตัว เปลี่ยนภายหลังได้เสมอ</div>
+      <div class="chiprow" id="simStratPicker" style="align-items:flex-start"></div>
       <button class="btn bP bFull mt2" onclick="simCreateWorldFromForm()">+ สร้างโลกจำลอง</button>
     </div>`;
+  simNewStrategy='manual';renderSimStrategyPicker();
 };
 
 const renderSimActiveInto=(el,sim)=>{
@@ -2231,6 +2694,8 @@ const renderSimActiveInto=(el,sim)=>{
   const debtTotal=sim.player.debts.reduce((s,d)=>s+d.remaining,0);
   const econ=sim.economy;
   const econBadge={growth:{i:'🟢',t:'Growth'},stable:{i:'🟡',t:'Stable'},slowdown:{i:'🟠',t:'Slowdown'},recession:{i:'🔴',t:'Recession'}}[econ.status];
+  const hp=simHealthScore(sim);
+  const strat=SIM_STRATEGIES[sim.strategy];
   el.innerHTML=`
     <button class="btn bO bSm mb2" onclick="simBackToList()">← กลับรายการโลกจำลอง</button>
     <div class="pttl" style="margin-bottom:4px">🌍 ${esc(sim.name)} <span class="ol-badge ${st.cls}" style="margin-left:6px;vertical-align:middle">${st.t}</span></div>
@@ -2239,7 +2704,7 @@ const renderSimActiveInto=(el,sim)=>{
     <div class="cols2">
     <div>
       <div class="card">
-        <div class="ct mb2"><div class="ci" style="background:rgba(139,92,246,.1)">👤</div><span>สถานะผู้เล่น</span></div>
+        <div class="ch"><div class="ct"><div class="ci" style="background:rgba(139,92,246,.1)">👤</div><span>สถานะผู้เล่น</span></div><span class="ol-badge ${hp.tier.cls}">🩺 ${hp.tier.t}</span></div>
         <div class="srow">
           <div class="sb sg"><div class="sl">เงินสด</div><div class="sv">${FM.cur(sim.player.cash)}</div></div>
           <div class="sb sr"><div class="sl">หนี้รวม</div><div class="sv">${FM.cur(debtTotal)}</div></div>
@@ -2249,7 +2714,30 @@ const renderSimActiveInto=(el,sim)=>{
           <div class="sb sy"><div class="sl">มูลค่าลงทุน</div><div class="sv">${FM.cur(sim.player.investment.value)}</div></div>
         </div>
         <div class="bal"><div class="bal-l">Net Worth (สินทรัพย์สุทธิ)</div><div class="bal-n ${sim.player.netWorth>=0?'bpos':'bneg'}">${FM.cur(sim.player.netWorth)}</div></div>
+        <div class="g2 mt2">
+          <div class="pr"><span class="fxs tm">💵 กระแสเงินสด/เดือน</span><strong class="fxs ${hp.monthCashFlow>=0?'tp':'tr2'}">${hp.monthCashFlow>=0?'+':''}${FM.cur(hp.monthCashFlow)}</strong></div>
+          <div class="pr"><span class="fxs tm">⏳ เงินสดอยู่ได้อีก (Runway)</span><strong class="fxs">${isFinite(hp.runway)?hp.runway.toFixed(1)+' เดือน':'∞'}</strong></div>
+        </div>
+        <p class="fxs tm mt1">Net Worth สูงไม่ได้แปลว่าปลอดภัยเสมอไป — ดู Cash Flow/Runway ควบคู่กันเสมอ</p>
       </div>
+
+      <div class="card">
+        <div class="ct mb2"><div class="ci" style="background:rgba(139,92,246,.1)">🧭</div><span>เส้นทางกลยุทธ์</span></div>
+        <p class="fsm mb2"><strong>${strat.i} ${strat.t}</strong> — ${esc(strat.d)}</p>
+        <div class="chiprow">${Object.entries(SIM_STRATEGIES).filter(([k])=>k!==sim.strategy).map(([k,v])=>`<button class="qchip" onclick="simSetStrategy(simActive(),'${k}')">เปลี่ยนเป็น ${v.i} ${v.t}</button>`).join('')}</div>
+      </div>
+
+      ${!sim.player.business?`
+      <div class="card">
+        <div class="ct mb2"><div class="ci" style="background:rgba(16,185,129,.1)">🏢</div><span>เปิดธุรกิจใหม่</span></div>
+        <p class="fxs tm mb2">เข้าสู่ตลาดจริงที่มีคู่แข่งแข่งขันด้วย — ราคา/คุณภาพ/การตลาดของคุณมีผลต่อ Market Share จริง (concept ข้อ 6/7)</p>
+        <div class="fg"><label class="fl">ชื่อธุรกิจ</label><input type="text" id="bizName" class="inp" placeholder="เช่น ร้านก๋วยเตี๋ยวนัว"></div>
+        <div class="fg"><label class="fl">อุตสาหกรรม</label>
+          <select id="bizIndustry" class="inp">${Object.entries(BIZ_INDUSTRIES).map(([k,v])=>`<option value="${k}">${v.i} ${v.l}</option>`).join('')}</select>
+        </div>
+        <div class="fg"><label class="fl">ทุนเริ่มต้น (฿) — หักจากเงินสดส่วนตัว</label><div class="ipr"><span class="pre">฿</span><input type="text" inputmode="decimal" id="bizCapital" class="inp" placeholder="50000" oninput="FM.clean(this)"></div></div>
+        <button class="btn bG bFull" onclick="simStartBusinessFromForm(simActive())">+ เปิดธุรกิจ</button>
+      </div>`:renderBizDashboard(sim)}
 
       <div class="card">
         <div class="ct mb2"><div class="ci" style="background:rgba(59,130,246,.1)">🌐</div><span>เศรษฐกิจจำลอง</span></div>
@@ -2265,16 +2753,34 @@ const renderSimActiveInto=(el,sim)=>{
 
       <div class="card">
         <div class="ct mb2"><div class="ci" style="background:rgba(245,158,11,.1)">⏱️</div><span>เดินเวลา</span></div>
+        <div class="rt-clock mb2" style="justify-content:space-between">
+          <div style="display:flex;align-items:center;gap:8px">
+            ${sim.realTime.enabled?'<span class="ol-badge ol-good">🟢 LIVE</span>':'<span class="ol-badge ol-watch">⏸ Manual</span>'}
+            <span class="rt-time" id="simRTClock">${new Date().toLocaleTimeString('th-TH')}</span>
+          </div>
+          <button class="btn bSm ${sim.realTime.enabled?'bO':'bP'}" onclick="simRTToggle(simActive())">${sim.realTime.enabled?'⏸ ปิด Real-Time':'▶ เปิด Real-Time'}</button>
+        </div>
+        ${sim.realTime.enabled?`
+        <div class="fg">
+          <label class="fl">ความเร็วเวลา (1 เดือนในเกม = กี่นาทีจริง)</label>
+          <select class="inp" onchange="simRTSetScale(simActive(),this.value)">
+            ${[1,5,15,60,360,1440].map(m=>`<option value="${m}" ${sim.realTime.scaleMinutesPerMonth===m?'selected':''}>${m<60?m+' นาที':m<1440?(m/60)+' ชั่วโมง':'1 วัน'} / เดือน</option>`).join('')}
+          </select>
+        </div>
+        <div class="pbw mb1"><div class="pbh"><span class="fxs tm">ความคืบหน้าสู่เดือนถัดไป</span></div><div class="pbb"><div class="pbf kok" id="simRTBar" style="width:0%"></div></div></div>
+        <div class="fxs tm mb2">⏱️ ประมวลผลล่าสุด: ${new Date(sim.realTime.lastProcessedAt).toLocaleString('th-TH')}</div>`:'<p class="fxs tm mb2">โหมด Manual — กดปุ่มด้านล่างเพื่อเดินเวลาเอง หรือเปิด Real-Time ให้เวลาเดินตามเวลาจริง</p>'}
         ${sim.pendingDecision?'<p class="fxs tr2 mb2">⚠️ มีเหตุการณ์รอการตัดสินใจ — ต้องตอบก่อนเดินเวลาต่อ (ดูด้านล่าง)</p>':''}
+        ${(()=>{const dis=sim.pendingDecision||sim.realTime.enabled;const da=dis?'disabled style="opacity:.4;pointer-events:none"':'';return`
+        ${sim.realTime.enabled&&!sim.pendingDecision?'<p class="fxs tm mb2">⏱️ Real-Time เปิดอยู่ — เวลาเดินเองตามที่ตั้ง ปิด Real-Time ก่อนถ้าจะเดินเวลาเอง</p>':''}
         <div class="chiprow">
-          <button class="qchip" ${sim.pendingDecision?'disabled style="opacity:.4;pointer-events:none"':''} onclick="simAdvance(simActive(),1)">▶ 1 เดือน</button>
-          <button class="qchip" ${sim.pendingDecision?'disabled style="opacity:.4;pointer-events:none"':''} onclick="simAdvance(simActive(),3)">▶▶ 3 เดือน</button>
-          <button class="qchip" ${sim.pendingDecision?'disabled style="opacity:.4;pointer-events:none"':''} onclick="simAdvance(simActive(),12)">▶▶▶ 1 ปี</button>
+          <button class="qchip" ${da} onclick="simAdvance(simActive(),1)">▶ 1 เดือน</button>
+          <button class="qchip" ${da} onclick="simAdvance(simActive(),3)">▶▶ 3 เดือน</button>
+          <button class="qchip" ${da} onclick="simAdvance(simActive(),12)">▶▶▶ 1 ปี</button>
         </div>
         <div class="irow mt2">
-          <input type="number" id="simCustomMonths" class="inp" placeholder="กำหนดเอง (เดือน)" min="1" max="120" style="flex:1">
-          <button class="btn bP bSm" ${sim.pendingDecision?'disabled style="opacity:.4;pointer-events:none"':''} onclick="simAdvance(simActive(),+document.getElementById('simCustomMonths').value||0)">เดินเวลา</button>
-        </div>
+          <input type="number" id="simCustomMonths" class="inp" placeholder="กำหนดเอง (เดือน)" min="1" max="120" style="flex:1" ${da}>
+          <button class="btn bP bSm" ${da} onclick="simAdvance(simActive(),+document.getElementById('simCustomMonths').value||0)">เดินเวลา</button>
+        </div>`;})()}
         <div class="irow mt2">
           <button class="btn bO bFull" onclick="simSetStatus(simActive(),'${sim.status==='paused'?'active':'paused'}')">${sim.status==='paused'?'▶ Resume':'⏸ Pause'}</button>
         </div>
@@ -2306,9 +2812,25 @@ const renderSimActiveInto=(el,sim)=>{
       </div>
       <div class="card csm">
         <div class="ct mb2"><div class="ci" style="background:rgba(59,130,246,.1)">📈</div><span>Snapshot Timeline</span></div>
+        ${(()=>{
+          const pts=sim.snapshots.slice(0,12).slice().reverse(); // เก่า→ใหม่ ซ้าย→ขวา
+          if(pts.length<2)return'';
+          const vals=pts.map(p=>p.netWorth);
+          const max=Math.max(...vals,0),min=Math.min(...vals,0);
+          const range=(max-min)||1;
+          return`<div style="display:grid;grid-template-columns:repeat(${pts.length},1fr);align-items:end;gap:3px;height:90px;margin-bottom:10px">
+            ${pts.map(p=>{
+              const pct=Math.max(4,((p.netWorth-min)/range)*100);
+              return`<div style="display:flex;flex-direction:column;align-items:center;gap:2px;height:100%;justify-content:flex-end" title="${p.date}: ${FM.cur(p.netWorth)}">
+                <div style="width:100%;height:${pct}%;background:${p.netWorth>=0?'var(--p)':'var(--r)'};border-radius:4px 4px 0 0;min-height:3px"></div>
+              </div>`;
+            }).join('')}
+          </div>`;
+        })()}
+        <p class="fxs tm mb1">คลิกแถวเพื่อดู "ทำไมถึงเปลี่ยนแปลง"</p>
         <div class="tbl-wrap"><table style="width:100%;border-collapse:collapse;font-size:.74rem">
           <thead><tr style="background:var(--s2)"><th style="padding:5px 7px;text-align:left;color:var(--mt);font-weight:700">เดือน</th><th style="padding:5px 7px;text-align:right;color:var(--mt);font-weight:700">Net Worth</th><th style="padding:5px 7px;text-align:right;color:var(--mt);font-weight:700">หนี้</th></tr></thead>
-          <tbody>${sim.snapshots.slice(0,12).map(sn=>`<tr><td style="padding:4px 7px;border-bottom:1px solid var(--bdr)">${sn.date}</td><td style="padding:4px 7px;border-bottom:1px solid var(--bdr);text-align:right;color:${sn.netWorth>=0?'var(--p2)':'var(--r)'}">${FM.compact(sn.netWorth)}</td><td style="padding:4px 7px;border-bottom:1px solid var(--bdr);text-align:right">${sn.debt>0?FM.compact(sn.debt):'—'}</td></tr>`).join('')}</tbody>
+          <tbody>${sim.snapshots.slice(0,12).map(sn=>`<tr style="cursor:pointer" onclick="simShowMonthBreakdown('${sn.date}')"><td style="padding:4px 7px;border-bottom:1px solid var(--bdr)">${sn.date}</td><td style="padding:4px 7px;border-bottom:1px solid var(--bdr);text-align:right;color:${sn.netWorth>=0?'var(--p2)':'var(--r)'}">${FM.compact(sn.netWorth)}</td><td style="padding:4px 7px;border-bottom:1px solid var(--bdr);text-align:right">${sn.debt>0?FM.compact(sn.debt):'—'}</td></tr>`).join('')}</tbody>
         </table></div>
       </div>
     </div>
