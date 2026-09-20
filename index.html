@@ -743,7 +743,17 @@ input[type=range]::-moz-range-track{background:var(--bg2);height:6px;border-radi
 
 <!-- ════════════ 2. 🔮 อนาคต ════════════ -->
 <div class="sec" id="s-outlook">
-  <div class="pttl">🔮 การเงินของคุณในอีก 5 เดือน</div>
+  <div class="pttl" id="olTitle">🔮 การเงินของคุณในอีก 5 เดือน</div>
+  <div class="card csm" id="olPicker">
+    <div class="slbl">ช่วงเวลาที่ต้องการคาดการณ์</div>
+    <div class="chiprow" id="olChips"></div>
+    <div style="display:grid;grid-template-columns:minmax(0,1fr) 96px;gap:7px">
+      <div class="fg" style="margin:0"><label class="fl">กำหนดเอง</label><input type="number" min="1" step="1" inputmode="numeric" id="olSpanVal" class="inp" placeholder="เช่น 18"></div>
+      <div class="fg" style="margin:0"><label class="fl">หน่วย</label><select id="olSpanUnit" class="inp"><option value="m">เดือน</option><option value="y">ปี</option></select></div>
+      <button class="btn bP bFull" style="grid-column:1/-1" onclick="applyOlSpan()">คาดการณ์</button>
+    </div>
+    <div class="fxs tm mt2" id="olSpanHint"></div>
+  </div>
   <div id="olBody"></div>
 </div>
 <!-- END อนาคต -->
@@ -918,6 +928,8 @@ let S={
   // legacy: ข้อมูลของฟีเจอร์คำนวณค่าแรงเดิม ไม่มีหน้าจอไหนใช้แล้ว แต่เก็บผ่านไว้
   // เพื่อไม่ลบข้อมูลเก่าของผู้ใช้ทิ้ง และให้ไฟล์ backup รุ่นก่อนยัง restore ได้
   legacyWage:null,
+  // 🔮 ช่วงคาดการณ์หน้าอนาคต (หน่วยเป็นเดือน, 1–OL_MAX_MONTHS)
+  outlookMonths:5,
   // 💰 แผนลงทุน — ดู computeSurplus/computeBuffer/computeInvestAmount
   investPlan:{
     bufferMode:'percent',bufferFixed:0,bufferPercent:20,
@@ -946,6 +958,7 @@ const load=()=>{
       transactions:p.transactions||[],
       legacyWage:p.legacyWage??(p.paySettings?{paySettings:p.paySettings,payHistory:p.payHistory||[]}:null),
       investPlan:{...S.investPlan,...(p.investPlan||{})},
+      outlookMonths:olClampMonths(p.outlookMonths),
     });
   }catch(e){}
 };
@@ -1271,6 +1284,11 @@ const clearArr=key=>{S[key]=[];save();if(key==='otherIncomes')renderIncList();el
    คิดดอกเบี้ยทบต้นรายเดือนด้วยสูตรเดียวกับการ์ดหนี้สิน (monthsToPayoff) เพื่อให้ตัวเลขสองที่ตรงกัน
 ════════════════════════════════ */
 const OL_MONTHS=5;
+const OL_MAX_MONTHS=1200; // 100 ปี — เพดานกันหน้าจอค้าง (คำนวณเองเบามาก แต่ต้องมีขอบเขต)
+const olClampMonths=v=>{const n=Math.floor(+v);return n>=1?Math.min(n,OL_MAX_MONTHS):OL_MONTHS};
+// ป้ายช่วงเวลาอ่านง่าย: 5 เดือน / 1 ปี / 2 ปี 6 เดือน
+const olSpanLabel=n=>{const y=Math.floor(n/12),m=n%12;return y===0?`${n} เดือน`:m===0?`${y} ปี`:`${y} ปี ${m} เดือน`};
+const OL_PRESETS=[3,5,6,12,24,36,60,120];
 const TH_MONTHS_FULL=['มกราคม','กุมภาพันธ์','มีนาคม','เมษายน','พฤษภาคม','มิถุนายน','กรกฎาคม','สิงหาคม','กันยายน','ตุลาคม','พฤศจิกายน','ธันวาคม'];
 // ชื่อเดือนไทย + พ.ศ. นับจากเดือนปัจจุบัน (off=0 คือเดือนนี้, off=1 คือเดือนหน้า)
 const olMonthLabel=off=>{const n=new Date(),d=new Date(n.getFullYear(),n.getMonth()+off,1);return`${TH_MONTHS_FULL[d.getMonth()]} ${d.getFullYear()+543}`};
@@ -1393,7 +1411,7 @@ const computeOutlook=(investPlan,monthsCount)=>{
 const renderOutlookHero=o=>{
   const el=document.getElementById('outlookHero');if(!el)return;
   if(!o.ready){
-    el.innerHTML=`<div class="ol-hero"><div class="ol-hero-top"><div class="ct" style="margin:0"><div class="ci" style="background:rgba(139,92,246,.12)">🔮</div><span>ภาพรวม 5 เดือนข้างหน้า</span></div></div>
+    el.innerHTML=`<div class="ol-hero"><div class="ol-hero-top"><div class="ct" style="margin:0"><div class="ci" style="background:rgba(139,92,246,.12)">🔮</div><span>ภาพรวม ${olSpanLabel(o.months.length)}ข้างหน้า</span></div></div>
       <p class="fsm tm" style="position:relative;z-index:1;margin-bottom:8px">ยังคาดการณ์ไม่ได้ เพราะยังไม่มีข้อมูลรายรับ</p>
       <ul class="ol-src" style="position:relative;z-index:1;padding-left:16px;margin:0">${o.missing.map(m=>`<li>${m}</li>`).join('')}</ul></div>`;
     return;
@@ -1401,14 +1419,14 @@ const renderOutlookHero=o=>{
   const st=OL_STATUS[o.status];
   el.innerHTML=`<div class="ol-hero">
     <div class="ol-hero-top">
-      <div class="ct" style="margin:0"><div class="ci" style="background:rgba(139,92,246,.12)">🔮</div><span>ภาพรวม 5 เดือนข้างหน้า</span></div>
+      <div class="ct" style="margin:0"><div class="ci" style="background:rgba(139,92,246,.12)">🔮</div><span>ภาพรวม ${olSpanLabel(o.months.length)}ข้างหน้า</span></div>
       <span class="ol-badge ${st.cls}">${st.i} ${st.t}</span>
     </div>
     <div class="ol-grid">
       <div class="ol-cell"><div class="ol-l">เงินคงเหลือปัจจุบัน</div><div class="ol-v ${o.startBalance>=0?'tp':'tr2'}">${FM.cur(o.startBalance)}</div></div>
-      <div class="ol-cell"><div class="ol-l">คาดการณ์หลัง 5 เดือน</div><div class="ol-v ${o.endBal>=0?'tp':'tr2'}">${FM.cur(o.endBal)}<span class="ol-arrow ${o.balDelta>=0?'tg':'tr2'}">${o.balDelta>=0?'▲':'▼'} ${FM.compact(Math.abs(o.balDelta))}</span></div></div>
+      <div class="ol-cell"><div class="ol-l">คาดการณ์หลัง ${olSpanLabel(o.months.length)}</div><div class="ol-v ${o.endBal>=0?'tp':'tr2'}">${FM.cur(o.endBal)}<span class="ol-arrow ${o.balDelta>=0?'tg':'tr2'}">${o.balDelta>=0?'▲':'▼'} ${FM.compact(Math.abs(o.balDelta))}</span></div></div>
       <div class="ol-cell"><div class="ol-l">หนี้ปัจจุบัน</div><div class="ol-v ${o.startDebt>0?'tr2':'tg'}">${FM.cur(o.startDebt)}</div></div>
-      <div class="ol-cell"><div class="ol-l">คาดการณ์หนี้หลัง 5 เดือน</div><div class="ol-v ${o.endDebt>0?'tr2':'tg'}">${FM.cur(o.endDebt)}${o.debtDelta>0?`<span class="ol-arrow tg">▼ ${FM.compact(o.debtDelta)}</span>`:''}</div></div>
+      <div class="ol-cell"><div class="ol-l">คาดการณ์หนี้หลัง ${olSpanLabel(o.months.length)}</div><div class="ol-v ${o.endDebt>0?'tr2':'tg'}">${FM.cur(o.endDebt)}${o.debtDelta>0?`<span class="ol-arrow tg">▼ ${FM.compact(o.debtDelta)}</span>`:''}</div></div>
     </div>
     ${o.startDebt>0||o.months.some(x=>x.status!=='good')?`<div class="ol-cell mt2" style="position:relative;z-index:1"><div class="ol-l">⚠️ เดือนที่ต้องระวังที่สุด</div><div class="ol-v ty" style="font-size:.9rem">${o.riskMonth.label}<span class="fxs tm mono" style="margin-left:6px">${o.riskBy==='balance'?`เงินคงเหลือ ${FM.cur(o.riskMonth.end)}`:`เหลือ ${FM.cur(o.riskMonth.net)}/เดือน`}</span></div></div>`:''}
     <button class="btn bP bFull mt2" style="position:relative;z-index:1" onclick="navigate('outlook')">ดูรายละเอียดรายเดือน →</button>
@@ -1433,13 +1451,13 @@ const renderOutlookDetail=o=>{
     <div class="ol-sumcard">
       <div class="t">💰 เงินคงเหลือ</div>
       <div class="ol-sumrow"><span class="k">ปัจจุบัน</span><span class="v ${o.startBalance>=0?'tp':'tr2'}">${FM.cur(o.startBalance)}</span></div>
-      <div class="ol-sumrow"><span class="k">อีก 5 เดือน</span><span class="v ${o.endBal>=0?'tp':'tr2'}">${FM.cur(o.endBal)}</span></div>
+      <div class="ol-sumrow"><span class="k">อีก ${olSpanLabel(o.months.length)}</span><span class="v ${o.endBal>=0?'tp':'tr2'}">${FM.cur(o.endBal)}</span></div>
       <div class="ol-delta ${o.balDelta>=0?'tg':'tr2'}">${olSigned(o.balDelta)}</div>
     </div>
     <div class="ol-sumcard">
       <div class="t">💳 ภาระหนี้</div>
       <div class="ol-sumrow"><span class="k">ปัจจุบัน</span><span class="v">${FM.cur(o.startDebt)}</span></div>
-      <div class="ol-sumrow"><span class="k">อีก 5 เดือน</span><span class="v">${FM.cur(o.endDebt)}</span></div>
+      <div class="ol-sumrow"><span class="k">อีก ${olSpanLabel(o.months.length)}</span><span class="v">${FM.cur(o.endDebt)}</span></div>
       <div class="ol-delta ${o.debtDelta>0?'tg':'tm'}">${o.debtDelta>0?'ลดลง '+FM.cur(o.debtDelta):'ไม่มีหนี้'}</div>
     </div>
     <div class="ol-sumcard">
@@ -1456,8 +1474,36 @@ const renderOutlookDetail=o=>{
     </div>
   </div>`;
 
-  // Timeline รายเดือน
-  const tl=o.months.map((x,i)=>{
+  // Timeline — ช่วงยาวเกิน 24 เดือนสรุปเป็นรายปี (การ์ดรายเดือนหลายร้อยใบอ่านไม่ได้และทำให้หน้าหนัก)
+  const yearly=o.months.length>24;
+  const tlYears=()=>{
+    const out=[],rank={good:0,watch:1,risk:2,danger:3};
+    for(let i=0;i<o.months.length;i+=12){
+      const ms=o.months.slice(i,i+12),last=ms[ms.length-1],prevEnd=i>0?o.months[i-1].end:o.startBalance,prevDebt=i>0?o.months[i-1].debtLeft:o.startDebt;
+      const sum=k=>ms.reduce((s,x)=>s+x[k],0);
+      const net=sum('net'),worst=ms.reduce((a,b)=>rank[b.status]>rank[a.status]?b:a).status,s=OL_STATUS[worst];
+      const chips=[];
+      ms.forEach(x=>x.paidOff.forEach(p=>chips.push(`<span class="ol-chg ol-paid">🎉 ผ่อน "${esc(p.name)}" หมด (${x.label}) · มีเงินคืน ${FM.cur(p.freed)}/เดือน</span>`)));
+      const dd=prevDebt-last.debtLeft;
+      if(dd>0.005)chips.push(`<span class="ol-chg ol-up">📉 หนี้ลดลง ${FM.cur(dd)}</span>`);
+      out.push(`<div class="ol-mo s-${worst}">
+        <div class="ol-mo-h"><div class="ol-mo-t">📅 ปีที่ ${i/12+1} · ${ms[0].label} – ${last.label}</div><span class="ol-badge ${s.cls}">${s.i} ${s.t}</span></div>
+        <div class="ol-rows">
+          <div class="ol-r"><span class="k">รายรับรวม</span><span class="v tp">${FM.cur(sum('income'))}</span></div>
+          <div class="ol-r"><span class="k">รายจ่ายคงที่รวม</span><span class="v tr2">−${FM.cur(sum('fixedExp'))}</span></div>
+          <div class="ol-r"><span class="k">รายจ่ายรายวันรวม</span><span class="v tr2">−${FM.cur(sum('variableExp'))}</span></div>
+          <div class="ol-r"><span class="k">ผ่อนหนี้รวม</span><span class="v ty">${sum('debtPaid')>0?'−'+FM.cur(sum('debtPaid')):'—'}</span></div>
+          <div class="ol-r hl"><span class="k fw8">เงินสุทธิรวมปีนี้</span><span class="v ${net>=0?'tg':'tr2'}">${olSigned(net)}</span></div>
+          <div class="ol-r hl" style="padding-top:0"><span class="k fw8">เงินคงเหลือปลายปี</span><span class="v ${last.end>=0?'tp':'tr2'}">${FM.cur(last.end)}</span></div>
+          <div class="ol-r hl" style="padding-top:0"><span class="k fw8">หนี้คงเหลือ</span><span class="v ${last.debtLeft>0?'tr2':'tg'}">${last.debtLeft>0?FM.cur(last.debtLeft):'ปลอดหนี้ 🎉'}</span></div>
+        </div>
+        ${chips.length?`<div style="margin-top:6px">${chips.join('')}</div>`:''}
+        ${ms.length<12?`<div class="ol-note">ปีสุดท้ายนับเพียง ${ms.length} เดือน</div>`:''}
+      </div>`);
+    }
+    return out.join('');
+  };
+  const tl=yearly?tlYears():o.months.map((x,i)=>{
     const s=OL_STATUS[x.status];
     const prev=i>0?o.months[i-1]:null;
     const chips=[];
@@ -1495,17 +1541,17 @@ const renderOutlookDetail=o=>{
 
   // Insight — สร้างจากตัวเลขที่คำนวณจริงทั้งหมด
   const ins=[];
-  ins.push({i:o.balDelta>=0?'📈':'📉',t:`หากคุณยังคงใช้จ่ายและผ่อนหนี้ตามแผนปัจจุบัน อีก 5 เดือนเงินคงเหลือของคุณมีแนวโน้ม<b>${o.balDelta>=0?'เพิ่มขึ้น':'ลดลง'} ${FM.cur(Math.abs(o.balDelta))}</b>${o.debtDelta>0?` และภาระหนี้ลดลง <b>${FM.cur(o.debtDelta)}</b>`:''}`});
+  ins.push({i:o.balDelta>=0?'📈':'📉',t:`หากคุณยังคงใช้จ่ายและผ่อนหนี้ตามแผนปัจจุบัน อีก ${olSpanLabel(o.months.length)}เงินคงเหลือของคุณมีแนวโน้ม<b>${o.balDelta>=0?'เพิ่มขึ้น':'ลดลง'} ${FM.cur(Math.abs(o.balDelta))}</b>${o.debtDelta>0?` และภาระหนี้ลดลง <b>${FM.cur(o.debtDelta)}</b>`:''}`});
   o.months.forEach(x=>x.paidOff.forEach(p=>{
     ins.push({i:'🕊️',t:`ในเดือน <b>${x.label}</b> คุณคาดว่าจะชำระ "<b>${esc(p.name)}</b>" เสร็จ หลังจากนั้นจะมีเงินสำหรับใช้จ่ายหรือเก็บออมเพิ่มขึ้นประมาณ <b>${FM.cur(p.freed)} ต่อเดือน</b>`});
   }));
   if(o.status==='danger')ins.push({i:'🚨',t:`ระวัง: มีเดือนที่เงินคงเหลือติดลบหรือกระแสเงินสดติดลบต่อเนื่อง — หนักที่สุดคือเดือน <b>${o.riskMonth.label}</b> ที่เงินคงเหลือสะสมจะอยู่ที่ <b>${FM.cur(o.riskMonth.end)}</b> ควรลดรายจ่ายหรือเพิ่มรายรับก่อนถึงตอนนั้น`});
   else if(o.status==='risk')ins.push({i:'⚠️',t:`มีบางเดือนที่เงินไหลออกมากกว่าไหลเข้า ต้องดึงเงินคงเหลือเดิมมาใช้ — เดือนที่หนักที่สุดคือ <b>${o.riskMonth.label}</b>`});
   else if(o.status==='watch')ins.push({i:'⚠️',t:`เดือน <b>${o.riskMonth.label}</b> เป็นเดือนที่ต้องระวังมากที่สุด เนื่องจากเงินคงเหลือหลังหักภาระทั้งหมดอยู่ในระดับต่ำ (${FM.cur(o.riskMonth.net)}/เดือน)`});
-  else ins.push({i:'✅',t:`ทั้ง 5 เดือนไม่มีเดือนไหนที่เงินติดลบ กระแสเงินสดเฉลี่ยเป็นบวก <b>${FM.cur(o.avgFlow)}/เดือน</b>`});
+  else ins.push({i:'✅',t:`ตลอด ${olSpanLabel(o.months.length)}ไม่มีเดือนไหนที่เงินติดลบ กระแสเงินสดเฉลี่ยเป็นบวก <b>${FM.cur(o.avgFlow)}/เดือน</b>`});
   if(o.startDebt>0&&o.endDebt>0){
-    const stillPaying=o.months[OL_MONTHS-1].debtPaid;
-    if(stillPaying>0)ins.push({i:'💳',t:`หลังครบ 5 เดือน คุณยังมีหนี้เหลือ <b>${FM.cur(o.endDebt)}</b> และยังต้องผ่อนต่อเดือนละ <b>${FM.cur(stillPaying)}</b>`});
+    const stillPaying=o.months[o.months.length-1].debtPaid;
+    if(stillPaying>0)ins.push({i:'💳',t:`หลังครบ ${olSpanLabel(o.months.length)} คุณยังมีหนี้เหลือ <b>${FM.cur(o.endDebt)}</b> และยังต้องผ่อนต่อเดือนละ <b>${FM.cur(stillPaying)}</b>`});
   }
   if(!o.vsSolid)ins.push({i:'📝',t:`ตัวเลขรายจ่ายรายวันยังอ้างอิงข้อมูลไม่ครบเดือน — บันทึกค่าใช้จ่ายให้ครบอย่างน้อย 1 เดือนเต็ม การคาดการณ์จะแม่นยำขึ้นมาก`});
 
@@ -1531,15 +1577,32 @@ const renderOutlookDetail=o=>{
       <span class="fsm tm">สถานะแนวโน้มรวม</span><span class="ol-badge ${st.cls}">${st.i} ${st.t}</span>
     </div>
     ${sum}
-    <div class="slbl mt3">ไทม์ไลน์รายเดือน</div>
+    <div class="slbl mt3">${yearly?'ไทม์ไลน์รายปี':'ไทม์ไลน์รายเดือน'}</div>
     <div class="ol-tl">${tl}</div>
     ${insight}
     ${src}
-    <div class="ol-disc">ℹ️ นี่คือ<b>การคาดการณ์จากข้อมูลปัจจุบัน</b> โดยสมมติว่ารายรับ รายจ่าย และแผนผ่อนชำระคงเดิมทุกเดือน — ไม่ใช่ผลลัพธ์ทางการเงินที่รับประกัน ตัวเลขจริงจะเปลี่ยนเมื่อรายรับ รายจ่าย หรือการผ่อนของคุณเปลี่ยนไป</div>`;
+    <div class="ol-disc">ℹ️ นี่คือ<b>การคาดการณ์จากข้อมูลปัจจุบัน</b> โดยสมมติว่ารายรับ รายจ่าย และแผนผ่อนชำระคงเดิมทุกเดือน — ไม่ใช่ผลลัพธ์ทางการเงินที่รับประกัน ตัวเลขจริงจะเปลี่ยนเมื่อรายรับ รายจ่าย หรือการผ่อนของคุณเปลี่ยนไป${o.months.length>=24?' <b>ยิ่งช่วงยาว ยิ่งคลาดเคลื่อน</b> เพราะโมเดลนี้ไม่คิดเงินเฟ้อ การขึ้นเงินเดือน หรือรายจ่ายที่เปลี่ยนตามช่วงชีวิต':''}</div>`;
 };
 
 // เรียกซ้ำทุกครั้งที่ข้อมูลต้นทางเปลี่ยน (รายรับ / รายจ่าย / หนี้ / รายการค่าใช้จ่าย)
-const renderOutlook=()=>{const o=computeOutlook();renderOutlookHero(o);renderOutlookDetail(o)};
+const renderOlPicker=()=>{
+  const n=S.outlookMonths;
+  const t=document.getElementById('olTitle');if(t)t.textContent=`🔮 การเงินของคุณในอีก ${olSpanLabel(n)}`;
+  const c=document.getElementById('olChips');
+  if(c)c.innerHTML=OL_PRESETS.map(p=>`<button class="qchip${p===n?' on':''}" onclick="setOutlookSpan(${p})">${olSpanLabel(p)}</button>`).join('');
+  const h=document.getElementById('olSpanHint');
+  if(h)h.textContent=`กำลังดู ${olSpanLabel(n)} — ใส่ได้ 1 เดือนถึง ${OL_MAX_MONTHS/12} ปี ช่วงเกิน 2 ปีจะสรุปเป็นรายปี`;
+};
+const setOutlookSpan=n=>{S.outlookMonths=olClampMonths(n);save();renderOutlook();};
+const applyOlSpan=()=>{
+  const v=+document.getElementById('olSpanVal').value,u=document.getElementById('olSpanUnit').value;
+  if(!(v>0)){modal('ข้อมูลไม่ถูกต้อง','กรุณาใส่จำนวนเดือนหรือปีที่มากกว่า 0');return}
+  const months=Math.round(u==='y'?v*12:v);
+  if(months>OL_MAX_MONTHS){modal('ยาวเกินไป',`คาดการณ์ได้สูงสุด ${OL_MAX_MONTHS/12} ปี (${OL_MAX_MONTHS} เดือน)`);return}
+  setOutlookSpan(months);
+  document.getElementById('olSpanVal').value='';
+};
+const renderOutlook=()=>{const o=computeOutlook(null,S.outlookMonths);renderOlPicker();renderOutlookHero(o);renderOutlookDetail(o)};
 /* ── MOOD ── */
 // เลือก mood การใช้จ่าย (need/want/impulse/regret) → toggle UI
 const setMood=m=>{currentMood=m;document.querySelectorAll('.mood-btn').forEach(b=>b.classList.toggle('sel',b.dataset.mood===m))};
@@ -1620,7 +1683,7 @@ document.getElementById('restoreFile').addEventListener('change',e=>{
   reader.onload=ev=>{
     try{
       const p=JSON.parse(ev.target.result);
-      Object.assign(S,{salary:+p.salary||0,otherIncomes:p.otherIncomes||[],fixedExpenses:p.fixedExpenses||[],debts:p.debts||[],transactions:p.transactions||[],legacyWage:p.legacyWage??(p.paySettings?{paySettings:p.paySettings,payHistory:p.payHistory||[]}:null),investPlan:{...S.investPlan,...(p.investPlan||{})}});
+      Object.assign(S,{salary:+p.salary||0,otherIncomes:p.otherIncomes||[],fixedExpenses:p.fixedExpenses||[],debts:p.debts||[],transactions:p.transactions||[],legacyWage:p.legacyWage??(p.paySettings?{paySettings:p.paySettings,payHistory:p.payHistory||[]}:null),investPlan:{...S.investPlan,...(p.investPlan||{})},outlookMonths:olClampMonths(p.outlookMonths)});
       save();init();modal('นำเข้าสำเร็จ ✅','ข้อมูลถูกนำเข้าเรียบร้อย');
     }catch(err){modal('เกิดข้อผิดพลาด','ไม่สามารถอ่านไฟล์ได้');}
   };
