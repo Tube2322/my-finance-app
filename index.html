@@ -776,7 +776,7 @@ input[type=range]::-moz-range-track{background:var(--bg2);height:6px;border-radi
         <div class="fg" style="margin:0"><label class="fl">เงินเดือนขึ้น (%/ปี)</label><input type="number" step="0.5" inputmode="decimal" id="olRaise" class="inp" placeholder="0" onchange="applyOlRates()"></div>
         <div class="fg" style="margin:0"><label class="fl">เงินเฟ้อรายจ่าย (%/ปี)</label><input type="number" step="0.5" inputmode="decimal" id="olInfl" class="inp" placeholder="0" onchange="applyOlRates()"></div>
       </div>
-      <div class="fxs tm mt2">ปรับทุกต้นปีที่ 2, 3, … · รายรับขึ้นตามอัตราเงินเดือน · รายจ่ายคงที่และรายวันขึ้นตามเงินเฟ้อ · ค่างวดหนี้คงที่ตามสัญญา · ใส่ 0 = ไม่ปรับ</div>
+      <div class="fxs tm mt2">ปรับทุกต้นปีที่ 2, 3, … · รายรับขึ้นตามอัตราเงินเดือน · รายจ่ายคงที่และรายวันขึ้นตามเงินเฟ้อ · ค่างวดหนี้คงที่ตามสัญญา · ค่าเริ่มต้น 3% · ใส่ 0 = ไม่ปรับ</div>
     </div>
   </div>
   <div id="olBody"></div>
@@ -954,7 +954,7 @@ let S={
   // เพื่อไม่ลบข้อมูลเก่าของผู้ใช้ทิ้ง และให้ไฟล์ backup รุ่นก่อนยัง restore ได้
   legacyWage:null,
   // 🔮 ช่วงคาดการณ์หน้าอนาคต (หน่วยเป็นเดือน, 1–OL_MAX_MONTHS)
-  outlookMonths:5,outlookRaisePct:0,outlookInflPct:0,
+  outlookMonths:5,outlookRaisePct:3,outlookInflPct:3,
   // 💰 แผนลงทุน — ดู computeSurplus/computeBuffer/computeInvestAmount
   investPlan:{
     bufferMode:'percent',bufferFixed:0,bufferPercent:20,
@@ -983,7 +983,7 @@ const load=()=>{
       transactions:p.transactions||[],
       legacyWage:p.legacyWage??(p.paySettings?{paySettings:p.paySettings,payHistory:p.payHistory||[]}:null),
       investPlan:{...S.investPlan,...(p.investPlan||{})},
-      outlookMonths:olClampMonths(p.outlookMonths),outlookRaisePct:olClampPct(p.outlookRaisePct),outlookInflPct:olClampPct(p.outlookInflPct),
+      outlookMonths:olClampMonths(p.outlookMonths),outlookRaisePct:olPctOrDefault(p.outlookRaisePct),outlookInflPct:olPctOrDefault(p.outlookInflPct),
     });
   }catch(e){}
 };
@@ -1312,6 +1312,8 @@ const OL_MONTHS=5;
 const OL_MAX_MONTHS=1200; // 100 ปี — เพดานกันหน้าจอค้าง (คำนวณเองเบามาก แต่ต้องมีขอบเขต)
 const olClampMonths=v=>{const n=Math.floor(+v);return n>=1?Math.min(n,OL_MAX_MONTHS):OL_MONTHS};
 const olClampPct=v=>{const n=+v;return isFinite(n)?Math.max(-20,Math.min(50,n)):0};
+// ข้อมูลเก่าที่ยังไม่มีค่านี้ใช้ค่าเริ่มต้น 3% แต่ค่า 0 ที่ผู้ใช้ตั้งเองต้องคงไว้
+const olPctOrDefault=v=>v==null?3:olClampPct(v);
 // ป้ายช่วงเวลาอ่านง่าย: 5 เดือน / 1 ปี / 2 ปี 6 เดือน
 const olSpanLabel=n=>{const y=Math.floor(n/12),m=n%12;return y===0?`${n} เดือน`:m===0?`${y} ปี`:`${y} ปี ${m} เดือน`};
 const OL_PRESETS=[3,5,6,12,24,36,60,120];
@@ -1625,7 +1627,7 @@ const renderOlPicker=()=>{
   const t=document.getElementById('olTitle');if(t)t.textContent=`🔮 การเงินของคุณในอีก ${olSpanLabel(n)}`;
   const c=document.getElementById('olChips');
   if(c)c.innerHTML=OL_PRESETS.map(p=>`<button class="qchip${p===n?' on':''}" onclick="setOutlookSpan(${p})">${olSpanLabel(p)}</button>`).join('');
-  [['olRaise',S.outlookRaisePct],['olInfl',S.outlookInflPct]].forEach(([id,v])=>{const e=document.getElementById(id);if(e&&document.activeElement!==e)e.value=v||'';});
+  [['olRaise',S.outlookRaisePct],['olInfl',S.outlookInflPct]].forEach(([id,v])=>{const e=document.getElementById(id);if(e&&document.activeElement!==e)e.value=v;});
   const h=document.getElementById('olSpanHint');
   if(h)h.textContent=`กำลังดู ${olSpanLabel(n)} — ใส่ได้ 1 เดือนถึง ${OL_MAX_MONTHS/12} ปี ช่วงเกิน 2 ปีจะสรุปเป็นรายปี`;
 };
@@ -1724,7 +1726,7 @@ document.getElementById('restoreFile').addEventListener('change',e=>{
   reader.onload=ev=>{
     try{
       const p=JSON.parse(ev.target.result);
-      Object.assign(S,{salary:+p.salary||0,otherIncomes:p.otherIncomes||[],fixedExpenses:p.fixedExpenses||[],debts:p.debts||[],transactions:p.transactions||[],legacyWage:p.legacyWage??(p.paySettings?{paySettings:p.paySettings,payHistory:p.payHistory||[]}:null),investPlan:{...S.investPlan,...(p.investPlan||{})},outlookMonths:olClampMonths(p.outlookMonths),outlookRaisePct:olClampPct(p.outlookRaisePct),outlookInflPct:olClampPct(p.outlookInflPct)});
+      Object.assign(S,{salary:+p.salary||0,otherIncomes:p.otherIncomes||[],fixedExpenses:p.fixedExpenses||[],debts:p.debts||[],transactions:p.transactions||[],legacyWage:p.legacyWage??(p.paySettings?{paySettings:p.paySettings,payHistory:p.payHistory||[]}:null),investPlan:{...S.investPlan,...(p.investPlan||{})},outlookMonths:olClampMonths(p.outlookMonths),outlookRaisePct:olPctOrDefault(p.outlookRaisePct),outlookInflPct:olPctOrDefault(p.outlookInflPct)});
       save();init();modal('นำเข้าสำเร็จ ✅','ข้อมูลถูกนำเข้าเรียบร้อย');
     }catch(err){modal('เกิดข้อผิดพลาด','ไม่สามารถอ่านไฟล์ได้');}
   };
