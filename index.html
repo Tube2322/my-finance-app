@@ -503,6 +503,21 @@ body::before{
 .ol-sumrow{display:flex;flex-direction:column;gap:1px;padding:3px 0}
 .ol-sumrow .k{color:var(--mt);font-size:.71rem}
 .ol-sumrow .v{font-family:'IBM Plex Mono',monospace;font-weight:800;font-size:.86rem}
+.ol-panel{background:var(--surface);border:1px solid var(--bdr);border-radius:var(--rXL);box-shadow:var(--sh);overflow:hidden;margin-bottom:14px}
+.ol-panel-h{display:flex;align-items:center;justify-content:space-between;gap:9px;flex-wrap:wrap;padding:13px 16px;background:linear-gradient(135deg,rgba(139,92,246,.11),rgba(236,72,153,.06));border-bottom:1px solid var(--bdr)}
+.ol-panel-t{font-weight:800;font-size:.88rem;display:flex;flex-direction:column;gap:2px}
+.ol-panel-t small{font-weight:600;font-size:.68rem;color:var(--mt)}
+.ol-zones{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1px;background:var(--bdr)}
+@media(min-width:900px){.ol-zones{grid-template-columns:repeat(4,minmax(0,1fr))}}
+.ol-zone{background:var(--surface);padding:14px 15px;min-width:0;display:flex;flex-direction:column;gap:3px}
+.ol-zone-h{display:flex;align-items:center;gap:7px;font-size:.72rem;font-weight:800;color:var(--mt);margin-bottom:4px}
+.ol-zone-i{width:24px;height:24px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:.8rem;background:rgba(139,92,246,.12)}
+.ol-zone-big{font-family:'IBM Plex Mono',monospace;font-weight:800;font-size:1.02rem;line-height:1.25;overflow-wrap:anywhere}
+.ol-zone-sub{font-size:.68rem;color:var(--mt)}
+.ol-zone-sub b{font-family:'IBM Plex Mono',monospace;color:var(--txt2)}
+.ol-zone-pill{align-self:flex-start;margin-top:5px;padding:3px 9px;border-radius:99px;font-family:'IBM Plex Mono',monospace;font-weight:800;font-size:.7rem;background:rgba(139,92,246,.1)}
+.ol-zone-note{margin-top:5px;font-size:.66rem;color:var(--mt);line-height:1.45}
+.ol-pz{padding:2px 0 12px}.ol-pz+.ol-pz{border-top:1px dashed var(--bdr);padding:12px 0 2px}
 .ol-delta{margin-top:6px;padding-top:6px;border-top:1px dashed var(--bdr);font-size:.78rem;font-weight:800;font-family:'IBM Plex Mono',monospace}
 
 /* Timeline รายเดือน */
@@ -745,14 +760,24 @@ input[type=range]::-moz-range-track{background:var(--bg2);height:6px;border-radi
 <div class="sec" id="s-outlook">
   <div class="pttl" id="olTitle">🔮 การเงินของคุณในอีก 5 เดือน</div>
   <div class="card csm" id="olPicker">
-    <div class="slbl">ช่วงเวลาที่ต้องการคาดการณ์</div>
-    <div class="chiprow" id="olChips"></div>
-    <div style="display:grid;grid-template-columns:minmax(0,1fr) 96px;gap:7px">
-      <div class="fg" style="margin:0"><label class="fl">กำหนดเอง</label><input type="number" min="1" step="1" inputmode="numeric" id="olSpanVal" class="inp" placeholder="เช่น 18"></div>
-      <div class="fg" style="margin:0"><label class="fl">หน่วย</label><select id="olSpanUnit" class="inp"><option value="m">เดือน</option><option value="y">ปี</option></select></div>
-      <button class="btn bP bFull" style="grid-column:1/-1" onclick="applyOlSpan()">คาดการณ์</button>
+    <div class="ol-pz">
+      <div class="slbl">⏱️ ช่วงเวลาที่ต้องการคาดการณ์</div>
+      <div class="chiprow" id="olChips"></div>
+      <div style="display:grid;grid-template-columns:minmax(0,1fr) 96px;gap:7px">
+        <div class="fg" style="margin:0"><label class="fl">กำหนดเอง</label><input type="number" min="1" step="1" inputmode="numeric" id="olSpanVal" class="inp" placeholder="เช่น 18"></div>
+        <div class="fg" style="margin:0"><label class="fl">หน่วย</label><select id="olSpanUnit" class="inp"><option value="m">เดือน</option><option value="y">ปี</option></select></div>
+        <button class="btn bP bFull" style="grid-column:1/-1" onclick="applyOlSpan()">คาดการณ์</button>
+      </div>
+      <div class="fxs tm mt2" id="olSpanHint"></div>
     </div>
-    <div class="fxs tm mt2" id="olSpanHint"></div>
+    <div class="ol-pz">
+      <div class="slbl">📊 สมมติฐานรายปี</div>
+      <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px">
+        <div class="fg" style="margin:0"><label class="fl">เงินเดือนขึ้น (%/ปี)</label><input type="number" step="0.5" inputmode="decimal" id="olRaise" class="inp" placeholder="0" onchange="applyOlRates()"></div>
+        <div class="fg" style="margin:0"><label class="fl">เงินเฟ้อรายจ่าย (%/ปี)</label><input type="number" step="0.5" inputmode="decimal" id="olInfl" class="inp" placeholder="0" onchange="applyOlRates()"></div>
+      </div>
+      <div class="fxs tm mt2">ปรับทุกต้นปีที่ 2, 3, … · รายรับขึ้นตามอัตราเงินเดือน · รายจ่ายคงที่และรายวันขึ้นตามเงินเฟ้อ · ค่างวดหนี้คงที่ตามสัญญา · ใส่ 0 = ไม่ปรับ</div>
+    </div>
   </div>
   <div id="olBody"></div>
 </div>
@@ -929,7 +954,7 @@ let S={
   // เพื่อไม่ลบข้อมูลเก่าของผู้ใช้ทิ้ง และให้ไฟล์ backup รุ่นก่อนยัง restore ได้
   legacyWage:null,
   // 🔮 ช่วงคาดการณ์หน้าอนาคต (หน่วยเป็นเดือน, 1–OL_MAX_MONTHS)
-  outlookMonths:5,
+  outlookMonths:5,outlookRaisePct:0,outlookInflPct:0,
   // 💰 แผนลงทุน — ดู computeSurplus/computeBuffer/computeInvestAmount
   investPlan:{
     bufferMode:'percent',bufferFixed:0,bufferPercent:20,
@@ -958,7 +983,7 @@ const load=()=>{
       transactions:p.transactions||[],
       legacyWage:p.legacyWage??(p.paySettings?{paySettings:p.paySettings,payHistory:p.payHistory||[]}:null),
       investPlan:{...S.investPlan,...(p.investPlan||{})},
-      outlookMonths:olClampMonths(p.outlookMonths),
+      outlookMonths:olClampMonths(p.outlookMonths),outlookRaisePct:olClampPct(p.outlookRaisePct),outlookInflPct:olClampPct(p.outlookInflPct),
     });
   }catch(e){}
 };
@@ -1286,6 +1311,7 @@ const clearArr=key=>{S[key]=[];save();if(key==='otherIncomes')renderIncList();el
 const OL_MONTHS=5;
 const OL_MAX_MONTHS=1200; // 100 ปี — เพดานกันหน้าจอค้าง (คำนวณเองเบามาก แต่ต้องมีขอบเขต)
 const olClampMonths=v=>{const n=Math.floor(+v);return n>=1?Math.min(n,OL_MAX_MONTHS):OL_MONTHS};
+const olClampPct=v=>{const n=+v;return isFinite(n)?Math.max(-20,Math.min(50,n)):0};
 // ป้ายช่วงเวลาอ่านง่าย: 5 เดือน / 1 ปี / 2 ปี 6 เดือน
 const olSpanLabel=n=>{const y=Math.floor(n/12),m=n%12;return y===0?`${n} เดือน`:m===0?`${y} ปี`:`${y} ปี ${m} เดือน`};
 const OL_PRESETS=[3,5,6,12,24,36,60,120];
@@ -1318,8 +1344,10 @@ const olVariableSpend=()=>{
 // investPlan (optional): เมื่อส่งเข้ามาจะหักเงินลงทุนออกจาก cash flow ทุกเดือน + คำนวณมูลค่าพอร์ตจำลองแยกต่างหาก
 //   ไม่ส่ง → พฤติกรรมเดิมทุกประการ (หน้า 🔮 อนาคต ไม่ผูกกับการลงทุน)
 // monthsCount (optional): จำนวนเดือนที่จะจำลอง (ค่าเริ่มต้น OL_MONTHS=5) — ใช้เมื่อ Investment Timeline ขอดูช่วงยาวกว่า 5 เดือน
-const computeOutlook=(investPlan,monthsCount)=>{
+// growth (optional): {raise,infl} อัตราต่อปีเป็นทศนิยม — รายรับขึ้นตาม raise, รายจ่ายขึ้นตาม infl ทุกต้นปีที่ 2,3,… (ค่างวดหนี้คงที่); ไม่ส่ง = ไม่ปรับ
+const computeOutlook=(investPlan,monthsCount,growth)=>{
   const N=monthsCount||OL_MONTHS;
+  const gRaise=growth?.raise||0,gInfl=growth?.infl||0;
   const income=C.inc;
   const fixedExp=S.fixedExpenses.reduce((s,e)=>s+e.amount,0);
   const vs=olVariableSpend();
@@ -1360,18 +1388,19 @@ const computeOutlook=(investPlan,monthsCount)=>{
       debtPaid+=pay;interestPaid+=interest;
       if(d.rem<=0&&!d.paidOffAt){d.paidOffAt=m;paidOff.push({name:d.name,freed:d.monthly})}
     });
-    const preInvestNet=income-fixedExp-variableExp-debtPaid;
+    const yr=Math.floor((m-1)/12),incM=income*Math.pow(1+gRaise,yr),fixM=fixedExp*Math.pow(1+gInfl,yr),varM=variableExp*Math.pow(1+gInfl,yr);
+    const preInvestNet=incM-fixM-varM-debtPaid;
     const investedThisMonth=investAmountFor(m,preInvestNet);
     const net=preInvestNet-investedThisMonth;
     const start=bal;bal=start+net;
     portfolio=portfolio*(1+monthlyGrowthRate)+investedThisMonth;
-    months.push({m,label:olMonthLabel(m),income,fixedExp,variableExp,debtPaid,interestPaid,net,start,end:bal,cashEnd:bal,
+    months.push({m,label:olMonthLabel(m),income:incM,fixedExp:fixM,variableExp:varM,debtPaid,interestPaid,net,start,end:bal,cashEnd:bal,
       invested:investedThisMonth,portfolioValue:portfolio,
       debtLeft:debts.reduce((s,d)=>s+d.rem,0),paidOff});
   }
   // สถานะรายเดือน
   months.forEach(x=>{
-    x.status=x.end<0?'danger':x.net<0?'risk':(income>0&&x.net<income*0.1)?'watch':'good';
+    x.status=x.end<0?'danger':x.net<0?'risk':(income>0&&x.net<x.income*0.1)?'watch':'good';
   });
 
   // สถานะรวม
@@ -1404,7 +1433,7 @@ const computeOutlook=(investPlan,monthsCount)=>{
 
   return{ready:income>0,income,fixedExp,variableExp,vsBasis:vs.basis,vsSolid:vs.solid,spentThisMonth,
     startBalance,startDebt,startDebtMonthly,endBal,endDebt,avgFlow,months,status,riskMonth,riskBy,flatFlow,missing,
-    balDelta:endBal-startBalance,debtDelta:startDebt-endDebt};
+    balDelta:endBal-startBalance,debtDelta:startDebt-endDebt,raisePct:gRaise*100,inflPct:gInfl*100};
 };
 
 // ── การ์ดสรุปย่อบนหน้าหลัก ──
@@ -1446,31 +1475,40 @@ const renderOutlookDetail=o=>{
   }
   const st=OL_STATUS[o.status];
 
-  // Summary cards
-  const sum=`<div class="ol-sum">
-    <div class="ol-sumcard">
-      <div class="t">💰 เงินคงเหลือ</div>
-      <div class="ol-sumrow"><span class="k">ปัจจุบัน</span><span class="v ${o.startBalance>=0?'tp':'tr2'}">${FM.cur(o.startBalance)}</span></div>
-      <div class="ol-sumrow"><span class="k">อีก ${olSpanLabel(o.months.length)}</span><span class="v ${o.endBal>=0?'tp':'tr2'}">${FM.cur(o.endBal)}</span></div>
-      <div class="ol-delta ${o.balDelta>=0?'tg':'tr2'}">${olSigned(o.balDelta)}</div>
+  // บล็อกสรุปเดียว แบ่งเป็น 4 โซน (เงินคงเหลือ / หนี้ / Cash Flow / เดือนเสี่ยง)
+  const span=olSpanLabel(o.months.length);
+  const asm=(o.raisePct||o.inflPct)?` · เงินเดือน ${o.raisePct>=0?'+':''}${+o.raisePct.toFixed(2)}%/ปี · เงินเฟ้อ ${o.inflPct>=0?'+':''}${+o.inflPct.toFixed(2)}%/ปี`:'';
+  const riskVal=o.riskBy==='balance'?o.riskMonth.end:o.riskMonth.net;
+  const sum=`<div class="ol-panel">
+    <div class="ol-panel-h">
+      <div class="ol-panel-t">สรุปภาพรวมอีก ${span}<small>คำนวณจากข้อมูลจริงของคุณ${asm}</small></div>
+      <span class="ol-badge ${st.cls}">${st.i} ${st.t}</span>
     </div>
-    <div class="ol-sumcard">
-      <div class="t">💳 ภาระหนี้</div>
-      <div class="ol-sumrow"><span class="k">ปัจจุบัน</span><span class="v">${FM.cur(o.startDebt)}</span></div>
-      <div class="ol-sumrow"><span class="k">อีก ${olSpanLabel(o.months.length)}</span><span class="v">${FM.cur(o.endDebt)}</span></div>
-      <div class="ol-delta ${o.debtDelta>0?'tg':'tm'}">${o.debtDelta>0?'ลดลง '+FM.cur(o.debtDelta):'ไม่มีหนี้'}</div>
-    </div>
-    <div class="ol-sumcard">
-      <div class="t">📈 Cash Flow</div>
-      <div class="ol-sumrow"><span class="k">เฉลี่ยต่อเดือน</span><span class="v ${o.avgFlow>=0?'tg':'tr2'}">${olSigned(o.avgFlow)}</span></div>
-      <div class="ol-sumrow"><span class="k">รายรับ/เดือน</span><span class="v">${FM.cur(o.income)}</span></div>
-      <div class="ol-delta tm" style="font-family:'Noto Sans Thai',sans-serif;font-weight:600;font-size:.72rem">คิดจากรายรับ − รายจ่าย − ค่างวดหนี้</div>
-    </div>
-    <div class="ol-sumcard">
-      <div class="t">⚠️ เดือนที่เสี่ยงที่สุด</div>
-      <div class="ol-sumrow"><span class="k">เดือน</span><span class="v ty" style="font-size:.8rem">${o.riskMonth.label}</span></div>
-      <div class="ol-sumrow"><span class="k">${o.riskBy==='balance'?'เงินคงเหลือปลายเดือน':'เหลือหลังหักทุกอย่าง'}</span><span class="v ${(o.riskBy==='balance'?o.riskMonth.end:o.riskMonth.net)>=0?'tp':'tr2'}">${olSigned(o.riskBy==='balance'?o.riskMonth.end:o.riskMonth.net)}</span></div>
-      <div class="ol-delta tm" style="font-family:'Noto Sans Thai',sans-serif;font-weight:600;font-size:.72rem">${o.riskBy==='balance'?'เดือนที่เงินคงเหลือสะสมติดลบมากที่สุด':o.flatFlow?'ทุกเดือนเท่ากัน เพราะยังไม่มีหนี้ก้อนไหนผ่อนหมดในช่วงนี้':'เดือนนี้มีเงินเหลือหลังหักรายจ่ายและหนี้น้อยที่สุด'}</div>
+    <div class="ol-zones">
+      <div class="ol-zone">
+        <div class="ol-zone-h"><span class="ol-zone-i">💰</span>เงินคงเหลือ</div>
+        <div class="ol-zone-big ${o.endBal>=0?'tp':'tr2'}">${FM.cur(o.endBal)}</div>
+        <div class="ol-zone-sub">อีก ${span} · ปัจจุบัน <b>${FM.cur(o.startBalance)}</b></div>
+        <div class="ol-zone-pill ${o.balDelta>=0?'tg':'tr2'}">${olSigned(o.balDelta)}</div>
+      </div>
+      <div class="ol-zone">
+        <div class="ol-zone-h"><span class="ol-zone-i" style="background:rgba(239,68,68,.12)">💳</span>ภาระหนี้</div>
+        <div class="ol-zone-big ${o.endDebt>0?'tr2':'tg'}">${FM.cur(o.endDebt)}</div>
+        <div class="ol-zone-sub">อีก ${span} · ปัจจุบัน <b>${FM.cur(o.startDebt)}</b></div>
+        <div class="ol-zone-pill ${o.debtDelta>0?'tg':'tm'}">${o.debtDelta>0?'ลดลง '+FM.cur(o.debtDelta):'ไม่มีหนี้'}</div>
+      </div>
+      <div class="ol-zone">
+        <div class="ol-zone-h"><span class="ol-zone-i" style="background:rgba(16,185,129,.13)">📈</span>Cash Flow</div>
+        <div class="ol-zone-big ${o.avgFlow>=0?'tg':'tr2'}">${olSigned(o.avgFlow)}</div>
+        <div class="ol-zone-sub">เฉลี่ยต่อเดือน · รายรับตอนนี้ <b>${FM.cur(o.income)}</b></div>
+        <div class="ol-zone-note">รายรับ − รายจ่าย − ค่างวดหนี้</div>
+      </div>
+      <div class="ol-zone">
+        <div class="ol-zone-h"><span class="ol-zone-i" style="background:rgba(245,158,11,.14)">⚠️</span>เดือนที่เสี่ยงที่สุด</div>
+        <div class="ol-zone-big ty">${o.riskMonth.label}</div>
+        <div class="ol-zone-sub">${o.riskBy==='balance'?'เงินคงเหลือปลายเดือน':'เหลือหลังหักทุกอย่าง'} <b class="${riskVal>=0?'tp':'tr2'}">${olSigned(riskVal)}</b></div>
+        <div class="ol-zone-note">${o.riskBy==='balance'?'เดือนที่เงินคงเหลือสะสมติดลบมากที่สุด':o.flatFlow?'ทุกเดือนเท่ากัน เพราะยังไม่มีหนี้ก้อนไหนผ่อนหมดในช่วงนี้':'เดือนที่เหลือหลังหักรายจ่ายและหนี้น้อยที่สุด'}</div>
+      </div>
     </div>
   </div>`;
 
@@ -1573,15 +1611,12 @@ const renderOutlookDetail=o=>{
     ${o.missing.length?`<div class="slbl mt2">ข้อมูลที่ยังขาด (เติมแล้วคาดการณ์จะแม่นขึ้น)</div><ul class="ol-src" style="padding-left:16px;margin:0">${o.missing.map(m=>`<li>${m}</li>`).join('')}</ul>`:''}
   </div>`;
 
-  el.innerHTML=`<div class="ol-hero-top" style="margin-bottom:14px">
-      <span class="fsm tm">สถานะแนวโน้มรวม</span><span class="ol-badge ${st.cls}">${st.i} ${st.t}</span>
-    </div>
-    ${sum}
+  el.innerHTML=`${sum}
     <div class="slbl mt3">${yearly?'ไทม์ไลน์รายปี':'ไทม์ไลน์รายเดือน'}</div>
     <div class="ol-tl">${tl}</div>
     ${insight}
     ${src}
-    <div class="ol-disc">ℹ️ นี่คือ<b>การคาดการณ์จากข้อมูลปัจจุบัน</b> โดยสมมติว่ารายรับ รายจ่าย และแผนผ่อนชำระคงเดิมทุกเดือน — ไม่ใช่ผลลัพธ์ทางการเงินที่รับประกัน ตัวเลขจริงจะเปลี่ยนเมื่อรายรับ รายจ่าย หรือการผ่อนของคุณเปลี่ยนไป${o.months.length>=24?' <b>ยิ่งช่วงยาว ยิ่งคลาดเคลื่อน</b> เพราะโมเดลนี้ไม่คิดเงินเฟ้อ การขึ้นเงินเดือน หรือรายจ่ายที่เปลี่ยนตามช่วงชีวิต':''}</div>`;
+    <div class="ol-disc">ℹ️ นี่คือ<b>การคาดการณ์จากข้อมูลปัจจุบัน</b> โดยสมมติว่ารายรับ รายจ่าย และแผนผ่อนชำระคงเดิมทุกเดือน — ไม่ใช่ผลลัพธ์ทางการเงินที่รับประกัน ตัวเลขจริงจะเปลี่ยนเมื่อรายรับ รายจ่าย หรือการผ่อนของคุณเปลี่ยนไป${o.months.length>=24?(o.raisePct||o.inflPct?' <b>ยิ่งช่วงยาว ยิ่งคลาดเคลื่อน</b> เพราะอัตราขึ้นเงินเดือน/เงินเฟ้อเป็นค่าคงที่ตลอดช่วง ไม่ได้สะท้อนการเปลี่ยนแปลงจริงของช่วงชีวิต':' <b>ยิ่งช่วงยาว ยิ่งคลาดเคลื่อน</b> เพราะตอนนี้ยังไม่ได้ใส่เงินเฟ้อ/ขึ้นเงินเดือน (ตั้งได้ที่ช่อง "สมมติฐานรายปี" ด้านบน)'):''}</div>`;
 };
 
 // เรียกซ้ำทุกครั้งที่ข้อมูลต้นทางเปลี่ยน (รายรับ / รายจ่าย / หนี้ / รายการค่าใช้จ่าย)
@@ -1590,8 +1625,14 @@ const renderOlPicker=()=>{
   const t=document.getElementById('olTitle');if(t)t.textContent=`🔮 การเงินของคุณในอีก ${olSpanLabel(n)}`;
   const c=document.getElementById('olChips');
   if(c)c.innerHTML=OL_PRESETS.map(p=>`<button class="qchip${p===n?' on':''}" onclick="setOutlookSpan(${p})">${olSpanLabel(p)}</button>`).join('');
+  [['olRaise',S.outlookRaisePct],['olInfl',S.outlookInflPct]].forEach(([id,v])=>{const e=document.getElementById(id);if(e&&document.activeElement!==e)e.value=v||'';});
   const h=document.getElementById('olSpanHint');
   if(h)h.textContent=`กำลังดู ${olSpanLabel(n)} — ใส่ได้ 1 เดือนถึง ${OL_MAX_MONTHS/12} ปี ช่วงเกิน 2 ปีจะสรุปเป็นรายปี`;
+};
+const applyOlRates=()=>{
+  S.outlookRaisePct=olClampPct(document.getElementById('olRaise').value);
+  S.outlookInflPct=olClampPct(document.getElementById('olInfl').value);
+  save();renderOutlook();
 };
 const setOutlookSpan=n=>{S.outlookMonths=olClampMonths(n);save();renderOutlook();};
 const applyOlSpan=()=>{
@@ -1602,7 +1643,7 @@ const applyOlSpan=()=>{
   setOutlookSpan(months);
   document.getElementById('olSpanVal').value='';
 };
-const renderOutlook=()=>{const o=computeOutlook(null,S.outlookMonths);renderOlPicker();renderOutlookHero(o);renderOutlookDetail(o)};
+const renderOutlook=()=>{const o=computeOutlook(null,S.outlookMonths,{raise:S.outlookRaisePct/100,infl:S.outlookInflPct/100});renderOlPicker();renderOutlookHero(o);renderOutlookDetail(o)};
 /* ── MOOD ── */
 // เลือก mood การใช้จ่าย (need/want/impulse/regret) → toggle UI
 const setMood=m=>{currentMood=m;document.querySelectorAll('.mood-btn').forEach(b=>b.classList.toggle('sel',b.dataset.mood===m))};
@@ -1683,7 +1724,7 @@ document.getElementById('restoreFile').addEventListener('change',e=>{
   reader.onload=ev=>{
     try{
       const p=JSON.parse(ev.target.result);
-      Object.assign(S,{salary:+p.salary||0,otherIncomes:p.otherIncomes||[],fixedExpenses:p.fixedExpenses||[],debts:p.debts||[],transactions:p.transactions||[],legacyWage:p.legacyWage??(p.paySettings?{paySettings:p.paySettings,payHistory:p.payHistory||[]}:null),investPlan:{...S.investPlan,...(p.investPlan||{})},outlookMonths:olClampMonths(p.outlookMonths)});
+      Object.assign(S,{salary:+p.salary||0,otherIncomes:p.otherIncomes||[],fixedExpenses:p.fixedExpenses||[],debts:p.debts||[],transactions:p.transactions||[],legacyWage:p.legacyWage??(p.paySettings?{paySettings:p.paySettings,payHistory:p.payHistory||[]}:null),investPlan:{...S.investPlan,...(p.investPlan||{})},outlookMonths:olClampMonths(p.outlookMonths),outlookRaisePct:olClampPct(p.outlookRaisePct),outlookInflPct:olClampPct(p.outlookInflPct)});
       save();init();modal('นำเข้าสำเร็จ ✅','ข้อมูลถูกนำเข้าเรียบร้อย');
     }catch(err){modal('เกิดข้อผิดพลาด','ไม่สามารถอ่านไฟล์ได้');}
   };
