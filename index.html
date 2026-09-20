@@ -5,6 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#7c3aed">
+<meta name="mobile-web-app-capable" content="yes">
+<link rel="manifest" href="/manifest.webmanifest">
+<link rel="icon" type="image/png" sizes="192x192" href="/icons/icon-192.png">
+<link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
 <title>FinTrack 💜</title>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@300;400;500;600;700;800;900&family=IBM+Plex+Mono:wght@400;600;700&display=swap" rel="stylesheet">
 <style>
@@ -518,6 +522,11 @@ body::before{
 .ol-zone-pill{align-self:flex-start;margin-top:5px;padding:3px 9px;border-radius:99px;font-family:'IBM Plex Mono',monospace;font-weight:800;font-size:.7rem;background:rgba(139,92,246,.1)}
 .ol-zone-note{margin-top:5px;font-size:.66rem;color:var(--mt);line-height:1.45}
 .ol-pz{padding:2px 0 12px}.ol-pz+.ol-pz{border-top:1px dashed var(--bdr);padding:12px 0 2px}
+.ol-cmp{display:flex;flex-direction:column}
+.ol-cmp-r{display:grid;grid-template-columns:minmax(0,1.15fr) repeat(3,minmax(0,1fr));gap:6px;padding:7px 0;border-top:1px dashed var(--bdr);align-items:center}
+.ol-cmp-r.hd{border-top:none;font-size:.66rem;font-weight:800;color:var(--mt)}
+.ol-cmp-r .k{font-size:.72rem;font-weight:700;color:var(--txt2)}
+.ol-cmp-r .v{font-family:'IBM Plex Mono',monospace;font-size:.72rem;font-weight:700;text-align:right;overflow-wrap:anywhere}
 .ol-delta{margin-top:6px;padding-top:6px;border-top:1px dashed var(--bdr);font-size:.78rem;font-weight:800;font-family:'IBM Plex Mono',monospace}
 
 /* Timeline รายเดือน */
@@ -590,6 +599,7 @@ input[type=range]::-moz-range-track{background:var(--bg2);height:6px;border-radi
 
 <!-- ════════════ 1. DASHBOARD ════════════ -->
 <div class="sec" id="s-dashboard">
+  <div id="backupNudge"></div>
   <div class="hero">
     <div class="hero-in">
       <div style="font-size:.72rem;opacity:.8;font-weight:700;margin-bottom:4px">💜 สรุปการเงินรายเดือน</div>
@@ -792,6 +802,28 @@ input[type=range]::-moz-range-track{background:var(--bg2);height:6px;border-radi
       <div class="fxs tm mt2">ปรับทุกต้นปีที่ 2, 3, … · รายรับขึ้นตามอัตราเงินเดือน · รายจ่ายคงที่และรายวันขึ้นตามเงินเฟ้อ · ค่างวดหนี้คงที่ตามสัญญา · ค่าเริ่มต้น 3% · ใส่ 0 = ไม่ปรับ</div>
     </div>
   </div>
+  <div class="card csm" id="olPlanCard">
+    <div class="ol-pz">
+      <div class="slbl">📌 เหตุการณ์ครั้งเดียวในอนาคต</div>
+      <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px">
+        <div class="fg" style="margin:0;grid-column:1/-1"><label class="fl">ชื่อเหตุการณ์</label><input type="text" id="evName" class="inp" placeholder="เช่น โบนัสสิ้นปี, ซื้อรถ"></div>
+        <div class="fg" style="margin:0"><label class="fl">ประเภท</label><select id="evType" class="inp"><option value="income">💰 รายรับ</option><option value="expense">💸 รายจ่าย</option></select></div>
+        <div class="fg" style="margin:0"><label class="fl">จำนวน (฿)</label><input type="text" inputmode="decimal" id="evAmt" class="inp" placeholder="0" oninput="FM.clean(this)"></div>
+        <div class="fg" style="margin:0"><label class="fl">เดือน</label><input type="month" id="evMonth" class="inp"></div>
+        <button class="btn bP bFull" style="align-self:end" onclick="addOlEvent()">+ เพิ่ม</button>
+      </div>
+      <div id="evList" style="margin-top:8px"></div>
+    </div>
+    <div class="ol-pz">
+      <div class="slbl">🧪 ลองเปลี่ยนแผน (What-if)</div>
+      <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px">
+        <div class="fg" style="margin:0"><label class="fl">ลดรายจ่ายรายวัน (฿/เดือน)</label><input type="number" min="0" inputmode="decimal" id="wiCut" class="inp" placeholder="0" onchange="applyOlWhatIf()"></div>
+        <div class="fg" style="margin:0"><label class="fl">โปะหนี้เพิ่ม (฿/เดือน)</label><input type="number" min="0" inputmode="decimal" id="wiDebt" class="inp" placeholder="0" onchange="applyOlWhatIf()"></div>
+        <div class="fg" style="margin:0"><label class="fl">รายได้เสริม (฿/เดือน)</label><input type="number" min="0" inputmode="decimal" id="wiInc" class="inp" placeholder="0" onchange="applyOlWhatIf()"></div>
+      </div>
+      <div class="fxs tm mt2">ใส่ตัวเลขแล้วดูผลเปรียบเทียบกับแผนปัจจุบันด้านล่าง · โปะหนี้จะตัดก้อนที่ดอกเบี้ยสูงสุดก่อน · เว้นว่างหรือ 0 = ไม่ใช้</div>
+    </div>
+  </div>
   <div id="olBody"></div>
 </div>
 <!-- END อนาคต -->
@@ -853,7 +885,7 @@ input[type=range]::-moz-range-track{background:var(--bg2);height:6px;border-radi
           <input type="text" id="invSearchQ" class="inp" placeholder="ค้นหาชื่อหุ้น / Ticker เช่น MSFT">
           <button class="btn bP" onclick="searchInvAsset()">ค้นหา</button>
         </div>
-        <p class="fxs tm mt1">Alpha Vantage free tier มีโควต้าจำกัด (~25 ครั้ง/วัน) — กดค้นหาเมื่อพร้อมเท่านั้น</p>
+        <p class="fxs tm mt1">Alpha Vantage free tier มีโควต้าจำกัด (~25 ครั้ง/วัน) — กดค้นหาเมื่อพร้อมเท่านั้น (ผลค้นหาและราคาถูกแคชไว้ช่วยประหยัดโควต้า)<br>ℹ️ ครอบคลุมหุ้น/ETF สหรัฐฯ เป็นหลัก <b>หุ้นไทย (SET) ยังค้นหาไม่ได้</b> — ถ้าลงทุนหุ้นไทย ข้ามการเลือกสินทรัพย์ได้เลย แล้วตั้งผลตอบแทนคาดหวังด้านล่างเอง</p>
         <div id="invSearchResults" class="mt2"></div>
         <div id="invSelectedAsset" class="mt2"></div>
       </div>
@@ -945,6 +977,10 @@ input[type=range]::-moz-range-track{background:var(--bg2);height:6px;border-radi
 
 <script>
 'use strict';
+/* ── DATE (เวลาท้องถิ่น) ── */
+// ห้ามใช้ toISOString() หาวันนี้: มันเป็น UTC ทำให้ 00:00–07:00 เวลาไทยนับเป็นเมื่อวาน
+const localYMD=(d=new Date())=>`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+const localYM=(d=new Date())=>localYMD(d).slice(0,7);
 /* ── CAT ── */
 const CAT={
   salary:{l:'เงินเดือน',c:'#8b5cf6',e:'💼'},freelance:{l:'ฟรีแลนซ์',c:'#7c3aed',e:'💻'},
@@ -969,6 +1005,10 @@ let S={
   // 🔮 ช่วงคาดการณ์หน้าอนาคต (หน่วยเป็นเดือน, 1–OL_MAX_MONTHS)
   // 🔁 รายจ่ายซ้ำทุกวัน (เช่น ค่าข้าววันละ 150) — สร้างรายการใน S.transactions ให้เองทุกวัน ดู materializeDailyItems
   dailyItems:[],
+  // 💾 เตือนสำรองข้อมูล (ข้อมูลอยู่ในเบราว์เซอร์นี้เท่านั้น)
+  firstSeenAt:null,lastBackupAt:null,backupSnoozeUntil:null,
+  // 🔮 เหตุการณ์ครั้งเดียวในอนาคต [{id,name,type:'income'|'expense',amount,month:'YYYY-MM'}] และตัวเลข what-if
+  olEvents:[],outlookWhatIf:{cutVar:0,extraDebt:0,extraInc:0},
   outlookMonths:5,outlookRaisePct:3,outlookInflPct:3,
   // 💰 แผนลงทุน — ดู computeSurplus/computeBuffer/computeInvestAmount
   investPlan:{
@@ -998,7 +1038,8 @@ const load=()=>{
       transactions:p.transactions||[],
       legacyWage:p.legacyWage??(p.paySettings?{paySettings:p.paySettings,payHistory:p.payHistory||[]}:null),
       investPlan:{...S.investPlan,...(p.investPlan||{})},
-      dailyItems:p.dailyItems||[],outlookMonths:olClampMonths(p.outlookMonths),outlookRaisePct:olPctOrDefault(p.outlookRaisePct),outlookInflPct:olPctOrDefault(p.outlookInflPct),
+      firstSeenAt:p.firstSeenAt||new Date().toISOString(),lastBackupAt:p.lastBackupAt||null,backupSnoozeUntil:p.backupSnoozeUntil||null,
+      dailyItems:p.dailyItems||[],olEvents:p.olEvents||[],outlookWhatIf:olCleanWhatIf(p.outlookWhatIf),outlookMonths:olClampMonths(p.outlookMonths),outlookRaisePct:olPctOrDefault(p.outlookRaisePct),outlookInflPct:olPctOrDefault(p.outlookInflPct),
     });
   }catch(e){}
 };
@@ -1076,7 +1117,7 @@ const renderSummary=()=>{
   document.getElementById('totExp').textContent=f(C.exp);
   const b=document.getElementById('balDisp');
   b.textContent=f(C.bal);b.className='bal-n '+(C.bal>0?'bpos':C.bal<0?'bneg':'bzer');
-  const today=new Date().toISOString().slice(0,10);
+  const today=localYMD();
   const ta=S.transactions.filter(t=>t.date===today).reduce((s,t)=>s+t.amount,0);
   document.getElementById('todaySpend').textContent=f(ta);
   const ym=today.slice(0,7);
@@ -1194,7 +1235,7 @@ const addDebt=()=>{
   const rate=FM.parse(document.getElementById('dRate').value);
   const dtype=document.getElementById('dType').value;
   const payDay=+document.getElementById('dPayDay').value||null;
-  const startDate=document.getElementById('dStartDate').value||new Date().toISOString().slice(0,10);
+  const startDate=document.getElementById('dStartDate').value||localYMD();
   if(!name||!total||!monthly){modal('ข้อมูลไม่ครบ','กรุณากรอกชื่อ, ยอดหนี้ และยอดผ่อน');return}
   S.debts.push({id:'d'+Date.now(),name,totalAmount:total,remaining:total,monthlyPayment:monthly,interestRate:rate,debtType:dtype,payDay,startDate,lastAutoPayAt:startDate,interestAccrued:0,createdAt:new Date().toISOString()});
   ['dName','dTotal','dMonthly','dRate','dPayDay','dStartDate'].forEach(id=>document.getElementById(id).value='');
@@ -1328,6 +1369,9 @@ const OL_MAX_MONTHS=1200; // 100 ปี — เพดานกันหน้า
 const olClampMonths=v=>{const n=Math.floor(+v);return n>=1?Math.min(n,OL_MAX_MONTHS):OL_MONTHS};
 const olClampPct=v=>{const n=+v;return isFinite(n)?Math.max(-20,Math.min(50,n)):0};
 // ข้อมูลเก่าที่ยังไม่มีค่านี้ใช้ค่าเริ่มต้น 3% แต่ค่า 0 ที่ผู้ใช้ตั้งเองต้องคงไว้
+const olCleanWhatIf=w=>{const c=v=>{const n=+v;return isFinite(n)?Math.max(0,Math.min(10000000,n)):0};return{cutVar:c(w?.cutVar),extraDebt:c(w?.extraDebt),extraInc:c(w?.extraInc)}};
+// เดือนของเหตุการณ์ → ลำดับเดือนในการคาดการณ์ (1 = เดือนหน้า)
+const olEventIdx=ym=>{const n=new Date(),[y,mo]=String(ym).split('-').map(Number);return(y-n.getFullYear())*12+(mo-(n.getMonth()+1))};
 const olPctOrDefault=v=>v==null?3:olClampPct(v);
 // ป้ายช่วงเวลาอ่านง่าย: 5 เดือน / 1 ปี / 2 ปี 6 เดือน
 const olSpanLabel=n=>{const y=Math.floor(n/12),m=n%12;return y===0?`${n} เดือน`:m===0?`${y} ปี`:`${y} ปี ${m} เดือน`};
@@ -1349,7 +1393,7 @@ const olVariableSpend=()=>{
   const byMonth={};
   // รายการที่ระบบสร้างจากรายจ่ายทุกวันไม่นับในค่าเฉลี่ย เพราะคิดแยกด้วยยอดต่อวัน × 30.4 ด้านล่าง (กันนับซ้ำ)
   S.transactions.forEach(t=>{if(t.recurId)return;const m=(t.date||'').slice(0,7);if(m)byMonth[m]=(byMonth[m]||0)+t.amount});
-  const cur=new Date().toISOString().slice(0,7);
+  const cur=localYM();
   const past=Object.keys(byMonth).filter(m=>m<cur);
   let avg,basis,solid;
   if(past.length){avg=past.reduce((s,m)=>s+byMonth[m],0)/past.length;basis=`เฉลี่ยจากรายจ่ายจริง ${past.length} เดือนที่ผ่านมา`;solid=true;}
@@ -1370,15 +1414,17 @@ const olVariableSpend=()=>{
 // investPlan (optional): เมื่อส่งเข้ามาจะหักเงินลงทุนออกจาก cash flow ทุกเดือน + คำนวณมูลค่าพอร์ตจำลองแยกต่างหาก
 //   ไม่ส่ง → พฤติกรรมเดิมทุกประการ (หน้า 🔮 อนาคต ไม่ผูกกับการลงทุน)
 // monthsCount (optional): จำนวนเดือนที่จะจำลอง (ค่าเริ่มต้น OL_MONTHS=5) — ใช้เมื่อ Investment Timeline ขอดูช่วงยาวกว่า 5 เดือน
+// growth เพิ่มเติม: events (เหตุการณ์ครั้งเดียว), cutVar (ลดรายจ่ายรายวัน ฿/เดือน), extraDebt (โปะหนี้เพิ่ม ฿/เดือน — ตัดก้อนดอกเบี้ยสูงสุดก่อน), extraInc (รายได้เพิ่ม ฿/เดือน)
 // growth (optional): {raise,infl} อัตราต่อปีเป็นทศนิยม — รายรับขึ้นตาม raise, รายจ่ายขึ้นตาม infl ทุกต้นปีที่ 2,3,… (ค่างวดหนี้คงที่); ไม่ส่ง = ไม่ปรับ
 const computeOutlook=(investPlan,monthsCount,growth)=>{
   const N=monthsCount||OL_MONTHS;
   const gRaise=growth?.raise||0,gInfl=growth?.infl||0;
+  const events=growth?.events||[],cutVar=growth?.cutVar||0,extraDebt=growth?.extraDebt||0,extraInc=growth?.extraInc||0;
   const income=C.inc;
   const fixedExp=S.fixedExpenses.reduce((s,e)=>s+e.amount,0);
   const vs=olVariableSpend();
   const variableExp=vs.avg;
-  const ym=new Date().toISOString().slice(0,7);
+  const ym=localYM();
   const spentThisMonth=S.transactions.filter(t=>(t.date||'').startsWith(ym)).reduce((s,t)=>s+t.amount,0);
   const startBalance=C.bal-spentThisMonth;
 
@@ -1399,6 +1445,7 @@ const computeOutlook=(investPlan,monthsCount,growth)=>{
   const monthlyGrowthRate=investPlan?((investPlan.assumedReturnPct||0)+(investPlan.assumedDividendPct||0))/100/12:0;
 
   const months=[];
+  let totalInterest=0,debtFreeAt=startDebt>0?null:0;
   let bal=startBalance;
   let portfolio=0;
   for(let m=1;m<=N;m++){
@@ -1414,13 +1461,27 @@ const computeOutlook=(investPlan,monthsCount,growth)=>{
       debtPaid+=pay;interestPaid+=interest;
       if(d.rem<=0&&!d.paidOffAt){d.paidOffAt=m;paidOff.push({name:d.name,freed:d.monthly})}
     });
-    const yr=Math.floor((m-1)/12),incM=income*Math.pow(1+gRaise,yr),fixM=fixedExp*Math.pow(1+gInfl,yr),varM=variableExp*Math.pow(1+gInfl,yr);
-    const preInvestNet=incM-fixM-varM-debtPaid;
+    // โปะหนี้เพิ่ม (what-if): จ่ายเพิ่มให้ก้อนดอกเบี้ยสูงสุดก่อน จนกว่าเงินโปะหรือหนี้จะหมด
+    if(extraDebt>0){
+      let left=extraDebt;
+      [...debts].filter(d=>d.rem>0).sort((a,b)=>b.rate-a.rate).forEach(d=>{
+        if(left<=0)return;
+        const pay=Math.min(left,d.rem);d.rem-=pay;left-=pay;debtPaid+=pay;
+        if(d.rem<0.01)d.rem=0;
+        if(d.rem<=0&&!d.paidOffAt){d.paidOffAt=m;paidOff.push({name:d.name,freed:d.monthly})}
+      });
+    }
+    totalInterest+=interestPaid;
+    if(debtFreeAt===null&&debts.every(d=>d.rem<=0))debtFreeAt=m;
+    const yr=Math.floor((m-1)/12),incM=income*Math.pow(1+gRaise,yr)+extraInc,fixM=fixedExp*Math.pow(1+gInfl,yr),varM=Math.max(0,variableExp*Math.pow(1+gInfl,yr)-cutVar);
+    const evs=events.filter(e=>olEventIdx(e.month)===m);
+    const oneOff=evs.reduce((s,e)=>s+(e.type==='income'?e.amount:-e.amount),0);
+    const preInvestNet=incM-fixM-varM-debtPaid+oneOff;
     const investedThisMonth=investAmountFor(m,preInvestNet);
     const net=preInvestNet-investedThisMonth;
     const start=bal;bal=start+net;
     portfolio=portfolio*(1+monthlyGrowthRate)+investedThisMonth;
-    months.push({m,label:olMonthLabel(m),income:incM,fixedExp:fixM,variableExp:varM,debtPaid,interestPaid,net,start,end:bal,cashEnd:bal,
+    months.push({m,label:olMonthLabel(m),income:incM,fixedExp:fixM,variableExp:varM,oneOff,oneOffNames:evs.map(e=>e.name),debtPaid,interestPaid,net,start,end:bal,cashEnd:bal,
       invested:investedThisMonth,portfolioValue:portfolio,
       debtLeft:debts.reduce((s,d)=>s+d.rem,0),paidOff});
   }
@@ -1459,7 +1520,7 @@ const computeOutlook=(investPlan,monthsCount,growth)=>{
 
   return{ready:income>0,income,fixedExp,variableExp,vsBasis:vs.basis,vsSolid:vs.solid,spentThisMonth,
     startBalance,startDebt,startDebtMonthly,endBal,endDebt,avgFlow,months,status,riskMonth,riskBy,flatFlow,missing,
-    balDelta:endBal-startBalance,debtDelta:startDebt-endDebt,raisePct:gRaise*100,inflPct:gInfl*100};
+    balDelta:endBal-startBalance,debtDelta:startDebt-endDebt,raisePct:gRaise*100,inflPct:gInfl*100,totalInterest,debtFreeAt,debtFreeLabel:debtFreeAt>0?months[debtFreeAt-1].label:null};
 };
 
 // ── การ์ดสรุปย่อบนหน้าหลัก ──
@@ -1489,7 +1550,56 @@ const renderOutlookHero=o=>{
 };
 
 // ── หน้ารายละเอียด: Summary cards + Timeline รายเดือน + Insight ──
-const renderOutlookDetail=o=>{
+// กราฟเส้น: เงินคงเหลือสะสม vs หนี้คงเหลือ (SVG ล้วน) — ช่วงยาวเกิน 60 เดือนย่อเป็นจุดรายปี
+const renderOlChart=o=>{
+  const N=o.months.length;
+  const pts=[{m:0,bal:o.startBalance,debt:o.startDebt,label:'ตอนนี้'}];
+  const step=N>60?12:1;
+  for(let m=step;m<=N;m+=step)pts.push({m,bal:o.months[m-1].end,debt:o.months[m-1].debtLeft,label:o.months[m-1].label});
+  if(pts[pts.length-1].m!==N)pts.push({m:N,bal:o.months[N-1].end,debt:o.months[N-1].debtLeft,label:o.months[N-1].label});
+  const W=600,H=230,L=58,R=12,T=14,B=28;
+  const vals=pts.flatMap(p=>[p.bal,p.debt]).concat(0);
+  let lo=Math.min(...vals),hi=Math.max(...vals);if(hi-lo<1){hi=lo+1}
+  const pad=(hi-lo)*.06;lo-=pad;hi+=pad;
+  const x=m=>L+(N?m/N:0)*(W-L-R),y=v=>T+(1-(v-lo)/(hi-lo))*(H-T-B);
+  const line=k=>pts.map((p,i)=>`${i?'L':'M'}${x(p.m).toFixed(1)},${y(p[k]).toFixed(1)}`).join(' ');
+  const axisFmt=v=>{const a=Math.abs(v),s=v<0?'−':'';return s+(a>=1e6?(a/1e6).toFixed(1)+'M':a>=1e3?Math.round(a/1e3)+'K':Math.round(a))};
+  const ticks=[0,1,2,3].map(i=>lo+(hi-lo)*i/3);
+  const grid=ticks.map(v=>`<line x1="${L}" x2="${W-R}" y1="${y(v).toFixed(1)}" y2="${y(v).toFixed(1)}" stroke="var(--bdr)" stroke-width="1"/><text x="${L-6}" y="${(y(v)+3).toFixed(1)}" text-anchor="end" font-size="9.5" fill="var(--mt)">${axisFmt(v)}</text>`).join('');
+  const zero=lo<0&&hi>0?`<line x1="${L}" x2="${W-R}" y1="${y(0).toFixed(1)}" y2="${y(0).toFixed(1)}" stroke="var(--mt)" stroke-width="1" stroke-dasharray="4 3"/>`:'';
+  const area=`${line('bal')} L${x(N).toFixed(1)},${y(Math.max(lo,Math.min(0,hi))).toFixed(1)} L${x(0).toFixed(1)},${y(Math.max(lo,Math.min(0,hi))).toFixed(1)} Z`;
+  const dots=pts.map(p=>`<circle cx="${x(p.m).toFixed(1)}" cy="${y(p.bal).toFixed(1)}" r="${N<=24||step>1?3:2}" fill="var(--p)"><title>${p.label}: เงินคงเหลือ ${FM.cur(p.bal)} · หนี้ ${FM.cur(p.debt)}</title></circle>`).join('');
+  const evm=o.months.filter(mo=>mo.oneOff).map(mo=>`<g><path d="M${x(mo.m).toFixed(1)},${(T-1)} l4,5 l-4,5 l-4,-5 z" fill="${mo.oneOff>0?'#10b981':'#f59e0b'}"><title>${mo.label}: ${mo.oneOffNames.map(esc).join(', ')} (${olSigned(mo.oneOff)})</title></path></g>`).join('');
+  const xl=[0,Math.round(N/2),N].filter((v,i,a)=>a.indexOf(v)===i).map(m=>`<text x="${x(m).toFixed(1)}" y="${H-8}" text-anchor="${m===0?'start':m===N?'end':'middle'}" font-size="9.5" fill="var(--mt)">${m===0?'ตอนนี้':olSpanLabel(m)}</text>`).join('');
+  return`<div class="card csm mt2"><div class="slbl">แนวโน้มเงินคงเหลือและหนี้</div>
+    <svg viewBox="0 0 ${W} ${H}" style="width:100%;height:auto;display:block" role="img" aria-label="กราฟเงินคงเหลือและหนี้">
+      ${grid}${zero}<path d="${area}" fill="var(--p)" opacity=".10"/>
+      <path d="${line('debt')}" fill="none" stroke="#ef4444" stroke-width="2" stroke-linejoin="round"/>
+      <path d="${line('bal')}" fill="none" stroke="var(--p)" stroke-width="2.4" stroke-linejoin="round"/>
+      ${dots}${evm}${xl}
+    </svg>
+    <div class="cal-leg" style="margin-top:6px"><div class="leg"><div class="legdot" style="background:var(--p)"></div>เงินคงเหลือสะสม</div><div class="leg"><div class="legdot" style="background:#ef4444"></div>หนี้คงเหลือ</div>${o.months.some(mo=>mo.oneOff)?'<div class="leg"><div class="legdot" style="background:#10b981;border-radius:2px;transform:rotate(45deg)"></div>เหตุการณ์ครั้งเดียว</div>':''}</div>
+  </div>`;
+};
+// ตารางเปรียบเทียบ แผนปัจจุบัน vs แผนที่ลองเปลี่ยน
+const renderOlCompare=(o,sc)=>{
+  if(!sc)return'';
+  const w=S.outlookWhatIf,span=olSpanLabel(o.months.length);
+  const parts=[w.cutVar>0?`ลดรายจ่ายรายวัน ${FM.cur(w.cutVar)}/เดือน`:'',w.extraDebt>0?`โปะหนี้เพิ่ม ${FM.cur(w.extraDebt)}/เดือน`:'',w.extraInc>0?`รายได้เสริม ${FM.cur(w.extraInc)}/เดือน`:''].filter(Boolean).join(' · ');
+  const df=(a,b,goodUp)=>{const d=b-a;if(Math.abs(d)<0.005)return'<span class="tm">เท่าเดิม</span>';const good=goodUp?d>0:d<0;return`<span class="${good?'tg':'tr2'}">${olSigned(d)}</span>`};
+  const free=x=>x.startDebt<=0?'ไม่มีหนี้':x.debtFreeLabel||'ไม่หมดในช่วงนี้';
+  const freeDelta=(o.debtFreeAt>0&&sc.debtFreeAt>0)?(o.debtFreeAt-sc.debtFreeAt>0?`<span class="tg">เร็วขึ้น ${olSpanLabel(o.debtFreeAt-sc.debtFreeAt)}</span>`:'<span class="tm">เท่าเดิม</span>'):(!(o.debtFreeAt>0)&&sc.debtFreeAt>0?'<span class="tg">ปลอดหนี้ในช่วงนี้ได้</span>':'<span class="tm">—</span>');
+  const row=(k,a,b,d)=>`<div class="ol-cmp-r"><div class="k">${k}</div><div class="v">${a}</div><div class="v">${b}</div><div class="v">${d}</div></div>`;
+  return`<div class="card csm mt2"><div class="slbl">🧪 เปรียบเทียบผล อีก ${span}</div>
+    <div class="fxs tm" style="margin-bottom:8px">${parts}</div>
+    <div class="ol-cmp"><div class="ol-cmp-r hd"><div class="k"></div><div class="v">แผนเดิม</div><div class="v">แผนใหม่</div><div class="v">ต่าง</div></div>
+      ${row('เงินคงเหลือ',FM.cur(o.endBal),FM.cur(sc.endBal),df(o.endBal,sc.endBal,true))}
+      ${row('หนี้คงเหลือ',FM.cur(o.endDebt),FM.cur(sc.endDebt),df(o.endDebt,sc.endDebt,false))}
+      ${row('ดอกเบี้ยจ่ายรวม',FM.cur(o.totalInterest),FM.cur(sc.totalInterest),df(o.totalInterest,sc.totalInterest,false))}
+      ${row('ปลอดหนี้เมื่อ',free(o),free(sc),freeDelta)}
+    </div></div>`;
+};
+const renderOutlookDetail=(o,sc)=>{
   const el=document.getElementById('olBody');if(!el)return;
   if(!o.ready){
     el.innerHTML=`<div class="card"><div class="empty"><div class="ei">🔮</div>
@@ -1557,6 +1667,7 @@ const renderOutlookDetail=o=>{
           <div class="ol-r"><span class="k">รายจ่ายคงที่รวม</span><span class="v tr2">−${FM.cur(sum('fixedExp'))}</span></div>
           <div class="ol-r"><span class="k">รายจ่ายรายวันรวม</span><span class="v tr2">−${FM.cur(sum('variableExp'))}</span></div>
           <div class="ol-r"><span class="k">ผ่อนหนี้รวม</span><span class="v ty">${sum('debtPaid')>0?'−'+FM.cur(sum('debtPaid')):'—'}</span></div>
+          ${sum('oneOff')?`<div class="ol-r"><span class="k">📌 เหตุการณ์ครั้งเดียวรวม</span><span class="v ${sum('oneOff')>0?'tg':'tr2'}">${olSigned(sum('oneOff'))}</span></div>`:''}
           <div class="ol-r hl"><span class="k fw8">เงินสุทธิรวมปีนี้</span><span class="v ${net>=0?'tg':'tr2'}">${olSigned(net)}</span></div>
           <div class="ol-r hl" style="padding-top:0"><span class="k fw8">เงินคงเหลือปลายปี</span><span class="v ${last.end>=0?'tp':'tr2'}">${FM.cur(last.end)}</span></div>
           <div class="ol-r hl" style="padding-top:0"><span class="k fw8">หนี้คงเหลือ</span><span class="v ${last.debtLeft>0?'tr2':'tg'}">${last.debtLeft>0?FM.cur(last.debtLeft):'ปลอดหนี้ 🎉'}</span></div>
@@ -1594,6 +1705,7 @@ const renderOutlookDetail=o=>{
         <div class="ol-r"><span class="k">รายจ่ายคงที่</span><span class="v tr2">−${FM.cur(x.fixedExp)}</span></div>
         <div class="ol-r"><span class="k">รายจ่ายรายวัน (เฉลี่ย)</span><span class="v tr2">−${FM.cur(x.variableExp)}</span></div>
         <div class="ol-r"><span class="k">ผ่อนหนี้</span><span class="v ty">${x.debtPaid>0?'−'+FM.cur(x.debtPaid):'—'}</span></div>
+        ${x.oneOff?`<div class="ol-r"><span class="k">📌 ${x.oneOffNames.map(esc).join(', ')}</span><span class="v ${x.oneOff>0?'tg':'tr2'}">${olSigned(x.oneOff)}</span></div>`:''}
         <div class="ol-r hl"><span class="k fw8">เงินสุทธิเดือนนี้</span><span class="v ${x.net>=0?'tg':'tr2'}">${olSigned(x.net)}</span></div>
         <div class="ol-r hl" style="padding-top:0"><span class="k fw8">เงินคงเหลือปลายเดือน</span><span class="v ${x.end>=0?'tp':'tr2'}">${FM.cur(x.end)}</span></div>
         <div class="ol-r hl" style="padding-top:0"><span class="k fw8">หนี้คงเหลือ</span><span class="v ${x.debtLeft>0?'tr2':'tg'}">${x.debtLeft>0?FM.cur(x.debtLeft):'ปลอดหนี้ 🎉'}</span></div>
@@ -1638,6 +1750,8 @@ const renderOutlookDetail=o=>{
   </div>`;
 
   el.innerHTML=`${sum}
+    ${renderOlChart(o)}
+    ${renderOlCompare(o,sc)}
     <div class="slbl mt3">${yearly?'ไทม์ไลน์รายปี':'ไทม์ไลน์รายเดือน'}</div>
     <div class="ol-tl">${tl}</div>
     ${insight}
@@ -1655,6 +1769,33 @@ const renderOlPicker=()=>{
   const h=document.getElementById('olSpanHint');
   if(h)h.textContent=`กำลังดู ${olSpanLabel(n)} — ใส่ได้ 1 เดือนถึง ${OL_MAX_MONTHS/12} ปี ช่วงเกิน 2 ปีจะสรุปเป็นรายปี`;
 };
+// growth object ของ S ปัจจุบัน — withWhatIf=true คือแผนที่ลองเปลี่ยน
+const olGrowth=withWhatIf=>({raise:S.outlookRaisePct/100,infl:S.outlookInflPct/100,events:S.olEvents,
+  ...(withWhatIf?{cutVar:S.outlookWhatIf.cutVar,extraDebt:S.outlookWhatIf.extraDebt,extraInc:S.outlookWhatIf.extraInc}:{})});
+const olWhatIfActive=()=>{const w=S.outlookWhatIf;return w.cutVar>0||w.extraDebt>0||w.extraInc>0};
+const applyOlWhatIf=()=>{
+  S.outlookWhatIf=olCleanWhatIf({cutVar:document.getElementById('wiCut').value,extraDebt:document.getElementById('wiDebt').value,extraInc:document.getElementById('wiInc').value});
+  save();renderOutlook();
+};
+const addOlEvent=()=>{
+  const name=document.getElementById('evName').value.trim(),amt=FM.parse(document.getElementById('evAmt').value),
+    type=document.getElementById('evType').value,month=document.getElementById('evMonth').value;
+  if(!name||!(amt>0)||!month){modal('ข้อมูลไม่ครบ','กรุณากรอกชื่อ จำนวน และเดือนของเหตุการณ์');return}
+  if(olEventIdx(month)<1){modal('เดือนไม่ถูกต้อง','เหตุการณ์ต้องอยู่ตั้งแต่เดือนหน้าเป็นต้นไป (เดือนนี้เป็นข้อมูลจริงอยู่แล้ว)');return}
+  S.olEvents.push({id:'ev'+Date.now(),name,type,amount:amt,month});
+  S.olEvents.sort((a,b)=>a.month.localeCompare(b.month));
+  ['evName','evAmt'].forEach(id=>document.getElementById(id).value='');
+  save();renderOutlook();
+};
+const removeOlEvent=id=>{S.olEvents=S.olEvents.filter(e=>e.id!==id);save();renderOutlook();};
+const renderOlPlan=()=>{
+  const list=document.getElementById('evList');if(!list)return;
+  const n=S.outlookMonths;
+  list.innerHTML=S.olEvents.length?S.olEvents.map(e=>{const idx=olEventIdx(e.month),out=idx>n||idx<1;
+    return`<div class="tx"><div class="txic" style="background:${e.type==='income'?'rgba(16,185,129,.12)':'rgba(239,68,68,.12)'}">${e.type==='income'?'💰':'💸'}</div><div class="txb"><div class="txn">${esc(e.name)}</div><div class="txd">${e.month}${out?' · <span class="ty">อยู่นอกช่วงที่กำลังดู</span>':''}</div></div><span class="txa ${e.type==='income'?'tg':'tr2'}">${e.type==='income'?'+':'−'}${FM.cur(e.amount)}</span><button class="btn bGh" onclick="removeOlEvent('${e.id}')">✕</button></div>`}).join(''):'<div class="fxs tm">ยังไม่มีเหตุการณ์ — เพิ่มโบนัส ค่าใช้จ่ายก้อนใหญ่ หรือรายรับพิเศษที่รู้ล่วงหน้าได้</div>';
+  [['wiCut',S.outlookWhatIf.cutVar],['wiDebt',S.outlookWhatIf.extraDebt],['wiInc',S.outlookWhatIf.extraInc]].forEach(([id,v])=>{const e=document.getElementById(id);if(e&&document.activeElement!==e)e.value=v||'';});
+  const mi=document.getElementById('evMonth');if(mi&&!mi.min){const d=new Date();d.setMonth(d.getMonth()+1);mi.min=localYM(d);}
+};
 const applyOlRates=()=>{
   S.outlookRaisePct=olClampPct(document.getElementById('olRaise').value);
   S.outlookInflPct=olClampPct(document.getElementById('olInfl').value);
@@ -1669,7 +1810,9 @@ const applyOlSpan=()=>{
   setOutlookSpan(months);
   document.getElementById('olSpanVal').value='';
 };
-const renderOutlook=()=>{const o=computeOutlook(null,S.outlookMonths,{raise:S.outlookRaisePct/100,infl:S.outlookInflPct/100});renderOlPicker();renderOutlookHero(o);renderOutlookDetail(o)};
+const renderOutlook=()=>{const o=computeOutlook(null,S.outlookMonths,olGrowth(false));
+  const sc=olWhatIfActive()?computeOutlook(null,S.outlookMonths,olGrowth(true)):null;
+  renderOlPicker();renderOlPlan();renderOutlookHero(o);renderOutlookDetail(o,sc)};
 /* ── MOOD ── */
 // เลือก mood การใช้จ่าย (need/want/impulse/regret) → toggle UI
 const setMood=m=>{currentMood=m;document.querySelectorAll('.mood-btn').forEach(b=>b.classList.toggle('sel',b.dataset.mood===m))};
@@ -1693,7 +1836,7 @@ const dlyAddDays=(ds,n)=>{const d=new Date(ds+'T00:00:00Z');d.setUTCDate(d.getUT
 // สร้างรายการค่าใช้จ่ายของทุกวันที่ค้างอยู่ (ตั้งแต่วันเริ่มหรือวันหลังสุดที่สร้างไว้ จนถึงวันนี้) — ผ่าน id ตายตัวต่อวัน จึงไม่สร้างซ้ำ
 // คืน true ถ้ามีรายการใหม่ (ผู้เรียกต้อง save)
 const materializeDailyItems=()=>{
-  const today=new Date().toISOString().slice(0,10);
+  const today=localYMD();
   const have=new Set(S.transactions.filter(x=>x.recurId).map(x=>x.id));
   let added=0;
   S.dailyItems.forEach(it=>{
@@ -1708,7 +1851,7 @@ const materializeDailyItems=()=>{
   return added>0;
 };
 const addDailyItem=(name,amt,cat,date,note)=>{
-  const today=new Date().toISOString().slice(0,10);
+  const today=localYMD();
   if(date<dlyAddDays(today,-366)){modal('วันเริ่มไกลเกินไป','รายจ่ายทุกวันย้อนหลังได้ไม่เกิน 1 ปี');return}
   S.dailyItems.push({id:'d'+Date.now(),name,amount:amt,category:cat,startDate:date,lastGenAt:null,note,mood:currentMood});
   materializeDailyItems();
@@ -1749,7 +1892,7 @@ const txHtml=t=>{
 const renderTxLists=()=>{
   if(materializeDailyItems())save();
   renderDailyItems();
-  const today=new Date().toISOString().slice(0,10);
+  const today=localYMD();
   const td=S.transactions.filter(t=>t.date===today);
   document.getElementById('todayTot').textContent=FM.cur(td.reduce((s,t)=>s+t.amount,0));
   document.getElementById('todayList').innerHTML=td.length?td.map(txHtml).join(''):'<div class="empty"><div class="ei">☀️</div><p>ยังไม่มีรายการวันนี้</p></div>';
@@ -1759,13 +1902,13 @@ const renderTxLists=()=>{
 // render bar chart รายจ่าย 7 วันย้อนหลัง และอัพเดทยอดเดือนนี้
 // ── DAILY CHART: Pure CSS bar chart (7 วันย้อนหลัง)
 const renderDailyChart=()=>{
-  const ym=new Date().toISOString().slice(0,7);
+  const ym=localYM();
   const ms=S.transactions.filter(t=>t.date.startsWith(ym)).reduce((s,t)=>s+t.amount,0);
   const e1=document.getElementById('monthSpent'),e2=document.getElementById('monthLeft');
   if(e1)e1.textContent=FM.cur(ms);
   if(e2)e2.textContent=FM.cur(Math.max(0,C.bal-ms));
   const days=[],amts=[];
-  for(let i=6;i>=0;i--){const d=new Date();d.setDate(d.getDate()-i);const ds=d.toISOString().slice(0,10);days.push(ds.slice(5));amts.push(S.transactions.filter(t=>t.date===ds).reduce((s,t)=>s+t.amount,0));}
+  for(let i=6;i>=0;i--){const d=new Date();d.setDate(d.getDate()-i);const ds=localYMD(d);days.push(ds.slice(5));amts.push(S.transactions.filter(t=>t.date===ds).reduce((s,t)=>s+t.amount,0));}
   const ctx=document.getElementById('dailyChart');if(!ctx)return;
   const max=Math.max(...amts,1);
   ctx.style.display='grid';
@@ -1785,9 +1928,25 @@ const renderDailyChart=()=>{
 };
 /* ── BACKUP / RESTORE ── */
 // export ข้อมูลทั้งหมดเป็น JSON file ให้ดาวน์โหลด
+const BACKUP_NUDGE_DAYS=7,BACKUP_SNOOZE_DAYS=3;
+const hasUserData=()=>!!(S.salary||S.fixedExpenses.length||S.debts.length||S.transactions.length||S.otherIncomes.length);
+const renderBackupNudge=()=>{
+  const el=document.getElementById('backupNudge');if(!el)return;
+  const now=Date.now(),base=Date.parse(S.lastBackupAt||S.firstSeenAt||'')||now;
+  const days=Math.floor((now-base)/864e5),snoozed=S.backupSnoozeUntil&&Date.parse(S.backupSnoozeUntil)>now;
+  if(!hasUserData()||days<BACKUP_NUDGE_DAYS||snoozed){el.innerHTML='';return}
+  el.innerHTML=`<div class="card csm" style="border-color:rgba(245,158,11,.5);background:linear-gradient(135deg,rgba(245,158,11,.10),rgba(245,158,11,.03))">
+    <div style="display:flex;gap:10px;align-items:flex-start"><div style="font-size:1.4rem">💾</div><div style="flex:1;min-width:0">
+      <div class="fw8" style="font-size:.85rem">${S.lastBackupAt?`ไม่ได้สำรองข้อมูลมา ${days} วันแล้ว`:`ใช้งานมา ${days} วันแล้ว ยังไม่เคยสำรองข้อมูล`}</div>
+      <div class="fxs tm" style="margin:3px 0 9px">ข้อมูลของคุณเก็บอยู่ในเบราว์เซอร์นี้เท่านั้น ถ้าล้างแคชหรือเปลี่ยนเครื่องจะหาย — ดาวน์โหลดไฟล์สำรองไว้ได้ตลอด</div>
+      <div class="irow"><button class="btn bP" onclick="doBackup()">💾 สำรองตอนนี้</button><button class="btn bO" onclick="snoozeBackupNudge()">เตือนภายหลัง</button></div>
+    </div></div></div>`;
+};
+const snoozeBackupNudge=()=>{S.backupSnoozeUntil=new Date(Date.now()+BACKUP_SNOOZE_DAYS*864e5).toISOString();save();renderBackupNudge();};
 const doBackup=()=>{
+  S.lastBackupAt=new Date().toISOString();S.backupSnoozeUntil=null;save();renderBackupNudge();
   const blob=new Blob([JSON.stringify({...S,ver:11,exportDate:new Date().toISOString()},null,2)],{type:'application/json'});
-  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=`fintrack_${new Date().toISOString().slice(0,10)}.json`;a.click();
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=`fintrack_${localYMD()}.json`;a.click();
 };
 document.getElementById('backupBtn').addEventListener('click',doBackup);
 document.getElementById('restoreBtn').addEventListener('click',()=>document.getElementById('restoreFile').click());
@@ -1797,7 +1956,8 @@ document.getElementById('restoreFile').addEventListener('change',e=>{
   reader.onload=ev=>{
     try{
       const p=JSON.parse(ev.target.result);
-      Object.assign(S,{salary:+p.salary||0,otherIncomes:p.otherIncomes||[],fixedExpenses:p.fixedExpenses||[],debts:p.debts||[],transactions:p.transactions||[],legacyWage:p.legacyWage??(p.paySettings?{paySettings:p.paySettings,payHistory:p.payHistory||[]}:null),investPlan:{...S.investPlan,...(p.investPlan||{})},dailyItems:p.dailyItems||[],outlookMonths:olClampMonths(p.outlookMonths),outlookRaisePct:olPctOrDefault(p.outlookRaisePct),outlookInflPct:olPctOrDefault(p.outlookInflPct)});
+      Object.assign(S,{salary:+p.salary||0,otherIncomes:p.otherIncomes||[],fixedExpenses:p.fixedExpenses||[],debts:p.debts||[],transactions:p.transactions||[],legacyWage:p.legacyWage??(p.paySettings?{paySettings:p.paySettings,payHistory:p.payHistory||[]}:null),investPlan:{...S.investPlan,...(p.investPlan||{})},dailyItems:p.dailyItems||[],olEvents:p.olEvents||[],outlookWhatIf:olCleanWhatIf(p.outlookWhatIf),outlookMonths:olClampMonths(p.outlookMonths),outlookRaisePct:olPctOrDefault(p.outlookRaisePct),outlookInflPct:olPctOrDefault(p.outlookInflPct)});
+      S.lastBackupAt=new Date().toISOString();
       save();init();modal('นำเข้าสำเร็จ ✅','ข้อมูลถูกนำเข้าเรียบร้อย');
     }catch(err){modal('เกิดข้อผิดพลาด','ไม่สามารถอ่านไฟล์ได้');}
   };
@@ -1809,14 +1969,16 @@ document.getElementById('restoreFile').addEventListener('change',e=>{
 const DEMO_TX=[[1,'ข้าวมันไก่','food',65],[2,'BTS/MRT','transport',48],[3,'กาแฟ','food',85],[4,'ค่าไฟ','utility',1450],[6,'ซื้อเสื้อ','shopping',990],[8,'หมูกระทะ','food',420],[10,'ค่าน้ำมัน','transport',800],[12,'ดูหนัง','entertainment',360],[15,'ร้านยา','health',280],[18,'Grab','transport',190],[22,'ข้าวกลางวัน','food',120],[27,'ซุปเปอร์มาร์เก็ต','food',1250]];
 const loadDemo=()=>{
   const has=S.salary||S.fixedExpenses.length||S.debts.length||S.transactions.length||S.otherIncomes.length;
-  if(has&&!confirm('โหลดข้อมูลตัวอย่างจะแทนที่ข้อมูลรายรับ/รายจ่าย/หนี้/ธุรกรรมปัจจุบัน (กด 💾 สำรองไว้ก่อนได้) ต้องการต่อไหม?'))return;
-  const now=new Date(),ym=now.toISOString().slice(0,7),today=now.toISOString().slice(0,10),day=now.getDate();
+  if(has&&!(confirm('โหลดข้อมูลตัวอย่างจะแทนที่ข้อมูลรายรับ/รายจ่าย/หนี้/ธุรกรรมปัจจุบันทั้งหมด ต้องการต่อไหม?')&&confirm('ยืนยันอีกครั้ง: ข้อมูลจริงของคุณจะถูกลบและกู้คืนไม่ได้ ถ้ายังไม่ได้สำรอง (💾) ให้กดยกเลิกแล้วสำรองก่อน')))return;
+  const now=new Date(),ym=localYM(now),today=localYMD(now),day=now.getDate();
   const mk=(i,n,c,a)=>({id:'demo'+i,name:n,category:c,amount:a});
-  const past=new Date(now.getFullYear(),now.getMonth()-8,1).toISOString().slice(0,10);
+  const past=localYMD(new Date(now.getFullYear(),now.getMonth()-8,1));
   const debt=(i,name,total,remaining,monthly,rate,type,payDay)=>({id:'demod'+i,name,totalAmount:total,remaining,monthlyPayment:monthly,interestRate:rate,debtType:type,payDay,startDate:today,lastAutoPayAt:today,interestAccrued:0,createdAt:past});
   Object.assign(S,{
     salary:35000,
-    dailyItems:[{id:'demor1',name:'ค่าข้าว',amount:150,category:'food',startDate:new Date(now.getTime()-6*864e5).toISOString().slice(0,10),lastGenAt:null,note:'',mood:'need'}],
+    olEvents:[{id:'demoev1',name:'โบนัสสิ้นปี',type:'income',amount:30000,month:localYM(new Date(now.getFullYear(),now.getMonth()+3,1))},{id:'demoev2',name:'ซื้อโน้ตบุ๊ก',type:'expense',amount:25000,month:localYM(new Date(now.getFullYear(),now.getMonth()+6,1))}],
+    outlookWhatIf:{cutVar:0,extraDebt:0,extraInc:0},
+    dailyItems:[{id:'demor1',name:'ค่าข้าว',amount:150,category:'food',startDate:localYMD(new Date(now.getTime()-6*864e5)),lastGenAt:null,note:'',mood:'need'}],
     otherIncomes:[mk(1,'งานฟรีแลนซ์','freelance',6000),mk(2,'ค่าเช่าคอนโด','rental',4500)],
     fixedExpenses:[mk(1,'ค่าเช่าห้อง','housing',9000),mk(2,'อินเทอร์เน็ต + มือถือ','utility',1100),mk(3,'ประกันสุขภาพ','insurance',1500),mk(4,'ฟิตเนส','health',1200),mk(5,'Netflix + Spotify','entertainment',450)],
     debts:[debt(1,'บัตรเครดิต KTC',48000,32000,3500,18,'credit',15),debt(2,'ผ่อนมอเตอร์ไซค์',60000,24000,3000,6,'car',5)],
@@ -2160,7 +2322,7 @@ const init=()=>{
   if(S.salary){sal.value=S.salary;FM.format(sal);}
   renderIncList();renderExpList();renderDebtList();
   renderTxLists();
-  const today=new Date().toISOString().slice(0,10);
+  const today=localYMD();
   document.getElementById('txDate').value=today;
   document.getElementById('dStartDate').value=today;
   // แสดง dashboard เริ่มต้น
@@ -2168,11 +2330,13 @@ const init=()=>{
     const el=document.getElementById('s-'+id);if(el)el.style.display='none';
   });
   const dash=document.getElementById('s-dashboard');if(dash)dash.style.display='block';
-  calc();renderInsights();renderOutlook();
+  calc();renderInsights();renderOutlook();renderBackupNudge();
 };
 // ── รัน app เมื่อหน้าโหลดเสร็จสมบูรณ์ ──
 window.addEventListener('load', function() {
   try { load(); init(); } catch(e) { console.error('FinTrack init error:', e); }
+  // PWA: ลงทะเบียนเฉพาะบน https (production) เพื่อไม่ให้แคชรบกวนตอนพัฒนาบน localhost
+  if('serviceWorker' in navigator&&location.protocol==='https:')navigator.serviceWorker.register('/sw.js').catch(()=>{});
 });
 </script>
 </body>
