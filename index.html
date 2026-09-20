@@ -671,14 +671,14 @@ input[type=range]::-moz-range-track{background:var(--bg2);height:6px;border-radi
             <button class="tab on" data-f="once" onclick="setPrepayFreq('once')">ครั้งเดียว</button>
             <button class="tab" data-f="monthly" onclick="setPrepayFreq('monthly')">🔁 ทุกเดือน</button>
           </div>
-          <div id="prepayTimesWrap" style="display:none;margin-bottom:9px">
-            <div class="fg" style="margin:0"><label class="fl">โปะกี่ครั้ง (เดือน) — เว้นว่าง = ทุกเดือนไม่จำกัด</label><input type="number" min="2" step="1" inputmode="numeric" id="prepayTimes" class="inp" placeholder="ไม่จำกัด เช่น 6" oninput="renderPrepayPreview()"></div>
-          </div>
           <div class="fxs tm" id="prepayCash" style="margin-bottom:8px"></div>
           <div class="chiprow" id="prepayChips"></div>
           <div style="display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.3fr);gap:7px">
             <div class="fg" style="margin:0"><label class="fl">จำนวนที่โปะ (฿)</label><div class="ipr"><span class="pre">฿</span><input type="text" inputmode="decimal" id="prepayAmt" class="inp" placeholder="0" oninput="FM.clean(this);renderPrepayPreview()"></div></div>
             <div class="fg" style="margin:0"><label class="fl">โปะหนี้ก้อนไหน</label><select id="prepayDebt" class="inp" onchange="renderPrepayPreview()"></select></div>
+          </div>
+          <div id="prepayTimesWrap" style="display:none;margin-top:9px">
+            <div class="fg" style="margin:0"><label class="fl">โปะกี่ครั้ง (เดือน) — เว้นว่าง = ทุกเดือนไม่จำกัด</label><input type="number" min="2" step="1" inputmode="numeric" id="prepayTimes" class="inp" placeholder="ไม่จำกัด เช่น 6" oninput="renderPrepayPreview()"></div>
           </div>
           <div id="prepayPreview" style="margin:10px 0"></div>
           <button class="btn bP bFull" id="prepayBtn" onclick="doPrepay()" style="margin-bottom:8px">💸 โปะหนี้เลย</button>
@@ -1397,6 +1397,16 @@ const renderPrepayPreview=()=>{
   if(s.ready&&amt>Math.max(0,s.surplus))warn.push(`จำนวนนี้มากกว่าเงินเหลือต่อเดือนประมาณ ${FM.cur(Math.max(0,s.surplus))} — เงินสดเดือนนี้อาจติดลบ`);
   el.innerHTML=`<div class="fxs tm" style="margin-bottom:4px">โปะ${monthlyMode?`ทุกเดือน${times?` ${times} ครั้ง`:''} `:' '}<b class="tp">${FM.cur(amt)}</b> ให้ <b>${esc(d.name)}</b>${monthlyMode&&document.getElementById('prepayDebt').value==='auto'?' (ก้อนดอกเบี้ยสูงสุด ณ ขณะนั้น)':''}</div><div class="ol-cmp">${lines.join('')}</div>${warn.map(w=>`<div class="fxs" style="color:var(--y,#b45309);background:rgba(245,158,11,.1);padding:6px 8px;border-radius:8px;margin-top:6px">⚠️ ${w}</div>`).join('')}`;
 };
+// โปะครั้งเดียว: ลดยอดหนี้ + บันทึกรายจ่าย (ยกเลิกภายหลังได้ด้วย undoPrepay) — ใช้ร่วมกับช่อง "จ่ายเพิ่ม" ในแถวหนี้
+const applyPrepayOnce=(d,amt)=>{
+  const rem=debtRem(d);amt=Math.round(Math.min(amt,rem)*100)/100;if(!(amt>0))return;
+  d.remaining=Math.max(0,Math.round((rem-amt)*100)/100);
+  d.prepaidTotal=(d.prepaidTotal||0)+amt;
+  S.transactions.unshift({id:'t'+Date.now(),name:`โปะหนี้: ${d.name}`,amount:amt,category:'personal',date:localYMD(),note:'โปะหนี้ก้อนพิเศษ',mood:'',prepay:true,debtId:d.id});
+  save();renderDebtList();renderTxLists();renderSummary();renderDailyChart();calc();
+  if(d.remaining<=0)celebrate('🕊️','ปลดหนี้ก้อนนี้แล้ว!',`"${d.name}" จ่ายครบแล้ว 🎉`);
+  else celebrate('💸','โปะหนี้สำเร็จ',`"${d.name}" เหลือ ${FM.cur(d.remaining)}`);
+};
 const doPrepay=()=>{
   const d=prepayTarget(),raw=FM.parse(document.getElementById('prepayAmt').value);
   if(!d||!(raw>0)){modal('ข้อมูลไม่ครบ','กรุณาใส่จำนวนเงินที่จะโปะ และเลือกหนี้');return}
@@ -1412,13 +1422,8 @@ const doPrepay=()=>{
     return;
   }
   if(!confirm(`โปะหนี้ "${d.name}" ${FM.cur(amt)} ?\nยอดคงเหลือจะลดจาก ${FM.cur(rem)} เป็น ${FM.cur(rem-amt)} และบันทึกเป็นรายจ่ายเดือนนี้`))return;
-  d.remaining=Math.max(0,Math.round((rem-amt)*100)/100);
-  d.prepaidTotal=(d.prepaidTotal||0)+amt;
-  S.transactions.unshift({id:'t'+Date.now(),name:`โปะหนี้: ${d.name}`,amount:amt,category:'personal',date:localYMD(),note:'โปะหนี้ก้อนพิเศษ',mood:'',prepay:true,debtId:d.id});
   document.getElementById('prepayAmt').value='';
-  save();renderDebtList();renderTxLists();renderSummary();renderDailyChart();calc();
-  if(d.remaining<=0)celebrate('🕊️','ปลดหนี้ก้อนนี้แล้ว!',`"${d.name}" จ่ายครบแล้ว 🎉`);
-  else celebrate('💸','โปะหนี้สำเร็จ',`"${d.name}" เหลือ ${FM.cur(d.remaining)}`);
+  applyPrepayOnce(d,amt);
 };
 const removeDebt=id=>{S.debts=S.debts.filter(x=>x.id!==id);save();renderDebtList();calc()};
 // เรียงลำดับรายการหนี้ตามโหมดที่เลือก (ไม่ลบข้อมูล แค่เปลี่ยนลำดับแสดงผล)
@@ -1429,11 +1434,10 @@ const sortDebts=mode=>{
   renderDebtList();
 };
 // จ่ายหนี้เพิ่ม (เฉพาะยอดคงเหลือ) โดยไม่ต้องลบ/แก้ทั้งรายการ
+// ช่อง "จ่ายเพิ่ม" ในแถวหนี้ = โปะครั้งเดียว (เดิมลดยอดหนี้เฉยๆ ไม่บันทึกรายจ่าย ทำให้เงินสดไม่ตรง) — ใช้ทางเดียวกับการ์ดโปะหนี้
 const payDebt=(id,amt)=>{
   const d=S.debts.find(x=>x.id===id);if(!d||!amt||amt<=0)return;
-  d.remaining=Math.max(0,(d.remaining??d.totalAmount)-amt);
-  save();renderDebtList();calc();
-  if(d.remaining<=0)setTimeout(()=>celebrate('🕊️','ปลดหนี้ก้อนนี้แล้ว!',`"${d.name}" จ่ายครบแล้ว 🎉`),200);
+  applyPrepayOnce(d,amt);
 };
 // เปิดฟอร์มแก้ไขหนี้สิน (ไม่ต้องลบแล้วเพิ่มใหม่)
 const openDebtEdit=id=>{
@@ -2189,6 +2193,7 @@ const loadDemo=()=>{
   const debt=(i,name,total,remaining,monthly,rate,type,payDay)=>({id:'demod'+i,name,totalAmount:total,remaining,monthlyPayment:monthly,interestRate:rate,debtType:type,payDay,startDate:today,lastAutoPayAt:today,interestAccrued:0,createdAt:past});
   Object.assign(S,{
     salary:35000,
+    prepayPlans:[],
     olEvents:[{id:'demoev1',name:'โบนัสสิ้นปี',type:'income',amount:30000,month:localYM(new Date(now.getFullYear(),now.getMonth()+3,1))},{id:'demoev2',name:'ซื้อโน้ตบุ๊ก',type:'expense',amount:25000,month:localYM(new Date(now.getFullYear(),now.getMonth()+6,1))}],
     outlookWhatIf:{cutVar:0,extraDebt:0,extraInc:0},
     dailyItems:[{id:'demor1',name:'ค่าข้าว',amount:150,category:'food',startDate:localYMD(new Date(now.getTime()-6*864e5)),lastGenAt:null,note:'',mood:'need'}],
