@@ -692,7 +692,15 @@ input[type=range]::-moz-range-track{background:var(--bg2);height:6px;border-radi
               <option value="education">📚 การศึกษา</option><option value="other">📌 อื่นๆ</option>
             </select>
           </div>
-          <div class="fg"><label class="fl">วันที่</label><input type="date" id="txDate" class="inp"></div>
+          <div class="fg"><label class="fl" id="txDateLbl">วันที่</label><input type="date" id="txDate" class="inp"></div>
+        </div>
+        <div class="fg">
+          <label class="fl">ความถี่</label>
+          <div class="tab-bar" id="txFreqBar" style="margin-bottom:5px">
+            <button class="tab on" data-f="once" onclick="setTxFreq('once')">ครั้งเดียว</button>
+            <button class="tab" data-f="daily" onclick="setTxFreq('daily')">🔁 ทุกวัน</button>
+          </div>
+          <div class="fxs tm" id="txFreqHint">บันทึกเป็นรายการเดียวในวันที่เลือก</div>
         </div>
         <div class="fg"><label class="fl">หมายเหตุ</label><input type="text" id="txNote" class="inp" placeholder="รายละเอียด..."></div>
         <div class="fg">
@@ -704,7 +712,12 @@ input[type=range]::-moz-range-track{background:var(--bg2);height:6px;border-radi
             <button class="mood-btn" data-mood="regret" onclick="setMood('regret')"><span class="moji">😬</span>เสียดาย</button>
           </div>
         </div>
-        <button class="btn bP bFull" onclick="addTx()">+ บันทึก</button>
+        <button class="btn bP bFull" id="txSubmit" onclick="addTx()">+ บันทึก</button>
+      </div>
+      <div class="card" id="dailyItemsCard" style="display:none">
+        <div class="ct mb2"><div class="ci" style="background:rgba(139,92,246,.12)">🔁</div><span>รายจ่ายทุกวัน</span></div>
+        <div id="dailyItemsList"></div>
+        <div class="fxs tm mt2">ระบบสร้างรายการให้เองทุกวัน และนำไปคิดในหน้า 🔮 อนาคตเป็นรายจ่ายรายวัน (×30.4 วัน/เดือน) · ลบแล้วรายการที่บันทึกไปแล้วยังอยู่ แต่จะไม่สร้างเพิ่ม</div>
       </div>
       <div class="card">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
@@ -954,6 +967,8 @@ let S={
   // เพื่อไม่ลบข้อมูลเก่าของผู้ใช้ทิ้ง และให้ไฟล์ backup รุ่นก่อนยัง restore ได้
   legacyWage:null,
   // 🔮 ช่วงคาดการณ์หน้าอนาคต (หน่วยเป็นเดือน, 1–OL_MAX_MONTHS)
+  // 🔁 รายจ่ายซ้ำทุกวัน (เช่น ค่าข้าววันละ 150) — สร้างรายการใน S.transactions ให้เองทุกวัน ดู materializeDailyItems
+  dailyItems:[],
   outlookMonths:5,outlookRaisePct:3,outlookInflPct:3,
   // 💰 แผนลงทุน — ดู computeSurplus/computeBuffer/computeInvestAmount
   investPlan:{
@@ -983,7 +998,7 @@ const load=()=>{
       transactions:p.transactions||[],
       legacyWage:p.legacyWage??(p.paySettings?{paySettings:p.paySettings,payHistory:p.payHistory||[]}:null),
       investPlan:{...S.investPlan,...(p.investPlan||{})},
-      outlookMonths:olClampMonths(p.outlookMonths),outlookRaisePct:olPctOrDefault(p.outlookRaisePct),outlookInflPct:olPctOrDefault(p.outlookInflPct),
+      dailyItems:p.dailyItems||[],outlookMonths:olClampMonths(p.outlookMonths),outlookRaisePct:olPctOrDefault(p.outlookRaisePct),outlookInflPct:olPctOrDefault(p.outlookInflPct),
     });
   }catch(e){}
 };
@@ -1332,12 +1347,21 @@ const OL_STATUS={
 // รายจ่ายรายวันเฉลี่ยต่อเดือน — ใช้เฉพาะเดือนที่จบไปแล้ว เพราะเดือนปัจจุบันยังบันทึกไม่ครบ จะดึงค่าเฉลี่ยให้ต่ำกว่าจริง
 const olVariableSpend=()=>{
   const byMonth={};
-  S.transactions.forEach(t=>{const m=(t.date||'').slice(0,7);if(m)byMonth[m]=(byMonth[m]||0)+t.amount});
+  // รายการที่ระบบสร้างจากรายจ่ายทุกวันไม่นับในค่าเฉลี่ย เพราะคิดแยกด้วยยอดต่อวัน × 30.4 ด้านล่าง (กันนับซ้ำ)
+  S.transactions.forEach(t=>{if(t.recurId)return;const m=(t.date||'').slice(0,7);if(m)byMonth[m]=(byMonth[m]||0)+t.amount});
   const cur=new Date().toISOString().slice(0,7);
   const past=Object.keys(byMonth).filter(m=>m<cur);
-  if(past.length)return{avg:past.reduce((s,m)=>s+byMonth[m],0)/past.length,basis:`เฉลี่ยจากรายจ่ายจริง ${past.length} เดือนที่ผ่านมา`,solid:true};
-  if(byMonth[cur]!=null)return{avg:byMonth[cur],basis:'ใช้ยอดที่บันทึกไว้ในเดือนนี้ (ยังไม่ครบเดือน — ค่าจริงอาจสูงกว่านี้)',solid:false};
-  return{avg:0,basis:'ยังไม่มีรายจ่ายรายวันที่บันทึกไว้ จึงยังไม่ถูกนำมาคิด',solid:false};
+  let avg,basis,solid;
+  if(past.length){avg=past.reduce((s,m)=>s+byMonth[m],0)/past.length;basis=`เฉลี่ยจากรายจ่ายจริง ${past.length} เดือนที่ผ่านมา`;solid=true;}
+  else if(byMonth[cur]!=null){avg=byMonth[cur];basis='ใช้ยอดที่บันทึกไว้ในเดือนนี้ (ยังไม่ครบเดือน — ค่าจริงอาจสูงกว่านี้)';solid=false;}
+  else{avg=0;basis='ยังไม่มีรายจ่ายรายวันที่บันทึกไว้ จึงยังไม่ถูกนำมาคิด';solid=false;}
+  const rec=S.dailyItems.reduce((s,d)=>s+d.amount*DAILY_DAYS_PER_MONTH,0);
+  if(rec>0){
+    if(avg===0){basis=`รายจ่ายทุกวันที่ตั้งไว้ (${FM.cur(rec)}/เดือน)`;solid=true;}
+    else basis+=` + รายจ่ายทุกวันที่ตั้งไว้ ${FM.cur(rec)}/เดือน`;
+    avg+=rec;
+  }
+  return{avg,basis,solid};
 };
 
 // ── เครื่องคำนวณหลัก ──
@@ -1656,6 +1680,50 @@ const setQAmt=v=>{const el=document.getElementById('txAmt');if(el){el.value=v;el
 
 /* ── TRANSACTIONS ── */
 // บันทึกค่าใช้จ่าย → validate → unshift S.transactions → save → render ทุก section
+let txFreq='once';
+const setTxFreq=f=>{
+  txFreq=f;
+  document.querySelectorAll('#txFreqBar .tab').forEach(b=>b.classList.toggle('on',b.dataset.f===f));
+  document.getElementById('txDateLbl').textContent=f==='daily'?'เริ่มตั้งแต่วันที่':'วันที่';
+  document.getElementById('txSubmit').textContent=f==='daily'?'+ บันทึกเป็นรายจ่ายทุกวัน':'+ บันทึก';
+  document.getElementById('txFreqHint').textContent=f==='daily'?'จำนวนที่กรอก = ต่อ 1 วัน เช่น ค่าข้าววันละ 150 — สร้างรายการให้ทุกวันตั้งแต่วันเริ่มจนถึงวันนี้ และต่อไปเรื่อยๆ':'บันทึกเป็นรายการเดียวในวันที่เลือก';
+};
+const DAILY_DAYS_PER_MONTH=365/12;
+const dlyAddDays=(ds,n)=>{const d=new Date(ds+'T00:00:00Z');d.setUTCDate(d.getUTCDate()+n);return d.toISOString().slice(0,10)};
+// สร้างรายการค่าใช้จ่ายของทุกวันที่ค้างอยู่ (ตั้งแต่วันเริ่มหรือวันหลังสุดที่สร้างไว้ จนถึงวันนี้) — ผ่าน id ตายตัวต่อวัน จึงไม่สร้างซ้ำ
+// คืน true ถ้ามีรายการใหม่ (ผู้เรียกต้อง save)
+const materializeDailyItems=()=>{
+  const today=new Date().toISOString().slice(0,10);
+  const have=new Set(S.transactions.filter(x=>x.recurId).map(x=>x.id));
+  let added=0;
+  S.dailyItems.forEach(it=>{
+    let d=it.lastGenAt?dlyAddDays(it.lastGenAt,1):it.startDate;
+    while(d<=today){
+      const id=`r${it.id}_${d}`;
+      if(!have.has(id)){S.transactions.push({id,name:it.name,amount:it.amount,category:it.category,date:d,note:it.note||'',mood:it.mood||'',recurId:it.id});added++;}
+      it.lastGenAt=d;d=dlyAddDays(d,1);
+    }
+  });
+  if(added)S.transactions.sort((a,b)=>b.date.localeCompare(a.date));
+  return added>0;
+};
+const addDailyItem=(name,amt,cat,date,note)=>{
+  const today=new Date().toISOString().slice(0,10);
+  if(date<dlyAddDays(today,-366)){modal('วันเริ่มไกลเกินไป','รายจ่ายทุกวันย้อนหลังได้ไม่เกิน 1 ปี');return}
+  S.dailyItems.push({id:'d'+Date.now(),name,amount:amt,category:cat,startDate:date,lastGenAt:null,note,mood:currentMood});
+  materializeDailyItems();
+  currentMood='';document.querySelectorAll('.mood-btn').forEach(b=>b.classList.remove('sel'));
+  document.getElementById('txName').value='';document.getElementById('txAmt').value='';document.getElementById('txNote').value='';
+  setTxFreq('once');
+  save();renderTxLists();renderSummary();renderInvestPlanner();renderDailyChart();renderOutlook();
+};
+const removeDailyItem=id=>{S.dailyItems=S.dailyItems.filter(x=>x.id!==id);save();renderTxLists();renderInvestPlanner();renderOutlook();};
+const renderDailyItems=()=>{
+  const card=document.getElementById('dailyItemsCard'),el=document.getElementById('dailyItemsList');if(!card||!el)return;
+  card.style.display=S.dailyItems.length?'block':'none';
+  el.innerHTML=S.dailyItems.map(it=>{const m=CAT[it.category]||CAT.other;
+    return`<div class="tx"><div class="txic" style="background:${m.c}18">${m.e}</div><div class="txb"><div class="txn">${esc(it.name)}</div><div class="txd">ทุกวัน · เริ่ม ${it.startDate} · ≈ ${FM.cur(it.amount*DAILY_DAYS_PER_MONTH)}/เดือน</div></div><span class="txa">${FM.cur(it.amount)}/วัน</span><button class="btn bGh" onclick="removeDailyItem('${it.id}')">✕</button></div>`;}).join('');
+};
 const addTx=()=>{
   const name=document.getElementById('txName').value.trim();
   const amt=FM.parse(document.getElementById('txAmt').value);
@@ -1663,6 +1731,7 @@ const addTx=()=>{
   const date=document.getElementById('txDate').value;
   const note=document.getElementById('txNote').value.trim();
   if(!name||!amt||!date){modal('ข้อมูลไม่ครบ','กรุณากรอกชื่อ, จำนวน และวันที่');return}
+  if(txFreq==='daily'){addDailyItem(name,amt,cat,date,note);return}
   S.transactions.unshift({id:'t'+Date.now(),name,amount:amt,category:cat,date,note,mood:currentMood});
   currentMood='';document.querySelectorAll('.mood-btn').forEach(b=>b.classList.remove('sel'));
   document.getElementById('txName').value='';document.getElementById('txAmt').value='';document.getElementById('txNote').value='';
@@ -1678,6 +1747,8 @@ const txHtml=t=>{
 };
 // render รายการวันนี้ + 30 วันล่าสุด (แยก 2 list)
 const renderTxLists=()=>{
+  if(materializeDailyItems())save();
+  renderDailyItems();
   const today=new Date().toISOString().slice(0,10);
   const td=S.transactions.filter(t=>t.date===today);
   document.getElementById('todayTot').textContent=FM.cur(td.reduce((s,t)=>s+t.amount,0));
@@ -1726,7 +1797,7 @@ document.getElementById('restoreFile').addEventListener('change',e=>{
   reader.onload=ev=>{
     try{
       const p=JSON.parse(ev.target.result);
-      Object.assign(S,{salary:+p.salary||0,otherIncomes:p.otherIncomes||[],fixedExpenses:p.fixedExpenses||[],debts:p.debts||[],transactions:p.transactions||[],legacyWage:p.legacyWage??(p.paySettings?{paySettings:p.paySettings,payHistory:p.payHistory||[]}:null),investPlan:{...S.investPlan,...(p.investPlan||{})},outlookMonths:olClampMonths(p.outlookMonths),outlookRaisePct:olPctOrDefault(p.outlookRaisePct),outlookInflPct:olPctOrDefault(p.outlookInflPct)});
+      Object.assign(S,{salary:+p.salary||0,otherIncomes:p.otherIncomes||[],fixedExpenses:p.fixedExpenses||[],debts:p.debts||[],transactions:p.transactions||[],legacyWage:p.legacyWage??(p.paySettings?{paySettings:p.paySettings,payHistory:p.payHistory||[]}:null),investPlan:{...S.investPlan,...(p.investPlan||{})},dailyItems:p.dailyItems||[],outlookMonths:olClampMonths(p.outlookMonths),outlookRaisePct:olPctOrDefault(p.outlookRaisePct),outlookInflPct:olPctOrDefault(p.outlookInflPct)});
       save();init();modal('นำเข้าสำเร็จ ✅','ข้อมูลถูกนำเข้าเรียบร้อย');
     }catch(err){modal('เกิดข้อผิดพลาด','ไม่สามารถอ่านไฟล์ได้');}
   };
@@ -1745,6 +1816,7 @@ const loadDemo=()=>{
   const debt=(i,name,total,remaining,monthly,rate,type,payDay)=>({id:'demod'+i,name,totalAmount:total,remaining,monthlyPayment:monthly,interestRate:rate,debtType:type,payDay,startDate:today,lastAutoPayAt:today,interestAccrued:0,createdAt:past});
   Object.assign(S,{
     salary:35000,
+    dailyItems:[{id:'demor1',name:'ค่าข้าว',amount:150,category:'food',startDate:new Date(now.getTime()-6*864e5).toISOString().slice(0,10),lastGenAt:null,note:'',mood:'need'}],
     otherIncomes:[mk(1,'งานฟรีแลนซ์','freelance',6000),mk(2,'ค่าเช่าคอนโด','rental',4500)],
     fixedExpenses:[mk(1,'ค่าเช่าห้อง','housing',9000),mk(2,'อินเทอร์เน็ต + มือถือ','utility',1100),mk(3,'ประกันสุขภาพ','insurance',1500),mk(4,'ฟิตเนส','health',1200),mk(5,'Netflix + Spotify','entertainment',450)],
     debts:[debt(1,'บัตรเครดิต KTC',48000,32000,3500,18,'credit',15),debt(2,'ผ่อนมอเตอร์ไซค์',60000,24000,3000,6,'car',5)],
