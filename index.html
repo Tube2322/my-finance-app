@@ -522,11 +522,18 @@ body::before{
 .ol-zone-pill{align-self:flex-start;margin-top:5px;padding:3px 9px;border-radius:99px;font-family:'IBM Plex Mono',monospace;font-weight:800;font-size:.7rem;background:rgba(139,92,246,.1)}
 .ol-zone-note{margin-top:5px;font-size:.66rem;color:var(--mt);line-height:1.45}
 .ol-pz{padding:2px 0 12px}.ol-pz+.ol-pz{border-top:1px dashed var(--bdr);padding:12px 0 2px}
+.ol-acc{border-top:1px dashed var(--bdr);margin-top:8px}
+.ol-acc>summary{cursor:pointer;list-style:none;display:flex;align-items:center;gap:6px;padding:11px 0;font-size:.78rem;font-weight:800;color:var(--txt2);min-height:44px}
+.ol-acc>summary::-webkit-details-marker{display:none}
+.ol-acc>summary::after{content:'▾';margin-left:auto;color:var(--mt);transition:transform .2s}
+.ol-acc[open]>summary::after{transform:rotate(180deg)}
+.ol-acc-s{font-weight:700;font-size:.68rem;color:var(--p);background:rgba(139,92,246,.1);padding:2px 8px;border-radius:99px}
+.ol-acc-s:empty{display:none}
 .ol-cmp{display:flex;flex-direction:column}
-.ol-cmp-r{display:grid;grid-template-columns:minmax(0,1.15fr) repeat(3,minmax(0,1fr));gap:6px;padding:7px 0;border-top:1px dashed var(--bdr);align-items:center}
+.ol-cmp-r{display:grid;grid-template-columns:minmax(0,.95fr) repeat(3,minmax(0,1fr));gap:5px;padding:7px 0;border-top:1px dashed var(--bdr);align-items:center}
 .ol-cmp-r.hd{border-top:none;font-size:.66rem;font-weight:800;color:var(--mt)}
 .ol-cmp-r .k{font-size:.72rem;font-weight:700;color:var(--txt2)}
-.ol-cmp-r .v{font-family:'IBM Plex Mono',monospace;font-size:.72rem;font-weight:700;text-align:right;overflow-wrap:anywhere}
+.ol-cmp-r .v{font-family:'IBM Plex Mono',monospace;font-size:.68rem;font-weight:700;text-align:right}
 .ol-delta{margin-top:6px;padding-top:6px;border-top:1px dashed var(--bdr);font-size:.78rem;font-weight:800;font-family:'IBM Plex Mono',monospace}
 
 /* Timeline รายเดือน */
@@ -783,28 +790,27 @@ input[type=range]::-moz-range-track{background:var(--bg2);height:6px;border-radi
 <div class="sec" id="s-outlook">
   <div class="pttl" id="olTitle">🔮 การเงินของคุณในอีก 5 เดือน</div>
   <div class="card csm" id="olPicker">
-    <div class="ol-pz">
-      <div class="slbl">⏱️ ช่วงเวลาที่ต้องการคาดการณ์</div>
-      <div class="chiprow" id="olChips"></div>
-      <div style="display:grid;grid-template-columns:minmax(0,1fr) 96px;gap:7px">
-        <div class="fg" style="margin:0"><label class="fl">กำหนดเอง</label><input type="number" min="1" step="1" inputmode="numeric" id="olSpanVal" class="inp" placeholder="เช่น 18"></div>
+    <div class="slbl">⏱️ ช่วงเวลาที่ต้องการคาดการณ์</div>
+    <div class="chiprow" id="olChips"></div>
+    <div class="fxs tm" id="olSpanHint"></div>
+    <details class="ol-acc" id="olAccSpan">
+      <summary>✏️ กำหนดช่วงเวลาเอง</summary>
+      <div style="display:grid;grid-template-columns:minmax(0,1fr) 96px;gap:7px;padding-bottom:6px">
+        <div class="fg" style="margin:0"><label class="fl">จำนวน</label><input type="number" min="1" step="1" inputmode="numeric" id="olSpanVal" class="inp" placeholder="เช่น 18"></div>
         <div class="fg" style="margin:0"><label class="fl">หน่วย</label><select id="olSpanUnit" class="inp"><option value="m">เดือน</option><option value="y">ปี</option></select></div>
         <button class="btn bP bFull" style="grid-column:1/-1" onclick="applyOlSpan()">คาดการณ์</button>
       </div>
-      <div class="fxs tm mt2" id="olSpanHint"></div>
-    </div>
-    <div class="ol-pz">
-      <div class="slbl">📊 สมมติฐานรายปี</div>
+    </details>
+    <details class="ol-acc" id="olAccRates">
+      <summary>📊 สมมติฐานรายปี <span class="ol-acc-s" id="olRatesSum"></span></summary>
       <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px">
         <div class="fg" style="margin:0"><label class="fl">เงินเดือนขึ้น (%/ปี)</label><input type="number" step="0.5" inputmode="decimal" id="olRaise" class="inp" placeholder="0" onchange="applyOlRates()"></div>
         <div class="fg" style="margin:0"><label class="fl">เงินเฟ้อรายจ่าย (%/ปี)</label><input type="number" step="0.5" inputmode="decimal" id="olInfl" class="inp" placeholder="0" onchange="applyOlRates()"></div>
       </div>
-      <div class="fxs tm mt2">ปรับทุกต้นปีที่ 2, 3, … · รายรับขึ้นตามอัตราเงินเดือน · รายจ่ายคงที่และรายวันขึ้นตามเงินเฟ้อ · ค่างวดหนี้คงที่ตามสัญญา · ค่าเริ่มต้น 3% · ใส่ 0 = ไม่ปรับ</div>
-    </div>
-  </div>
-  <div class="card csm" id="olPlanCard">
-    <div class="ol-pz">
-      <div class="slbl">📌 เหตุการณ์ครั้งเดียวในอนาคต</div>
+      <div class="fxs tm mt2" style="padding-bottom:6px">ปรับทุกต้นปีที่ 2, 3, … · รายรับขึ้นตามอัตราเงินเดือน · รายจ่ายคงที่และรายวันขึ้นตามเงินเฟ้อ · ค่างวดหนี้คงที่ตามสัญญา · ค่าเริ่มต้น 3% · ใส่ 0 = ไม่ปรับ</div>
+    </details>
+    <details class="ol-acc" id="olAccEvents">
+      <summary>📌 เหตุการณ์ครั้งเดียวในอนาคต <span class="ol-acc-s" id="evSum"></span></summary>
       <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px">
         <div class="fg" style="margin:0;grid-column:1/-1"><label class="fl">ชื่อเหตุการณ์</label><input type="text" id="evName" class="inp" placeholder="เช่น โบนัสสิ้นปี, ซื้อรถ"></div>
         <div class="fg" style="margin:0"><label class="fl">ประเภท</label><select id="evType" class="inp"><option value="income">💰 รายรับ</option><option value="expense">💸 รายจ่าย</option></select></div>
@@ -812,17 +818,17 @@ input[type=range]::-moz-range-track{background:var(--bg2);height:6px;border-radi
         <div class="fg" style="margin:0"><label class="fl">เดือน</label><input type="month" id="evMonth" class="inp"></div>
         <button class="btn bP bFull" style="align-self:end" onclick="addOlEvent()">+ เพิ่ม</button>
       </div>
-      <div id="evList" style="margin-top:8px"></div>
-    </div>
-    <div class="ol-pz">
-      <div class="slbl">🧪 ลองเปลี่ยนแผน (What-if)</div>
-      <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px">
-        <div class="fg" style="margin:0"><label class="fl">ลดรายจ่ายรายวัน (฿/เดือน)</label><input type="number" min="0" inputmode="decimal" id="wiCut" class="inp" placeholder="0" onchange="applyOlWhatIf()"></div>
-        <div class="fg" style="margin:0"><label class="fl">โปะหนี้เพิ่ม (฿/เดือน)</label><input type="number" min="0" inputmode="decimal" id="wiDebt" class="inp" placeholder="0" onchange="applyOlWhatIf()"></div>
-        <div class="fg" style="margin:0"><label class="fl">รายได้เสริม (฿/เดือน)</label><input type="number" min="0" inputmode="decimal" id="wiInc" class="inp" placeholder="0" onchange="applyOlWhatIf()"></div>
+      <div id="evList" style="margin:8px 0 6px"></div>
+    </details>
+    <details class="ol-acc" id="olAccWhatIf">
+      <summary>🧪 ลองเปลี่ยนแผน (What-if) <span class="ol-acc-s" id="wiSum"></span></summary>
+      <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;align-items:end">
+        <div class="fg" style="margin:0"><label class="fl">ลดรายจ่ายรายวัน ฿/ด.</label><input type="number" min="0" inputmode="decimal" id="wiCut" class="inp" placeholder="0" onchange="applyOlWhatIf()"></div>
+        <div class="fg" style="margin:0"><label class="fl">โปะหนี้เพิ่ม ฿/ด.</label><input type="number" min="0" inputmode="decimal" id="wiDebt" class="inp" placeholder="0" onchange="applyOlWhatIf()"></div>
+        <div class="fg" style="margin:0"><label class="fl">รายได้เสริม ฿/ด.</label><input type="number" min="0" inputmode="decimal" id="wiInc" class="inp" placeholder="0" onchange="applyOlWhatIf()"></div>
       </div>
-      <div class="fxs tm mt2">ใส่ตัวเลขแล้วดูผลเปรียบเทียบกับแผนปัจจุบันด้านล่าง · โปะหนี้จะตัดก้อนที่ดอกเบี้ยสูงสุดก่อน · เว้นว่างหรือ 0 = ไม่ใช้</div>
-    </div>
+      <div class="fxs tm mt2" style="padding-bottom:6px">ตัวเลขทั้งหมดเป็น ฿ ต่อเดือน (ด.) · ใส่ตัวเลขแล้วดูผลเปรียบเทียบกับแผนปัจจุบันด้านล่าง · โปะหนี้จะตัดก้อนที่ดอกเบี้ยสูงสุดก่อน · เว้นว่างหรือ 0 = ไม่ใช้</div>
+    </details>
   </div>
   <div id="olBody"></div>
 </div>
@@ -1557,7 +1563,8 @@ const renderOlChart=o=>{
   const step=N>60?12:1;
   for(let m=step;m<=N;m+=step)pts.push({m,bal:o.months[m-1].end,debt:o.months[m-1].debtLeft,label:o.months[m-1].label});
   if(pts[pts.length-1].m!==N)pts.push({m:N,bal:o.months[N-1].end,debt:o.months[N-1].debtLeft,label:o.months[N-1].label});
-  const W=600,H=230,L=58,R=12,T=14,B=28;
+  // กว้างตามการ์ดจริง (ตัวหนังสือจะได้ขนาด 1:1 บนมือถือ ไม่ถูกย่อจน อ่านไม่ออก) — ถ้าหน้าถูกซ่อนอยู่ใช้ 600 แล้ววาดใหม่ตอนเปิดหน้า
+  const cw=(document.getElementById('olBody')?.clientWidth||0)-34,W=Math.max(280,Math.min(760,cw>0?cw:600)),H=W<420?210:230,L=W<420?46:58,R=12,T=14,B=28;
   const vals=pts.flatMap(p=>[p.bal,p.debt]).concat(0);
   let lo=Math.min(...vals),hi=Math.max(...vals);if(hi-lo<1){hi=lo+1}
   const pad=(hi-lo)*.06;lo-=pad;hi+=pad;
@@ -1565,12 +1572,12 @@ const renderOlChart=o=>{
   const line=k=>pts.map((p,i)=>`${i?'L':'M'}${x(p.m).toFixed(1)},${y(p[k]).toFixed(1)}`).join(' ');
   const axisFmt=v=>{const a=Math.abs(v),s=v<0?'−':'';return s+(a>=1e6?(a/1e6).toFixed(1)+'M':a>=1e3?Math.round(a/1e3)+'K':Math.round(a))};
   const ticks=[0,1,2,3].map(i=>lo+(hi-lo)*i/3);
-  const grid=ticks.map(v=>`<line x1="${L}" x2="${W-R}" y1="${y(v).toFixed(1)}" y2="${y(v).toFixed(1)}" stroke="var(--bdr)" stroke-width="1"/><text x="${L-6}" y="${(y(v)+3).toFixed(1)}" text-anchor="end" font-size="9.5" fill="var(--mt)">${axisFmt(v)}</text>`).join('');
+  const grid=ticks.map(v=>`<line x1="${L}" x2="${W-R}" y1="${y(v).toFixed(1)}" y2="${y(v).toFixed(1)}" stroke="var(--bdr)" stroke-width="1"/><text x="${L-6}" y="${(y(v)+3).toFixed(1)}" text-anchor="end" font-size="10" fill="var(--mt)">${axisFmt(v)}</text>`).join('');
   const zero=lo<0&&hi>0?`<line x1="${L}" x2="${W-R}" y1="${y(0).toFixed(1)}" y2="${y(0).toFixed(1)}" stroke="var(--mt)" stroke-width="1" stroke-dasharray="4 3"/>`:'';
   const area=`${line('bal')} L${x(N).toFixed(1)},${y(Math.max(lo,Math.min(0,hi))).toFixed(1)} L${x(0).toFixed(1)},${y(Math.max(lo,Math.min(0,hi))).toFixed(1)} Z`;
   const dots=pts.map(p=>`<circle cx="${x(p.m).toFixed(1)}" cy="${y(p.bal).toFixed(1)}" r="${N<=24||step>1?3:2}" fill="var(--p)"><title>${p.label}: เงินคงเหลือ ${FM.cur(p.bal)} · หนี้ ${FM.cur(p.debt)}</title></circle>`).join('');
   const evm=o.months.filter(mo=>mo.oneOff).map(mo=>`<g><path d="M${x(mo.m).toFixed(1)},${(T-1)} l4,5 l-4,5 l-4,-5 z" fill="${mo.oneOff>0?'#10b981':'#f59e0b'}"><title>${mo.label}: ${mo.oneOffNames.map(esc).join(', ')} (${olSigned(mo.oneOff)})</title></path></g>`).join('');
-  const xl=[0,Math.round(N/2),N].filter((v,i,a)=>a.indexOf(v)===i).map(m=>`<text x="${x(m).toFixed(1)}" y="${H-8}" text-anchor="${m===0?'start':m===N?'end':'middle'}" font-size="9.5" fill="var(--mt)">${m===0?'ตอนนี้':olSpanLabel(m)}</text>`).join('');
+  const xl=[0,Math.round(N/2),N].filter((v,i,a)=>a.indexOf(v)===i).map(m=>`<text x="${x(m).toFixed(1)}" y="${H-8}" text-anchor="${m===0?'start':m===N?'end':'middle'}" font-size="10" fill="var(--mt)">${m===0?'ตอนนี้':olSpanLabel(m)}</text>`).join('');
   return`<div class="card csm mt2"><div class="slbl">แนวโน้มเงินคงเหลือและหนี้</div>
     <svg viewBox="0 0 ${W} ${H}" style="width:100%;height:auto;display:block" role="img" aria-label="กราฟเงินคงเหลือและหนี้">
       ${grid}${zero}<path d="${area}" fill="var(--p)" opacity=".10"/>
@@ -1585,17 +1592,19 @@ const renderOlChart=o=>{
 const renderOlCompare=(o,sc)=>{
   if(!sc)return'';
   const w=S.outlookWhatIf,span=olSpanLabel(o.months.length);
+  // ตารางเทียบใช้จำนวนเต็มบาท กันตัวเลขยาวตัดบรรทัดกลางตัวเลขบนมือถือ
+  const m0=n=>'฿'+Math.round(n).toLocaleString('th-TH'),sg0=n=>(n>=0?'+':'−')+m0(Math.abs(n));
   const parts=[w.cutVar>0?`ลดรายจ่ายรายวัน ${FM.cur(w.cutVar)}/เดือน`:'',w.extraDebt>0?`โปะหนี้เพิ่ม ${FM.cur(w.extraDebt)}/เดือน`:'',w.extraInc>0?`รายได้เสริม ${FM.cur(w.extraInc)}/เดือน`:''].filter(Boolean).join(' · ');
-  const df=(a,b,goodUp)=>{const d=b-a;if(Math.abs(d)<0.005)return'<span class="tm">เท่าเดิม</span>';const good=goodUp?d>0:d<0;return`<span class="${good?'tg':'tr2'}">${olSigned(d)}</span>`};
+  const df=(a,b,goodUp)=>{const d=b-a;if(Math.abs(d)<0.005)return'<span class="tm">เท่าเดิม</span>';const good=goodUp?d>0:d<0;return`<span class="${good?'tg':'tr2'}">${sg0(d)}</span>`};
   const free=x=>x.startDebt<=0?'ไม่มีหนี้':x.debtFreeLabel||'ไม่หมดในช่วงนี้';
   const freeDelta=(o.debtFreeAt>0&&sc.debtFreeAt>0)?(o.debtFreeAt-sc.debtFreeAt>0?`<span class="tg">เร็วขึ้น ${olSpanLabel(o.debtFreeAt-sc.debtFreeAt)}</span>`:'<span class="tm">เท่าเดิม</span>'):(!(o.debtFreeAt>0)&&sc.debtFreeAt>0?'<span class="tg">ปลอดหนี้ในช่วงนี้ได้</span>':'<span class="tm">—</span>');
   const row=(k,a,b,d)=>`<div class="ol-cmp-r"><div class="k">${k}</div><div class="v">${a}</div><div class="v">${b}</div><div class="v">${d}</div></div>`;
   return`<div class="card csm mt2"><div class="slbl">🧪 เปรียบเทียบผล อีก ${span}</div>
     <div class="fxs tm" style="margin-bottom:8px">${parts}</div>
     <div class="ol-cmp"><div class="ol-cmp-r hd"><div class="k"></div><div class="v">แผนเดิม</div><div class="v">แผนใหม่</div><div class="v">ต่าง</div></div>
-      ${row('เงินคงเหลือ',FM.cur(o.endBal),FM.cur(sc.endBal),df(o.endBal,sc.endBal,true))}
-      ${row('หนี้คงเหลือ',FM.cur(o.endDebt),FM.cur(sc.endDebt),df(o.endDebt,sc.endDebt,false))}
-      ${row('ดอกเบี้ยจ่ายรวม',FM.cur(o.totalInterest),FM.cur(sc.totalInterest),df(o.totalInterest,sc.totalInterest,false))}
+      ${row('เงินคงเหลือ',m0(o.endBal),m0(sc.endBal),df(o.endBal,sc.endBal,true))}
+      ${row('หนี้คงเหลือ',m0(o.endDebt),m0(sc.endDebt),df(o.endDebt,sc.endDebt,false))}
+      ${row('ดอกเบี้ยจ่ายรวม',m0(o.totalInterest),m0(sc.totalInterest),df(o.totalInterest,sc.totalInterest,false))}
       ${row('ปลอดหนี้เมื่อ',free(o),free(sc),freeDelta)}
     </div></div>`;
 };
@@ -1766,8 +1775,9 @@ const renderOlPicker=()=>{
   const c=document.getElementById('olChips');
   if(c)c.innerHTML=OL_PRESETS.map(p=>`<button class="qchip${p===n?' on':''}" onclick="setOutlookSpan(${p})">${olSpanLabel(p)}</button>`).join('');
   [['olRaise',S.outlookRaisePct],['olInfl',S.outlookInflPct]].forEach(([id,v])=>{const e=document.getElementById(id);if(e&&document.activeElement!==e)e.value=v;});
+  const rs=document.getElementById('olRatesSum');if(rs)rs.textContent=`เงินเดือน ${S.outlookRaisePct}% · เงินเฟ้อ ${S.outlookInflPct}%`;
   const h=document.getElementById('olSpanHint');
-  if(h)h.textContent=`กำลังดู ${olSpanLabel(n)} — ใส่ได้ 1 เดือนถึง ${OL_MAX_MONTHS/12} ปี ช่วงเกิน 2 ปีจะสรุปเป็นรายปี`;
+  if(h)h.textContent=`กำลังดู ${olSpanLabel(n)} · ช่วงเกิน 2 ปีสรุปเป็นรายปี`;
 };
 // growth object ของ S ปัจจุบัน — withWhatIf=true คือแผนที่ลองเปลี่ยน
 const olGrowth=withWhatIf=>({raise:S.outlookRaisePct/100,infl:S.outlookInflPct/100,events:S.olEvents,
@@ -1786,6 +1796,7 @@ const addOlEvent=()=>{
   S.olEvents.sort((a,b)=>a.month.localeCompare(b.month));
   ['evName','evAmt'].forEach(id=>document.getElementById(id).value='');
   save();renderOutlook();
+  document.getElementById('olAccEvents').open=true;
 };
 const removeOlEvent=id=>{S.olEvents=S.olEvents.filter(e=>e.id!==id);save();renderOutlook();};
 const renderOlPlan=()=>{
@@ -1794,6 +1805,9 @@ const renderOlPlan=()=>{
   list.innerHTML=S.olEvents.length?S.olEvents.map(e=>{const idx=olEventIdx(e.month),out=idx>n||idx<1;
     return`<div class="tx"><div class="txic" style="background:${e.type==='income'?'rgba(16,185,129,.12)':'rgba(239,68,68,.12)'}">${e.type==='income'?'💰':'💸'}</div><div class="txb"><div class="txn">${esc(e.name)}</div><div class="txd">${e.month}${out?' · <span class="ty">อยู่นอกช่วงที่กำลังดู</span>':''}</div></div><span class="txa ${e.type==='income'?'tg':'tr2'}">${e.type==='income'?'+':'−'}${FM.cur(e.amount)}</span><button class="btn bGh" onclick="removeOlEvent('${e.id}')">✕</button></div>`}).join(''):'<div class="fxs tm">ยังไม่มีเหตุการณ์ — เพิ่มโบนัส ค่าใช้จ่ายก้อนใหญ่ หรือรายรับพิเศษที่รู้ล่วงหน้าได้</div>';
   [['wiCut',S.outlookWhatIf.cutVar],['wiDebt',S.outlookWhatIf.extraDebt],['wiInc',S.outlookWhatIf.extraInc]].forEach(([id,v])=>{const e=document.getElementById(id);if(e&&document.activeElement!==e)e.value=v||'';});
+  const setSum=(id,txt)=>{const e=document.getElementById(id);if(e)e.textContent=txt};
+  setSum('evSum',S.olEvents.length?`${S.olEvents.length} รายการ`:'');
+  setSum('wiSum',olWhatIfActive()?'กำลังใช้':'');
   const mi=document.getElementById('evMonth');if(mi&&!mi.min){const d=new Date();d.setMonth(d.getMonth()+1);mi.min=localYM(d);}
 };
 const applyOlRates=()=>{
@@ -1801,6 +1815,8 @@ const applyOlRates=()=>{
   S.outlookInflPct=olClampPct(document.getElementById('olInfl').value);
   save();renderOutlook();
 };
+let olResizeT=null,olLastW=0;
+window.addEventListener('resize',()=>{clearTimeout(olResizeT);olResizeT=setTimeout(()=>{const b=document.getElementById('olBody');if(b&&b.clientWidth&&b.clientWidth!==olLastW){olLastW=b.clientWidth;renderOutlook()}},200)});
 const setOutlookSpan=n=>{S.outlookMonths=olClampMonths(n);save();renderOutlook();};
 const applyOlSpan=()=>{
   const v=+document.getElementById('olSpanVal').value,u=document.getElementById('olSpanUnit').value;
