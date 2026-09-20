@@ -560,6 +560,7 @@ input[type=range]::-moz-range-track{background:var(--bg2);height:6px;border-radi
     <button class="hbtn" id="darkBtn">🌙</button>
     <button class="hbtn" id="backupBtn">💾</button>
     <button class="hbtn" id="restoreBtn">📂</button>
+    <button class="hbtn" id="demoBtn" title="โหลดข้อมูลตัวอย่าง">🎬</button>
   </div>
 </header>
 
@@ -1625,6 +1626,31 @@ document.getElementById('restoreFile').addEventListener('change',e=>{
   };
   reader.readAsText(file);e.target.value='';
 });
+
+/* ── DEMO DATA ── */
+// โหลดข้อมูลตัวอย่างเพื่อดูภาพรวมทุกหน้า — แทนที่ข้อมูลปัจจุบัน จึงถามยืนยันก่อนถ้ามีข้อมูลอยู่
+const DEMO_TX=[[1,'ข้าวมันไก่','food',65],[2,'BTS/MRT','transport',48],[3,'กาแฟ','food',85],[4,'ค่าไฟ','utility',1450],[6,'ซื้อเสื้อ','shopping',990],[8,'หมูกระทะ','food',420],[10,'ค่าน้ำมัน','transport',800],[12,'ดูหนัง','entertainment',360],[15,'ร้านยา','health',280],[18,'Grab','transport',190],[22,'ข้าวกลางวัน','food',120],[27,'ซุปเปอร์มาร์เก็ต','food',1250]];
+const loadDemo=()=>{
+  const has=S.salary||S.fixedExpenses.length||S.debts.length||S.transactions.length||S.otherIncomes.length;
+  if(has&&!confirm('โหลดข้อมูลตัวอย่างจะแทนที่ข้อมูลรายรับ/รายจ่าย/หนี้/ธุรกรรมปัจจุบัน (กด 💾 สำรองไว้ก่อนได้) ต้องการต่อไหม?'))return;
+  const now=new Date(),ym=now.toISOString().slice(0,7),today=now.toISOString().slice(0,10),day=now.getDate();
+  const mk=(i,n,c,a)=>({id:'demo'+i,name:n,category:c,amount:a});
+  const past=new Date(now.getFullYear(),now.getMonth()-8,1).toISOString().slice(0,10);
+  const debt=(i,name,total,remaining,monthly,rate,type,payDay)=>({id:'demod'+i,name,totalAmount:total,remaining,monthlyPayment:monthly,interestRate:rate,debtType:type,payDay,startDate:today,lastAutoPayAt:today,interestAccrued:0,createdAt:past});
+  Object.assign(S,{
+    salary:35000,
+    otherIncomes:[mk(1,'งานฟรีแลนซ์','freelance',6000),mk(2,'ค่าเช่าคอนโด','rental',4500)],
+    fixedExpenses:[mk(1,'ค่าเช่าห้อง','housing',9000),mk(2,'อินเทอร์เน็ต + มือถือ','utility',1100),mk(3,'ประกันสุขภาพ','insurance',1500),mk(4,'ฟิตเนส','health',1200),mk(5,'Netflix + Spotify','entertainment',450)],
+    debts:[debt(1,'บัตรเครดิต KTC',48000,32000,3500,18,'credit',15),debt(2,'ผ่อนมอเตอร์ไซค์',60000,24000,3000,6,'car',5)],
+    transactions:DEMO_TX.filter(x=>x[0]<=day).map((x,i)=>({id:'demot'+i,name:x[1],amount:x[3],category:x[2],date:`${ym}-${String(x[0]).padStart(2,'0')}`,note:'',mood:''})).reverse(),
+    investPlan:{...S.investPlan,bufferMode:'percent',bufferPercent:20,amountMode:'percent',percent:50,frequency:'monthly',
+      asset:{type:'etf',symbol:'VOO',name:'Vanguard S&P 500 ETF'},lastPrice:{price:520.35,fetchedAt:now.toISOString()},assumedReturnPct:7,assumedDividendPct:1.5},
+  });
+  save();init();renderInvestPlanner();
+  navigate('dashboard');
+  celebrate('🎬','โหลดข้อมูลตัวอย่างแล้ว','ลองดูหน้า อนาคต และ ลงทุน ต่อได้เลย');
+};
+document.getElementById('demoBtn').addEventListener('click',loadDemo);
 
 /* ── INIT ── */
 /* ── PIE CHART (CSS) ── */
