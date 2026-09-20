@@ -663,6 +663,18 @@ input[type=range]::-moz-range-track{background:var(--bg2);height:6px;border-radi
       <div class="card">
         <div class="ch"><div class="ct"><div class="ci" style="background:rgba(245,158,11,.1)">🏦</div>หนี้สิน</div><button class="btn bSm bO" onclick="clearArr('debts')">🗑️ ล้าง</button></div>
         <div id="debtSummary"></div>
+        <details class="ol-acc" id="prepayAcc" style="display:none">
+          <summary>💸 โปะหนี้ก้อนพิเศษ <span class="ol-acc-s" id="prepaySum"></span></summary>
+          <div class="fxs tm" id="prepayCash" style="margin-bottom:8px"></div>
+          <div class="chiprow" id="prepayChips"></div>
+          <div style="display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.3fr);gap:7px">
+            <div class="fg" style="margin:0"><label class="fl">จำนวนที่โปะ (฿)</label><div class="ipr"><span class="pre">฿</span><input type="text" inputmode="decimal" id="prepayAmt" class="inp" placeholder="0" oninput="FM.clean(this);renderPrepayPreview()"></div></div>
+            <div class="fg" style="margin:0"><label class="fl">โปะหนี้ก้อนไหน</label><select id="prepayDebt" class="inp" onchange="renderPrepayPreview()"></select></div>
+          </div>
+          <div id="prepayPreview" style="margin:10px 0"></div>
+          <button class="btn bP bFull" onclick="doPrepay()" style="margin-bottom:8px">💸 โปะหนี้เลย</button>
+          <div class="fxs tm" style="padding-bottom:6px">ยอดคงเหลือของหนี้ก้อนนั้นลดทันที และบันทึกเป็นรายจ่ายเดือนนี้ (เงินสดลดลงเท่ากัน) · ค่างวดต่อเดือนเท่าเดิม แต่หนี้หมดเร็วขึ้นและดอกเบี้ยลดลง</div>
+        </details>
         <div class="tab-bar" id="debtSortBar" style="margin-top:9px">
           <button class="tab on" data-sort="default" onclick="sortDebts('default')">🗂️ ล่าสุด</button>
           <button class="tab" data-sort="amount" onclick="sortDebts('amount')">💰 ยอดหนี้เยอะสุด</button>
@@ -1109,6 +1121,7 @@ const calc=()=>{
   renderDailyChart();renderInsights();
   renderOutlook(); // ข้อมูลต้นทางเปลี่ยน → คาดการณ์อนาคตต้องคำนวณใหม่เสมอ
   renderInvestPlanner(); // เงินเหลือให้ลงทุนก็เปลี่ยนตาม รายรับ/รายจ่าย/หนี้เช่นกัน
+  renderPrepay(); // ตัวเลข "เงินเหลือ" ในการ์ดโปะหนี้ก็ต้องตาม
 };
 
 // แสดงยอดสรุปใน hero card, sidebar stats, badge นับถอยหลัง
@@ -1198,6 +1211,16 @@ const monthsToPayoff=(P,mRate,A)=>{
   const n=-Math.log(1-mRate*P/A)/Math.log(1+mRate);
   return Math.ceil(n-1e-9);
 };
+// จำลองผ่อนหนี้ก้อนเดียวจนหมด → จำนวนเดือน + ดอกเบี้ยรวมที่ต้องจ่ายต่อจากนี้ (สูตรเดียวกับ monthsToPayoff / computeOutlook)
+const debtPayoffPlan=(P,annualRate,monthly)=>{
+  if(P<=0)return{months:0,interest:0};
+  const mr=(annualRate||0)/100/12;
+  if(monthly<=0||(mr>0&&monthly<=P*mr))return{months:Infinity,interest:Infinity};
+  let r=P,n=0,int=0;
+  while(r>0.005&&n<1200){const i=r*mr;int+=i;r=r+i-Math.min(monthly,r+i);n++}
+  return{months:n,interest:int};
+};
+const debtRem=d=>d.remaining??d.totalAmount;
 // จำลองการชำระหนี้อัตโนมัติตามวันที่ชำระจริงที่ตั้งไว้ — คิดดอกเบี้ยทบต้นรายเดือนก่อนหักค่างวด แล้วหักยอดคงเหลือตามจำนวนรอบที่ผ่านไปจริง
 const applyAutoPayments=()=>{
   const today=new Date();let changed=false;
@@ -1248,6 +1271,70 @@ const addDebt=()=>{
   save();applyAutoPayments();renderDebtList();calc();
 };
 // ลบหนี้สินตาม id
+/* ── 💸 โปะหนี้ก้อนพิเศษ: ลดยอดคงเหลือทันที + บันทึกเป็นรายจ่ายเดือนนี้ (flag prepay จึงไม่ถูกนับเข้าค่าเฉลี่ยรายจ่ายรายวัน) ── */
+const prepayTarget=()=>{
+  const v=document.getElementById('prepayDebt')?.value,open=S.debts.filter(d=>debtRem(d)>0);
+  if(v&&v!=='auto')return open.find(d=>d.id===v)||null;
+  return open.length?open.reduce((a,b)=>(b.interestRate||0)>(a.interestRate||0)?b:a):null; // แนะนำ: ดอกเบี้ยสูงสุดก่อน
+};
+const renderPrepay=()=>{
+  const acc=document.getElementById('prepayAcc');if(!acc)return;
+  const open=S.debts.filter(d=>debtRem(d)>0);
+  acc.style.display=open.length?'block':'none';
+  if(!open.length)return;
+  const sel=document.getElementById('prepayDebt'),keep=sel.value;
+  const best=open.reduce((a,b)=>(b.interestRate||0)>(a.interestRate||0)?b:a);
+  sel.innerHTML=`<option value="auto">⭐ แนะนำ: ${esc(best.name)} (ดอกเบี้ยสูงสุด)</option>`+open.map(d=>`<option value="${d.id}">${esc(d.name)} · เหลือ ${FM.compact(debtRem(d))}${d.interestRate>0?` · ${d.interestRate}%`:''}</option>`).join('');
+  if([...sel.options].some(o=>o.value===keep))sel.value=keep;
+  const s=computeSurplus();
+  document.getElementById('prepayCash').innerHTML=s.ready?`เงินเหลือประมาณ <b class="tp mono">${FM.cur(Math.max(0,s.surplus))}</b> ต่อเดือน (หลังรายจ่ายและค่างวดหนี้) — เลือกได้ว่าจะโปะเท่าไรกับหนี้ก้อนไหน`:'กรอกรายรับ/รายจ่ายที่หน้าหลักก่อน เพื่อให้เห็นว่าเหลือเงินโปะได้เท่าไร';
+  document.getElementById('prepayChips').innerHTML=[500,1000,2000,5000].map(v=>`<button class="qchip" onclick="setPrepayAmt(${v})">฿${v.toLocaleString('en-US')}</button>`).join('')+`<button class="qchip" onclick="setPrepayAmt('all')">ทั้งก้อน</button>`;
+  document.getElementById('prepaySum').textContent=`${open.length} ก้อน`;
+  renderPrepayPreview();
+};
+const setPrepayAmt=v=>{
+  const d=prepayTarget();if(!d)return;
+  document.getElementById('prepayAmt').value=v==='all'?Math.ceil(debtRem(d)*100)/100:v;
+  renderPrepayPreview();
+};
+const openPrepay=id=>{
+  const acc=document.getElementById('prepayAcc');if(!acc)return;
+  acc.open=true;document.getElementById('prepayDebt').value=id;renderPrepayPreview();
+  acc.scrollIntoView({behavior:'smooth',block:'center'});
+};
+const renderPrepayPreview=()=>{
+  const el=document.getElementById('prepayPreview');if(!el)return;
+  const d=prepayTarget(),raw=FM.parse(document.getElementById('prepayAmt').value);
+  if(!d){el.innerHTML='';return}
+  if(!(raw>0)){el.innerHTML='<div class="fxs tm">ใส่จำนวนเงินเพื่อดูผลว่าหนี้จะหมดเร็วขึ้นและประหยัดดอกเบี้ยเท่าไร</div>';return}
+  const rem=debtRem(d),amt=Math.min(raw,rem);
+  const b=debtPayoffPlan(rem,d.interestRate,d.monthlyPayment),a=debtPayoffPlan(rem-amt,d.interestRate,d.monthlyPayment);
+  const lbl=n=>!isFinite(n)?'ไม่มีวันหมด':n===0?'หมดทันที 🎉':olSpanLabel(n);
+  const s=computeSurplus();
+  const m0=n=>'฿'+Math.round(n).toLocaleString('th-TH');
+  const lines=[];
+  lines.push(`<div class="ol-cmp-r hd"><div class="k"></div><div class="v">ก่อนโปะ</div><div class="v">หลังโปะ</div><div class="v">ต่าง</div></div>`);
+  lines.push(`<div class="ol-cmp-r"><div class="k">ยอดคงเหลือ</div><div class="v">${m0(rem)}</div><div class="v">${m0(rem-amt)}</div><div class="v tg">−${m0(amt)}</div></div>`);
+  lines.push(`<div class="ol-cmp-r"><div class="k">หมดใน</div><div class="v">${lbl(b.months)}</div><div class="v">${lbl(a.months)}</div><div class="v ${isFinite(b.months)&&isFinite(a.months)?'tg':'tm'}">${isFinite(b.months)&&isFinite(a.months)?(b.months-a.months>0?'เร็วขึ้น '+olSpanLabel(b.months-a.months):'เท่าเดิม'):'—'}</div></div>`);
+  lines.push(`<div class="ol-cmp-r"><div class="k">ดอกเบี้ยที่ต้องจ่าย</div><div class="v">${isFinite(b.interest)?m0(b.interest):'—'}</div><div class="v">${isFinite(a.interest)?m0(a.interest):'—'}</div><div class="v ${isFinite(b.interest)&&isFinite(a.interest)?'tg':'tm'}">${isFinite(b.interest)&&isFinite(a.interest)?'ประหยัด '+m0(b.interest-a.interest):'—'}</div></div>`);
+  const warn=[];
+  if(raw>rem)warn.push(`ยอดเกินหนี้คงเหลือ จะโปะเพียง ${FM.cur(rem)} (ปิดหนี้ก้อนนี้)`);
+  if(s.ready&&amt>Math.max(0,s.surplus))warn.push(`จำนวนนี้มากกว่าเงินเหลือต่อเดือนประมาณ ${FM.cur(Math.max(0,s.surplus))} — เงินสดเดือนนี้อาจติดลบ`);
+  el.innerHTML=`<div class="fxs tm" style="margin-bottom:4px">โปะ <b class="tp">${FM.cur(amt)}</b> ให้ <b>${esc(d.name)}</b></div><div class="ol-cmp">${lines.join('')}</div>${warn.map(w=>`<div class="fxs" style="color:var(--y,#b45309);background:rgba(245,158,11,.1);padding:6px 8px;border-radius:8px;margin-top:6px">⚠️ ${w}</div>`).join('')}`;
+};
+const doPrepay=()=>{
+  const d=prepayTarget(),raw=FM.parse(document.getElementById('prepayAmt').value);
+  if(!d||!(raw>0)){modal('ข้อมูลไม่ครบ','กรุณาใส่จำนวนเงินที่จะโปะ และเลือกหนี้');return}
+  const rem=debtRem(d),amt=Math.round(Math.min(raw,rem)*100)/100;
+  if(!confirm(`โปะหนี้ "${d.name}" ${FM.cur(amt)} ?\nยอดคงเหลือจะลดจาก ${FM.cur(rem)} เป็น ${FM.cur(rem-amt)} และบันทึกเป็นรายจ่ายเดือนนี้`))return;
+  d.remaining=Math.max(0,Math.round((rem-amt)*100)/100);
+  d.prepaidTotal=(d.prepaidTotal||0)+amt;
+  S.transactions.unshift({id:'t'+Date.now(),name:`โปะหนี้: ${d.name}`,amount:amt,category:'personal',date:localYMD(),note:'โปะหนี้ก้อนพิเศษ',mood:'',prepay:true});
+  document.getElementById('prepayAmt').value='';
+  save();renderDebtList();renderTxLists();renderSummary();renderDailyChart();calc();
+  if(d.remaining<=0)celebrate('🕊️','ปลดหนี้ก้อนนี้แล้ว!',`"${d.name}" จ่ายครบแล้ว 🎉`);
+  else celebrate('💸','โปะหนี้สำเร็จ',`"${d.name}" เหลือ ${FM.cur(d.remaining)}`);
+};
 const removeDebt=id=>{S.debts=S.debts.filter(x=>x.id!==id);save();renderDebtList();calc()};
 // เรียงลำดับรายการหนี้ตามโหมดที่เลือก (ไม่ลบข้อมูล แค่เปลี่ยนลำดับแสดงผล)
 let debtSort='default';
@@ -1318,6 +1405,7 @@ const renderDebtSummary=()=>{
 const renderDebtList=()=>{
   applyAutoPayments();
   renderDebtSummary();
+  renderPrepay();
   const el=document.getElementById('debtList');
   if(!S.debts.length){el.innerHTML='<div class="empty" style="padding:8px 0"><div class="ei">🎉</div><p>ไม่มีหนี้สิน!</p></div>';return}
   const list=[...S.debts];
@@ -1340,7 +1428,7 @@ const renderDebtList=()=>{
     return`<div class="li" style="flex-direction:column;align-items:stretch;gap:7px">
       <div style="display:flex;align-items:center;justify-content:space-between">
         <div><div class="lin">${esc(d.name)}</div><div class="lim mt1">${cb(d.debtType)}${d.interestRate>0?`<span class="pill" style="background:rgba(239,68,68,.1);color:var(--r);margin-left:4px">${d.interestRate}%/ปี</span>`:''}${d.payDay?`<span class="pill" style="background:rgba(59,130,246,.1);color:var(--b);margin-left:4px">📅 ทุกวันที่ ${d.payDay}</span>`:''}${r<=0?'<span class="pill" style="background:rgba(16,185,129,.12);color:var(--g2);margin-left:4px">✅ ปิดแล้ว</span>':''}</div></div>
-        <div style="display:flex;gap:4px"><button class="btn bGh" onclick="openDebtEdit('${d.id}')">✏️</button><button class="btn bGh" onclick="removeDebt('${d.id}')">✕</button></div>
+        <div style="display:flex;gap:4px">${r>0?`<button class="btn bGh" title="โปะหนี้ก้อนนี้" onclick="openPrepay('${d.id}')">💸</button>`:''}<button class="btn bGh" onclick="openDebtEdit('${d.id}')">✏️</button><button class="btn bGh" onclick="removeDebt('${d.id}')">✕</button></div>
       </div>
       <div class="g3">
         <div style="text-align:center;padding:6px 3px;background:rgba(239,68,68,.07);border-radius:8px"><div class="fxs tm">คงเหลือ</div><div class="fw8 fxs tr2 mono">${FM.compact(r)}</div></div>
@@ -1398,7 +1486,7 @@ const OL_STATUS={
 const olVariableSpend=()=>{
   const byMonth={};
   // รายการที่ระบบสร้างจากรายจ่ายทุกวันไม่นับในค่าเฉลี่ย เพราะคิดแยกด้วยยอดต่อวัน × 30.4 ด้านล่าง (กันนับซ้ำ)
-  S.transactions.forEach(t=>{if(t.recurId)return;const m=(t.date||'').slice(0,7);if(m)byMonth[m]=(byMonth[m]||0)+t.amount});
+  S.transactions.forEach(t=>{if(t.recurId||t.prepay)return;const m=(t.date||'').slice(0,7);if(m)byMonth[m]=(byMonth[m]||0)+t.amount});
   const cur=localYM();
   const past=Object.keys(byMonth).filter(m=>m<cur);
   let avg,basis,solid;
