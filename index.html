@@ -541,6 +541,43 @@ body::before{
 .tax-r{display:flex;justify-content:space-between;gap:8px;font-size:.72rem;padding:4px 0;color:var(--mt)}
 .tax-r b{font-family:'IBM Plex Mono',monospace;color:var(--txt2)}
 .tax-r.hl{border-top:1px dashed var(--bdr);margin-top:3px;padding-top:7px;color:var(--txt2);font-weight:800}
+.ol-future{position:relative;overflow:hidden;border-radius:var(--rXL);padding:16px 18px;margin-bottom:14px;color:#fff;background:linear-gradient(135deg,#7c3aed,#c026d3 60%,#ec4899);box-shadow:0 10px 30px rgba(124,58,237,.28)}
+.ol-future::after{content:'';position:absolute;inset:-40% -20% auto auto;width:220px;height:220px;border-radius:50%;background:radial-gradient(circle,rgba(255,255,255,.22),transparent 70%);pointer-events:none}
+.olf-h{font-size:.78rem;font-weight:800;opacity:.9;margin-bottom:4px}
+.olf-big{font-family:'IBM Plex Mono',monospace;font-weight:900;font-size:clamp(1.35rem,6vw,1.9rem);line-height:1.15}
+.olf-sub{font-size:.7rem;opacity:.85;margin-bottom:10px}
+.olf-list{display:flex;flex-direction:column;gap:6px;position:relative;z-index:1}
+.olf-list div{font-size:.76rem;line-height:1.5;background:rgba(255,255,255,.13);border-radius:10px;padding:7px 10px}
+.olf-list b{font-family:'IBM Plex Mono',monospace}
+.ol-chart-wrap{position:relative}
+.ol-chart-wrap svg{touch-action:pan-y;cursor:crosshair;outline:none}
+.ol-chart-wrap svg:focus-visible{outline:2px solid var(--p);outline-offset:3px;border-radius:8px}
+.ol-tip{position:absolute;top:0;pointer-events:none;background:var(--surface);border:1px solid var(--bdr2);border-radius:12px;padding:7px 10px;font-size:.7rem;box-shadow:0 8px 24px rgba(0,0,0,.14);min-width:150px;transform:translateX(-50%);z-index:2}
+.ol-tip b{font-family:'IBM Plex Mono',monospace}
+.ol-tip .h{font-weight:800;margin-bottom:3px}
+.ol-tip .ms{margin-top:4px;padding-top:4px;border-top:1px dashed var(--bdr);color:var(--p);font-weight:700}
+.ol-mchips{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.ol-mchip{all:unset;cursor:pointer;font-size:.68rem;padding:4px 9px;border-radius:99px;background:rgba(139,92,246,.1);color:var(--txt2);font-weight:700}
+.ol-mchip:hover{background:rgba(139,92,246,.2)}
+.ol-mchip:focus-visible{outline:2px solid var(--p);outline-offset:2px}
+.fx-press{animation:fxPress .38s cubic-bezier(.34,1.56,.64,1)}
+@keyframes fxPress{0%{transform:scale(1)}35%{transform:scale(.92)}70%{transform:scale(1.04)}100%{transform:scale(1)}}
+@keyframes fxGrowX{from{transform:scaleX(0)}}
+@keyframes fxGrowY{from{transform:scaleY(0)}}
+@keyframes fxDraw{from{stroke-dashoffset:1}to{stroke-dashoffset:0}}
+@keyframes fxFade{from{opacity:0}}
+@keyframes fxPop{0%{opacity:0;transform:scale(.3)}70%{opacity:1;transform:scale(1.15)}100%{opacity:1;transform:scale(1)}}
+@media (prefers-reduced-motion:no-preference){
+  .fx-rv{opacity:0;transform:translateY(16px)}
+  .fx-rv.in{opacity:1;transform:none;transition:opacity .45s ease,transform .55s cubic-bezier(.22,1,.36,1)}
+  body.fx-on .bd-bar>div,body.fx-on .pbf,body.fx-on .ms-row .bar>span{transform-origin:left;animation:fxGrowX .85s cubic-bezier(.22,1,.36,1) both}
+  body.fx-on .ms-col>span{transform-origin:bottom;animation:fxGrowY .75s cubic-bezier(.22,1,.36,1) both}
+  .ol-draw{stroke-dasharray:1;animation:fxDraw 1.1s cubic-bezier(.4,0,.2,1) both}
+  .ol-draw.d2{animation-delay:.15s}
+  .ol-fade{animation:fxFade .8s .45s ease both}
+  .ol-pin{transform-box:fill-box;transform-origin:center;animation:fxPop .5s cubic-bezier(.34,1.56,.64,1) both}
+}
+@media (prefers-reduced-motion:reduce){.fx-press{animation:none}}
 .bd{background:var(--s2);border:1px solid var(--bdr);border-radius:var(--rM);padding:10px 12px;margin-bottom:10px}
 .bd-top{display:flex;align-items:baseline;justify-content:space-between;gap:8px;flex-wrap:wrap}
 .bd-l{font-size:.7rem;color:var(--mt);font-weight:700}
@@ -1111,6 +1148,66 @@ const esc=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'
 const modal=(t,m)=>{document.getElementById('mTitle').textContent=t;document.getElementById('mMsg').textContent=m;document.getElementById('modalOv').classList.add('on')};
 // ปิด modal
 const closeModal=()=>document.getElementById('modalOv').classList.remove('on');
+/* ── ✨ MOTION: อนิเมชันทั้งเว็บ — ปิดทั้งหมดถ้าเครื่องตั้ง "ลดการเคลื่อนไหว" ──
+   fxPulse(): เปิด "ช่วงอนิเมชัน" สั้นๆ ตอนเข้าหน้า → การ์ดค่อยๆ โผล่ + แถบ % ไหลเติม
+   (นอกช่วงนี้ render ซ้ำ เช่นตอนพิมพ์ตัวเลข จะไม่เล่นซ้ำให้รำคาญ)
+   fxNums(): ยอดเงินนับจากค่าเดิมไปค่าใหม่ */
+const MOTION=!(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches);
+let fxIO=null;
+const fxReveal=()=>{
+  if(!MOTION||!('IntersectionObserver' in window))return;
+  fxIO=fxIO||new IntersectionObserver(es=>{
+    let i=0;
+    es.forEach(e=>{
+      if(!e.isIntersecting)return;
+      const el=e.target,d=Math.min(i++,6)*60;
+      el.style.transitionDelay=d+'ms';el.classList.add('in');fxIO.unobserve(el);
+      setTimeout(()=>{el.classList.remove('fx-rv','in');el.style.transitionDelay=''},650+d);
+    });
+  },{threshold:.06,rootMargin:'0px 0px -4% 0px'});
+  document.querySelectorAll('.sec .card,.sec .ol-panel,.sec .ol-hero,.sec .hero,.sec .ol-future').forEach(el=>{
+    if(el.offsetParent===null||el.classList.contains('fx-rv'))return;
+    el.classList.add('fx-rv');fxIO.observe(el);
+  });
+};
+const fxPulse=()=>{
+  if(!MOTION)return;
+  document.body.classList.add('fx-on');
+  clearTimeout(fxPulse.t);fxPulse.t=setTimeout(()=>document.body.classList.remove('fx-on'),1400);
+  requestAnimationFrame(fxReveal);
+};
+const fxPrev=new Map();
+const FX_NUM_SEL='#heroBalance,#hInc,#hExp,#totInc,#totExp,#balDisp,#monthSaved,#monthSpent,#monthLeft,.ol-zone-big,.ol-v,.bd-v,.fx-num,#invSurplusCard .pr strong,#invBufferSummary .pr strong,#invImpactCard .sv';
+const fxNums=()=>{
+  const seq=new Map();
+  document.querySelectorAll(FX_NUM_SEL).forEach(el=>{
+    if(el.offsetParent===null)return;
+    const tn=[...el.childNodes].find(n=>n.nodeType===3&&n.textContent.trim());if(!tn)return;
+    const orig=tn.textContent,mt=orig.match(/^(\s*)([+−-]?)฿([\d,]+)(\.\d+)?([\s\S]*)$/);if(!mt)return;
+    const host=el.id||(el.closest('[id]')||{}).id||'_',n=seq.get(host)||0;seq.set(host,n+1);
+    const key=el.id||host+':'+n;
+    const target=(mt[2]==='−'||mt[2]==='-'?-1:1)*parseFloat(mt[3].replace(/,/g,'')+(mt[4]||''));
+    const from=fxPrev.has(key)?fxPrev.get(key):0;fxPrev.set(key,target);
+    if(!MOTION||from===target)return;
+    const dec=mt[4]?mt[4].length-1:0;
+    const fmt=v=>mt[1]+(mt[2]==='+'?'+':v<0?'−':'')+'฿'+Math.abs(v).toLocaleString('th-TH',{minimumFractionDigits:dec,maximumFractionDigits:dec})+mt[5];
+    const t0=performance.now(),dur=700;
+    const run=now=>{
+      if(!tn.isConnected)return;
+      const k=Math.min(1,(now-t0)/dur),e=1-Math.pow(1-k,3);
+      tn.textContent=k<1?fmt(from+(target-from)*e):orig;
+      if(k<1)requestAnimationFrame(run);
+    };
+    requestAnimationFrame(run);
+  });
+};
+// ปุ่มยุบแล้วเด้งกลับ
+document.addEventListener('pointerdown',e=>{
+  if(!MOTION)return;
+  const b=e.target.closest('.btn,.qchip,.tab,.dnav,.bnav,.hbtn,.ms-bar,.ol-mchip');if(!b)return;
+  b.classList.remove('fx-press');void b.offsetWidth;b.classList.add('fx-press');
+  b.addEventListener('animationend',()=>b.classList.remove('fx-press'),{once:true});
+});
 // หน้าต่างยืนยันของแอป แทน confirm() (หน้าตาตรงกับดีไซน์บนมือถือ) — คืน Promise<boolean>
 let askResolve=null;
 const ask=(title,msg,opt={})=>new Promise(res=>{
@@ -1155,6 +1252,7 @@ const navigate=sec=>{
   if(sec==='budget')renderInvestPlanner();
   if(sec==='outlook')renderOutlook();
   try{window.scrollTo({top:0,behavior:'instant'});}catch(e){}
+  fxPulse();
 };
 document.getElementById('deskNav').addEventListener('click',e=>{const b=e.target.closest('.dnav');if(b)navigate(b.dataset.s)});
 document.querySelector('.bot-nav').addEventListener('click',e=>{const b=e.target.closest('.bnav');if(b)navigate(b.dataset.s)});
@@ -1172,6 +1270,7 @@ const calc=()=>{
   renderInvestPlanner(); // เงินเหลือให้ลงทุนก็เปลี่ยนตาม รายรับ/รายจ่าย/หนี้เช่นกัน
   renderEmergency();renderDue();renderTax();
   renderBurden(); // สรุปภาระรายจ่ายคงที่/หนี้ เทียบเงินเดือน
+  fxNums();
 };
 
 // แสดงยอดสรุปใน hero card, sidebar stats, badge นับถอยหลัง
@@ -1684,37 +1783,124 @@ const renderOutlookHero=o=>{
 
 // ── หน้ารายละเอียด: Summary cards + Timeline รายเดือน + Insight ──
 // กราฟเส้น: เงินคงเหลือสะสม vs หนี้คงเหลือ (SVG ล้วน) — ช่วงยาวเกิน 60 เดือนย่อเป็นจุดรายปี
-const renderOlChart=o=>{
+// หมุดเหตุการณ์สำคัญ — คิดจากผลคาดการณ์ชุดเดียวกับกราฟ
+// "เงินเก็บ" = เงินสำรองที่กรอกไว้ + เงินคงเหลือสะสมในเดือนนั้น
+const OL_WEALTH_MARKS=[100000,500000,1000000,5000000,10000000];
+const olMilestones=o=>{
+  const ms=[],sav=x=>S.emergencySavings+x.end;
+  o.months.forEach(x=>x.paidOff.forEach(p=>ms.push({m:x.m,icon:'🕊️',t:`ปลดหนี้ "${p.name}"`,d:`มีเงินคืน ${FM.cur(p.freed)}/เดือน`})));
+  if(o.startDebt>0&&o.debtFreeAt>0){
+    const last=ms.filter(x=>x.m===o.debtFreeAt);
+    for(const x of last)ms.splice(ms.indexOf(x),1);
+    ms.push({m:o.debtFreeAt,icon:'🎉',t:'ปลอดหนี้ทั้งหมด',d:last.length?`ก้อนสุดท้าย: ${last.map(x=>x.t.replace(/^ปลดหนี้ /,'')).join(', ')}`:'ไม่มีค่างวดหนี้เหลือแล้ว'});
+  }
+  const need=x=>x.fixedExp+x.variableExp+x.debtPaid;
+  const m0=o.months[0];
+  if(m0&&S.emergencySavings+o.startBalance<6*need(m0)){
+    const hit=o.months.find(x=>need(x)>0&&sav(x)>=6*need(x));
+    if(hit)ms.push({m:hit.m,icon:'🛟',t:'เงินสำรองครบ 6 เดือน',d:`เงินเก็บ ${FM.cur(sav(hit))}`});
+  }
+  const start=S.emergencySavings+o.startBalance;
+  OL_WEALTH_MARKS.forEach(th=>{if(start>=th)return;const hit=o.months.find(x=>sav(x)>=th);if(hit)ms.push({m:hit.m,icon:'💰',t:`เงินเก็บแตะ ${FM.compact(th)}`,d:`เงินเก็บ ${FM.cur(sav(hit))}`})});
+  return ms.sort((a,b)=>a.m-b.m).slice(0,10);
+};
+// การ์ด "ตัวคุณในอนาคต" — สรุปผลเป็นประโยค
+const renderOlFuture=(o,mils)=>{
+  const N=o.months.length,last=o.months[N-1];
+  const saved=S.emergencySavings+last.end,need=last.fixedExp+last.variableExp+last.debtPaid;
+  const lines=[];
+  lines.push(o.startDebt<=0?'✅ ไม่มีหนี้ตลอดช่วงนี้':o.debtFreeAt>0?`🕊️ ปลดหนี้หมดใน <b>${o.debtFreeLabel}</b> (อีก ${olSpanLabel(o.debtFreeAt)})`:`💳 ยังมีหนี้เหลือ <b>${FM.cur(o.endDebt)}</b> เมื่อจบช่วงนี้`);
+  lines.push(saved<=0?'⚠️ ยังไม่มีเงินกันชน ถ้าขาดรายได้จะลำบากทันที':need>0?`🛟 ถ้าขาดรายได้ อยู่ได้ประมาณ <b>${(saved/need).toFixed(1)} เดือน</b>`:'🛟 ไม่มีรายจ่ายประจำที่ต้องจ่าย');
+  if(mils.length)lines.push(`📍 ระหว่างทางมี <b>${mils.length}</b> เหตุการณ์สำคัญ — ลากนิ้วบนกราฟด้านล่างเพื่อดูทีละเดือน`);
+  return`<div class="ol-future">
+    <div class="olf-h">🧑‍🚀 ตัวคุณใน${last.label}</div>
+    <div class="olf-big fx-num">${saved<0?'−':''}${FM.compact(Math.abs(saved)).replace(/^−/,'')}</div>
+    <div class="olf-sub">เงินเก็บรวมโดยประมาณ${S.emergencySavings?` (รวมเงินสำรองที่มี ${FM.cur(S.emergencySavings)})`:''}</div>
+    <div class="olf-list">${lines.map(l=>`<div>${l}</div>`).join('')}</div>
+  </div>`;
+};
+// กราฟเส้น: เงินคงเหลือสะสม vs หนี้ (SVG ล้วน) + หมุดเหตุการณ์ + ตัวชี้ลากดูรายเดือน
+let olChart=null,olScrubM=null;
+const renderOlChart=(o,mils)=>{
   const N=o.months.length;
-  const pts=[{m:0,bal:o.startBalance,debt:o.startDebt,label:'ตอนนี้'}];
+  const pts=[{m:0,bal:o.startBalance,debt:o.startDebt}];
   const step=N>60?12:1;
-  for(let m=step;m<=N;m+=step)pts.push({m,bal:o.months[m-1].end,debt:o.months[m-1].debtLeft,label:o.months[m-1].label});
-  if(pts[pts.length-1].m!==N)pts.push({m:N,bal:o.months[N-1].end,debt:o.months[N-1].debtLeft,label:o.months[N-1].label});
-  // กว้างตามการ์ดจริง (ตัวหนังสือจะได้ขนาด 1:1 บนมือถือ ไม่ถูกย่อจน อ่านไม่ออก) — ถ้าหน้าถูกซ่อนอยู่ใช้ 600 แล้ววาดใหม่ตอนเปิดหน้า
-  const cw=(document.getElementById('olBody')?.clientWidth||0)-34,W=Math.max(280,Math.min(760,cw>0?cw:600)),H=W<420?210:230,R=12,T=14,B=28;let L=58;
+  for(let m=step;m<=N;m+=step)pts.push({m,bal:o.months[m-1].end,debt:o.months[m-1].debtLeft});
+  if(pts[pts.length-1].m!==N)pts.push({m:N,bal:o.months[N-1].end,debt:o.months[N-1].debtLeft});
+  // กว้างตามการ์ดจริง (ตัวหนังสือขนาด 1:1 บนมือถือ) — ถ้าหน้าถูกซ่อนอยู่ใช้ 600 แล้ววาดใหม่ตอนเปิดหน้า
+  const cw=(document.getElementById('olBody')?.clientWidth||0)-34,W=Math.max(280,Math.min(760,cw>0?cw:600)),H=W<420?220:240,R=12,T=22,B=28;let L=58;
   const vals=pts.flatMap(p=>[p.bal,p.debt]).concat(0);
   let lo=Math.min(...vals),hi=Math.max(...vals);if(hi-lo<1){hi=lo+1}
   const pad=(hi-lo)*.06;lo-=pad;hi+=pad;
-  const x=m=>L+(N?m/N:0)*(W-L-R),y=v=>T+(1-(v-lo)/(hi-lo))*(H-T-B);
-  const line=k=>pts.map((p,i)=>`${i?'L':'M'}${x(p.m).toFixed(1)},${y(p[k]).toFixed(1)}`).join(' ');
   const axisFmt=v=>(v<0?'−':'')+Math.round(Math.abs(v)).toLocaleString('th-TH'); // เลขเต็ม ไม่ย่อ K/M
   const ticks=[0,1,2,3].map(i=>lo+(hi-lo)*i/3);
   L=Math.min(W*.32,12+Math.max(...ticks.map(v=>axisFmt(v).length))*6.2); // กว้างพอให้ตัวเลขเต็มไม่ล้นซ้าย
+  const x=m=>L+(N?m/N:0)*(W-L-R),y=v=>T+(1-(v-lo)/(hi-lo))*(H-T-B);
+  const line=k=>pts.map((p,i)=>`${i?'L':'M'}${x(p.m).toFixed(1)},${y(p[k]).toFixed(1)}`).join(' ');
   const grid=ticks.map(v=>`<line x1="${L}" x2="${W-R}" y1="${y(v).toFixed(1)}" y2="${y(v).toFixed(1)}" stroke="var(--bdr)" stroke-width="1"/><text x="${L-6}" y="${(y(v)+3).toFixed(1)}" text-anchor="end" font-size="10" fill="var(--mt)">${axisFmt(v)}</text>`).join('');
   const zero=lo<0&&hi>0?`<line x1="${L}" x2="${W-R}" y1="${y(0).toFixed(1)}" y2="${y(0).toFixed(1)}" stroke="var(--mt)" stroke-width="1" stroke-dasharray="4 3"/>`:'';
-  const area=`${line('bal')} L${x(N).toFixed(1)},${y(Math.max(lo,Math.min(0,hi))).toFixed(1)} L${x(0).toFixed(1)},${y(Math.max(lo,Math.min(0,hi))).toFixed(1)} Z`;
-  const dots=pts.map(p=>`<circle cx="${x(p.m).toFixed(1)}" cy="${y(p.bal).toFixed(1)}" r="${N<=24||step>1?3:2}" fill="var(--p)"><title>${p.label}: เงินคงเหลือ ${FM.cur(p.bal)} · หนี้ ${FM.cur(p.debt)}</title></circle>`).join('');
-  const evm=o.months.filter(mo=>mo.oneOff).map(mo=>`<g><path d="M${x(mo.m).toFixed(1)},${(T-1)} l4,5 l-4,5 l-4,-5 z" fill="${mo.oneOff>0?'#10b981':'#f59e0b'}"><title>${mo.label}: ${mo.oneOffNames.map(esc).join(', ')} (${olSigned(mo.oneOff)})</title></path></g>`).join('');
+  const base=y(Math.max(lo,Math.min(0,hi))).toFixed(1);
+  const area=`${line('bal')} L${x(N).toFixed(1)},${base} L${x(0).toFixed(1)},${base} Z`;
+  const balAt=m=>m===0?o.startBalance:o.months[m-1].end;
+  const evm=o.months.filter(mo=>mo.oneOff).map(mo=>`<path class="ol-fade" d="M${x(mo.m).toFixed(1)},${T-12} l4,5 l-4,5 l-4,-5 z" fill="${mo.oneOff>0?'#10b981':'#f59e0b'}"/>`).join('');
+  const pins=mils.map((p,i)=>{const px=x(p.m).toFixed(1),py=y(balAt(p.m)).toFixed(1);
+    return`<g class="ol-pin" style="animation-delay:${(.9+i*.12).toFixed(2)}s"><line x1="${px}" x2="${px}" y1="${py}" y2="${H-B}" stroke="var(--p)" stroke-width="1" stroke-dasharray="2 3" opacity=".45"/><circle cx="${px}" cy="${py}" r="10" fill="var(--surface)" stroke="var(--p)" stroke-width="1.6"/><text x="${px}" y="${py}" text-anchor="middle" dominant-baseline="central" font-size="11">${p.icon}</text></g>`}).join('');
   const xl=[0,Math.round(N/2),N].filter((v,i,a)=>a.indexOf(v)===i).map(m=>`<text x="${x(m).toFixed(1)}" y="${H-8}" text-anchor="${m===0?'start':m===N?'end':'middle'}" font-size="10" fill="var(--mt)">${m===0?'ตอนนี้':olSpanLabel(m)}</text>`).join('');
-  return`<div class="card csm mt2"><div class="slbl">แนวโน้มเงินคงเหลือและหนี้</div>
-    <svg viewBox="0 0 ${W} ${H}" style="width:100%;height:auto;display:block" role="img" aria-label="กราฟเงินคงเหลือและหนี้">
-      ${grid}${zero}<path d="${area}" fill="var(--p)" opacity=".10"/>
-      <path d="${line('debt')}" fill="none" stroke="#ef4444" stroke-width="2" stroke-linejoin="round"/>
-      <path d="${line('bal')}" fill="none" stroke="var(--p)" stroke-width="2.4" stroke-linejoin="round"/>
-      ${dots}${evm}${xl}
-    </svg>
+  olChart={o,mils,N,W,L,R,x,y,balAt};olScrubM=null;
+  return`<div class="card csm mt2"><div class="slbl">แนวโน้มเงินคงเหลือและหนี้ <span class="tm" style="font-weight:600">· ลากนิ้วหรือเมาส์บนกราฟเพื่อดูแต่ละเดือน</span></div>
+    <div class="ol-chart-wrap">
+      <svg id="olSvg" viewBox="0 0 ${W} ${H}" style="width:100%;height:auto;display:block" tabindex="0" role="img" aria-label="กราฟเงินคงเหลือและหนี้ ใช้ปุ่มลูกศรซ้ายขวาเพื่อดูทีละเดือน">
+        ${grid}${zero}<path class="ol-fade" d="${area}" fill="var(--p)" opacity=".10"/>
+        <path class="ol-draw" pathLength="1" d="${line('debt')}" fill="none" stroke="#ef4444" stroke-width="2" stroke-linejoin="round"/>
+        <path class="ol-draw d2" pathLength="1" d="${line('bal')}" fill="none" stroke="var(--p)" stroke-width="2.6" stroke-linejoin="round"/>
+        ${evm}${pins}${xl}
+        <g id="olScrub" style="display:none" pointer-events="none">
+          <line id="olScrubL" y1="${T}" y2="${H-B}" stroke="var(--txt2)" stroke-width="1" opacity=".5"/>
+          <circle id="olScrubD" r="4.5" fill="#ef4444" stroke="var(--surface)" stroke-width="2"/>
+          <circle id="olScrubB" r="5.5" fill="var(--p)" stroke="var(--surface)" stroke-width="2"/>
+        </g>
+      </svg>
+      <div class="ol-tip" id="olTip" hidden></div>
+    </div>
     <div class="cal-leg" style="margin-top:6px"><div class="leg"><div class="legdot" style="background:var(--p)"></div>เงินคงเหลือสะสม</div><div class="leg"><div class="legdot" style="background:#ef4444"></div>หนี้คงเหลือ</div>${o.months.some(mo=>mo.oneOff)?'<div class="leg"><div class="legdot" style="background:#10b981;border-radius:2px;transform:rotate(45deg)"></div>เหตุการณ์ครั้งเดียว</div>':''}</div>
+    ${mils.length?`<div class="ol-mchips">${mils.map(p=>`<button class="ol-mchip" onclick="olScrubTo(${p.m},true)">${p.icon} ${esc(p.t)} · ${o.months[p.m-1].label}</button>`).join('')}</div>`:''}
   </div>`;
+};
+const olScrubHide=()=>{const g=document.getElementById('olScrub'),tip=document.getElementById('olTip');if(g)g.style.display='none';if(tip)tip.hidden=true;olScrubM=null};
+const olScrubTo=(m,focus)=>{
+  const c=olChart,g=document.getElementById('olScrub'),tip=document.getElementById('olTip'),svg=document.getElementById('olSvg');
+  if(!c||!g||!tip||!svg)return;
+  m=Math.max(0,Math.min(c.N,Math.round(m)));olScrubM=m;
+  const mo=m?c.o.months[m-1]:null,bal=c.balAt(m),debt=m?mo.debtLeft:c.o.startDebt,px=c.x(m);
+  g.style.display='';
+  document.getElementById('olScrubL').setAttribute('x1',px);document.getElementById('olScrubL').setAttribute('x2',px);
+  const b=document.getElementById('olScrubB'),d=document.getElementById('olScrubD');
+  b.setAttribute('cx',px);b.setAttribute('cy',c.y(bal));d.setAttribute('cx',px);d.setAttribute('cy',c.y(debt));
+  const here=c.mils.filter(p=>p.m===m);
+  tip.innerHTML=`<div class="h">${m?mo.label:'ตอนนี้'}${m?` <span class="tm">· อีก ${olSpanLabel(m)}</span>`:''}</div>
+    <div>เงินคงเหลือ <b class="${bal>=0?'tp':'tr2'}">${FM.cur(bal)}</b></div>
+    <div>หนี้คงเหลือ <b class="${debt>0?'tr2':'tg'}">${debt>0?FM.cur(debt):'ปลอดหนี้'}</b></div>
+    ${mo&&mo.oneOff?`<div>📌 ${mo.oneOffNames.map(esc).join(', ')} <b>${olSigned(mo.oneOff)}</b></div>`:''}
+    ${here.map(p=>`<div class="ms">${p.icon} ${esc(p.t)}<br><span class="tm" style="font-weight:600">${esc(p.d)}</span></div>`).join('')}`;
+  tip.hidden=false;
+  const wrap=svg.getBoundingClientRect(),pxl=px/c.W*wrap.width,half=tip.offsetWidth/2;
+  tip.style.left=Math.max(half,Math.min(wrap.width-half,pxl))+'px';
+  tip.style.top=Math.max(0,c.y(Math.max(bal,debt))/c.W*wrap.width-tip.offsetHeight-12)+'px';
+  if(focus){svg.focus({preventScroll:true});svg.scrollIntoView({behavior:MOTION?'smooth':'auto',block:'center'})}
+};
+const bindOlChart=()=>{
+  const svg=document.getElementById('olSvg');if(!svg||!olChart)return;
+  const toM=e=>{const r=svg.getBoundingClientRect(),c=olChart,px=(e.clientX-r.left)/r.width*c.W;return(px-c.L)/(c.W-c.L-c.R)*c.N};
+  svg.addEventListener('pointermove',e=>olScrubTo(toM(e)));
+  svg.addEventListener('pointerdown',e=>olScrubTo(toM(e)));
+  svg.addEventListener('pointerleave',e=>{if(e.pointerType==='mouse')olScrubHide()});
+  svg.addEventListener('blur',()=>{if(!svg.matches(':hover'))olScrubHide()});
+  svg.addEventListener('keydown',e=>{
+    const c=olChart,cur=olScrubM??0,st=c.N>60?12:1;
+    const k={ArrowRight:cur+st,ArrowLeft:cur-st,Home:0,End:c.N}[e.key];
+    if(k==null){if(e.key==='Escape')olScrubHide();return}
+    e.preventDefault();olScrubTo(k);
+  });
 };
 // ตารางเปรียบเทียบ แผนปัจจุบัน vs แผนที่ลองเปลี่ยน
 const renderOlCompare=(o,sc)=>{
@@ -1746,6 +1932,7 @@ const renderOutlookDetail=(o,sc)=>{
       <button class="btn bP bFull mt2" onclick="navigate('dashboard')">ไปกรอกข้อมูลที่หน้าหลัก →</button></div>`;
     return;
   }
+  const mils=olMilestones(o);
   const st=OL_STATUS[o.status];
 
   // บล็อกสรุปเดียว แบ่งเป็น 4 โซน (เงินคงเหลือ / หนี้ / Cash Flow / เดือนเสี่ยง)
@@ -1887,7 +2074,8 @@ const renderOutlookDetail=(o,sc)=>{
   </div>`;
 
   el.innerHTML=`${sum}
-    ${renderOlChart(o)}
+    ${renderOlFuture(o,mils)}
+    ${renderOlChart(o,mils)}
     ${renderOlCompare(o,sc)}
     <div class="slbl mt3">${yearly?'ไทม์ไลน์รายปี':'ไทม์ไลน์รายเดือน'}</div>
     <div class="ol-tl">${tl}</div>
@@ -1956,7 +2144,9 @@ const applyOlSpan=()=>{
 };
 const renderOutlook=()=>{const o=computeOutlook(null,S.outlookMonths,olGrowth(false));
   const sc=olWhatIfActive()?computeOutlook(null,S.outlookMonths,olGrowth(true)):null;
-  renderOlPicker();renderOlPlan();renderOutlookHero(o);renderOutlookDetail(o,sc)};
+  renderOlPicker();renderOlPlan();renderOutlookHero(o);renderOutlookDetail(o,sc);
+  if(!o.ready)olChart=null;
+  bindOlChart();fxNums();};
 const DAILY_DAYS_PER_MONTH=365/12;
 const dlyAddDays=(ds,n)=>{const d=new Date(ds+'T00:00:00Z');d.setUTCDate(d.getUTCDate()+n);return d.toISOString().slice(0,10)};
 // สร้างรายการค่าใช้จ่ายของทุกวันที่ค้างอยู่ (ตั้งแต่วันเริ่มหรือวันหลังสุดที่สร้างไว้ จนถึงวันนี้) — ผ่าน id ตายตัวต่อวัน จึงไม่สร้างซ้ำ
@@ -2509,6 +2699,7 @@ const renderInvestPlanner=()=>{
   renderInvSelectedAsset();
   renderInvTimeline(plan);
   renderInvInsight(s,buf,inv,plan);
+  fxNums();
 };
 
 // การ์ดสินทรัพย์ที่เลือกอยู่ + ราคาล่าสุดที่ดึงจริง (ถ้ามี)
@@ -2631,6 +2822,7 @@ const init=()=>{
   });
   const dash=document.getElementById('s-dashboard');if(dash)dash.style.display='block';
   calc();renderInsights();renderOutlook();renderBackupNudge();
+  fxPulse();
 };
 // ── รัน app เมื่อหน้าโหลดเสร็จสมบูรณ์ ──
 window.addEventListener('load', function() {
