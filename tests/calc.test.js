@@ -42,8 +42,8 @@ function loadApp() {
   ctx.window = ctx;
   vm.createContext(ctx);
   vm.runInContext(code, ctx);
-  return vm.runInContext(`({S,C,computeOutlook,debtPayoffPlan,materializePrepayPlans,materializeDailyItems,
-    addYM,localYM,localYMD,stateFrom,validateBackup,revertPrepay,simPayoff,thaiTax,computeTax,csvCell,monthSpend,FM})`, ctx);
+  return vm.runInContext(`({S,C,computeOutlook,debtPayoffPlan,materializeDailyItems,
+    addYM,localYM,localYMD,stateFrom,validateBackup,simPayoff,thaiTax,computeTax,csvCell,monthSpend,FM})`, ctx);
 }
 
 const app = loadApp();
@@ -51,7 +51,7 @@ const { S, C } = app;
 const reset = () => {
   Object.assign(S, {
     salary: 0, otherIncomes: [], fixedExpenses: [], debts: [], transactions: [], dailyItems: [],
-    prepayPlans: [], olEvents: [], taxSsoMonthly: null, taxExtraDeduct: 0,
+    olEvents: [], taxSsoMonthly: null, taxExtraDeduct: 0,
   });
   C.inc = 0; C.bal = 0;
 };
@@ -100,45 +100,6 @@ test('คาดการณ์: หนี้หมดเดือนเดีย
   const o = app.computeOutlook(null, k + 2);
   assert.ok(o.months[k - 2].debtLeft > 0);
   assert.equal(o.months[k - 1].debtLeft, 0);
-});
-
-test('คาดการณ์: แผนโปะทุกเดือนจำกัดจำนวนครั้ง', () => {
-  reset(); C.inc = 50000;
-  S.debts = [{ id: 'd1', name: 'A', totalAmount: 50000, remaining: 50000, monthlyPayment: 2000, interestRate: 0 }];
-  const base = app.computeOutlook(null, 5).months.map(m => m.debtPaid);
-  S.prepayPlans = [{ id: 'p', debtId: 'd1', amount: 500, startYM: app.localYM(), lastYM: app.localYM(), times: 3, done: 1 }];
-  const withPlan = app.computeOutlook(null, 5).months.map(m => m.debtPaid);
-  assert.deepEqual(plain(withPlan.map((v, i) => v - base[i])), [500, 500, 0, 0, 0]);
-});
-
-test('แผนโปะทุกเดือน: ทำย้อนหลังครบ ไม่ซ้ำ และเลิกเมื่อครบครั้ง', () => {
-  reset();
-  S.debts = [{ id: 'd1', name: 'A', totalAmount: 50000, remaining: 50000, monthlyPayment: 2000, interestRate: 0 }];
-  S.prepayPlans = [{ id: 'p', debtId: 'd1', amount: 1000, startYM: app.addYM(app.localYM(), -2), lastYM: null, times: null, done: 0 }];
-  app.materializePrepayPlans();
-  assert.equal(S.transactions.filter(t => t.prepay).length, 3);
-  assert.equal(S.debts[0].remaining, 47000);
-  app.materializePrepayPlans();
-  assert.equal(S.transactions.filter(t => t.prepay).length, 3, 'ห้ามสร้างซ้ำ');
-
-  reset();
-  S.debts = [{ id: 'd1', name: 'A', totalAmount: 50000, remaining: 50000, monthlyPayment: 2000, interestRate: 0 }];
-  S.prepayPlans = [{ id: 'p', debtId: 'd1', amount: 1000, startYM: app.addYM(app.localYM(), -2), lastYM: null, times: 2, done: 0 }];
-  app.materializePrepayPlans();
-  assert.equal(S.transactions.filter(t => t.prepay).length, 2);
-  assert.equal(S.prepayPlans.length, 0, 'ครบ 2 ครั้งแล้วต้องเลิกแผน');
-});
-
-test('ยกเลิกการโปะ: คืนยอดหนี้และลบรายการ', () => {
-  reset();
-  const d = { id: 'd1', name: 'A', totalAmount: 10000, remaining: 8000, monthlyPayment: 500, prepaidTotal: 2000 };
-  S.debts = [d];
-  const tx = { id: 't1', amount: 2000, prepay: true, debtId: 'd1', date: app.localYMD() };
-  S.transactions = [tx];
-  app.revertPrepay(tx, d);
-  assert.equal(d.remaining, 10000);
-  assert.equal(d.prepaidTotal, 0);
-  assert.equal(S.transactions.length, 0);
 });
 
 test('รายจ่ายทุกวัน: สร้างย้อนหลังและไม่ซ้ำ', () => {

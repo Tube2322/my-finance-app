@@ -697,29 +697,6 @@ input[type=range]::-moz-range-track{background:var(--bg2);height:6px;border-radi
         <div class="ch"><div class="ct"><div class="ci" style="background:rgba(245,158,11,.1)">🏦</div>หนี้สิน</div><button class="btn bSm bO" onclick="clearArr('debts')">🗑️ ล้าง</button></div>
         <div id="debtBurden"></div>
         <div id="debtSummary"></div>
-        <details class="ol-acc" id="prepayAcc" style="display:none">
-          <summary>💸 โปะหนี้ก้อนพิเศษ <span class="ol-acc-s" id="prepaySum"></span></summary>
-          <div id="prepayPlans"></div>
-          <div id="prepayForm">
-          <div class="tab-bar" id="prepayFreqBar" style="margin-bottom:9px">
-            <button class="tab on" data-f="once" onclick="setPrepayFreq('once')">ครั้งเดียว</button>
-            <button class="tab" data-f="monthly" onclick="setPrepayFreq('monthly')">🔁 ทุกเดือน</button>
-          </div>
-          <div class="fxs tm" id="prepayCash" style="margin-bottom:8px"></div>
-          <div class="chiprow" id="prepayChips"></div>
-          <div style="display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.3fr);gap:7px">
-            <div class="fg" style="margin:0"><label class="fl">จำนวนที่โปะ (฿)</label><div class="ipr"><span class="pre">฿</span><input type="text" inputmode="decimal" id="prepayAmt" class="inp" placeholder="0" oninput="FM.clean(this);renderPrepayPreview()"></div></div>
-            <div class="fg" style="margin:0"><label class="fl">โปะหนี้ก้อนไหน</label><select id="prepayDebt" class="inp" onchange="renderPrepayPreview()"></select></div>
-          </div>
-          <div id="prepayTimesWrap" style="display:none;margin-top:9px">
-            <div class="fg" style="margin:0"><label class="fl">โปะกี่ครั้ง (เดือน) — เว้นว่าง = ทุกเดือนไม่จำกัด</label><input type="number" min="2" step="1" inputmode="numeric" id="prepayTimes" class="inp" placeholder="ไม่จำกัด เช่น 6" oninput="renderPrepayPreview()"></div>
-          </div>
-          <div id="prepayPreview" style="margin:10px 0"></div>
-          <button class="btn bP bFull" id="prepayBtn" onclick="doPrepay()" style="margin-bottom:8px">💸 โปะหนี้เลย</button>
-          <div class="fxs tm" style="padding-bottom:6px">ยอดคงเหลือของหนี้ก้อนนั้นลดทันที และบันทึกเป็นรายจ่ายเดือนนี้ (เงินสดลดลงเท่ากัน) · <b>ทุกเดือน</b> = โปะครั้งแรกทันที แล้วโปะซ้ำให้เองเมื่อขึ้นเดือนใหม่ และนำไปคิดในหน้า 🔮 อนาคตด้วย · ค่างวดต่อเดือนเท่าเดิม แต่หนี้หมดเร็วขึ้นและดอกเบี้ยลดลง</div>
-          </div>
-          <div id="prepayHistory" style="padding-bottom:8px"></div>
-        </details>
         <details class="ol-acc" id="stratAcc" style="display:none">
           <summary>🧮 วางแผนปลดหนี้ (Snowball / Avalanche)</summary>
           <div class="fg" style="margin:0"><label class="fl" for="stratExtra">เงินที่จะเพิ่มเข้าโปะหนี้ต่อเดือน (฿)</label><div class="ipr"><span class="pre">฿</span><input type="text" inputmode="decimal" id="stratExtra" class="inp" placeholder="0" oninput="FM.clean(this);renderStrategy()"></div></div>
@@ -748,54 +725,23 @@ input[type=range]::-moz-range-track{background:var(--bg2);height:6px;border-radi
         </div>
         <button class="btn bP bFull mt2" onclick="addDebt()">+ เพิ่มรายการหนี้</button>
       </div>
-      <!-- บันทึกค่าใช้จ่ายรายวัน -->
-      <div class="card">
-        <div class="ct mb2"><div class="ci" style="background:rgba(59,130,246,.1)">➕</div><span>บันทึกค่าใช้จ่าย</span></div>
-        <div style="margin-bottom:11px">
-          <div class="slbl">จำนวนด่วน</div>
-          <div style="display:flex;flex-wrap:wrap;gap:5px">
-            <button class="qchip" onclick="setQAmt(20)">฿20</button><button class="qchip" onclick="setQAmt(50)">฿50</button>
-            <button class="qchip" onclick="setQAmt(80)">฿80</button><button class="qchip" onclick="setQAmt(100)">฿100</button>
-            <button class="qchip" onclick="setQAmt(150)">฿150</button><button class="qchip" onclick="setQAmt(200)">฿200</button>
-            <button class="qchip" onclick="setQAmt(300)">฿300</button><button class="qchip" onclick="setQAmt(500)">฿500</button>
-          </div>
-        </div>
-        <div class="g2">
-          <div class="fg"><label class="fl">รายการ</label><input type="text" id="txName" class="inp" placeholder="เช่น ข้าวกลางวัน"></div>
-          <div class="fg"><label class="fl">จำนวน (฿)</label><div class="ipr"><span class="pre">฿</span><input type="text" inputmode="decimal" id="txAmt" class="inp" placeholder="0" oninput="FM.clean(this)"></div></div>
-          <div class="fg"><label class="fl">หมวดหมู่</label>
-            <select id="txCat" class="inp">
+      <div class="card" id="dailyItemsCard">
+        <div class="ct mb2"><div class="ci" style="background:rgba(139,92,246,.12)">🔁</div><span>รายจ่ายทุกวัน</span></div>
+        <div id="dailyItemsList"></div>
+        <div class="g2 mt2">
+          <div class="fg"><label class="fl" for="dlName">รายการ</label><input type="text" id="dlName" class="inp" placeholder="เช่น ค่าข้าว"></div>
+          <div class="fg"><label class="fl" for="dlAmt">จำนวนต่อวัน (฿)</label><div class="ipr"><span class="pre">฿</span><input type="text" inputmode="decimal" id="dlAmt" class="inp" placeholder="150" oninput="FM.clean(this)"></div></div>
+          <div class="fg"><label class="fl" for="dlCat">หมวดหมู่</label>
+            <select id="dlCat" class="inp">
               <option value="food">🍜 อาหาร</option><option value="transport">🚗 เดินทาง</option>
               <option value="entertainment">🎬 บันเทิง</option><option value="health">💊 สุขภาพ</option>
               <option value="shopping">🛍️ ช้อปปิ้ง</option><option value="utility">💡 ค่าใช้จ่าย</option>
               <option value="education">📚 การศึกษา</option><option value="other">📌 อื่นๆ</option>
             </select>
           </div>
-          <div class="fg"><label class="fl" id="txDateLbl">วันที่</label><input type="date" id="txDate" class="inp"></div>
+          <div class="fg"><label class="fl" for="dlStart">เริ่มตั้งแต่วันที่</label><input type="date" id="dlStart" class="inp"></div>
         </div>
-        <div class="fg">
-          <label class="fl">ความถี่</label>
-          <div class="tab-bar" id="txFreqBar" style="margin-bottom:5px">
-            <button class="tab on" data-f="once" onclick="setTxFreq('once')">ครั้งเดียว</button>
-            <button class="tab" data-f="daily" onclick="setTxFreq('daily')">🔁 ทุกวัน</button>
-          </div>
-          <div class="fxs tm" id="txFreqHint">บันทึกเป็นรายการเดียวในวันที่เลือก</div>
-        </div>
-        <div class="fg"><label class="fl">หมายเหตุ</label><input type="text" id="txNote" class="inp" placeholder="รายละเอียด..."></div>
-        <div class="fg">
-          <label class="fl">อารมณ์การใช้จ่าย</label>
-          <div class="mood-row" id="moodRow">
-            <button class="mood-btn" data-mood="need" onclick="setMood('need')"><span class="moji">✅</span>จำเป็น</button>
-            <button class="mood-btn" data-mood="want" onclick="setMood('want')"><span class="moji">😊</span>อยากได้</button>
-            <button class="mood-btn" data-mood="impulse" onclick="setMood('impulse')"><span class="moji">⚡</span>ทันใด</button>
-            <button class="mood-btn" data-mood="regret" onclick="setMood('regret')"><span class="moji">😬</span>เสียดาย</button>
-          </div>
-        </div>
-        <button class="btn bP bFull" id="txSubmit" onclick="addTx()">+ บันทึก</button>
-      </div>
-      <div class="card" id="dailyItemsCard" style="display:none">
-        <div class="ct mb2"><div class="ci" style="background:rgba(139,92,246,.12)">🔁</div><span>รายจ่ายทุกวัน</span></div>
-        <div id="dailyItemsList"></div>
+        <button class="btn bP bFull" onclick="addDailyFromForm()">+ เพิ่มรายจ่ายทุกวัน</button>
         <div class="fxs tm mt2">ระบบสร้างรายการให้เองทุกวัน และนำไปคิดในหน้า 🔮 อนาคตเป็นรายจ่ายรายวัน (×30.4 วัน/เดือน) · ลบแล้วรายการที่บันทึกไปแล้วยังอยู่ แต่จะไม่สร้างเพิ่ม</div>
       </div>
       <div class="card">
@@ -1105,8 +1051,6 @@ let S={
   // 🔮 ช่วงคาดการณ์หน้าอนาคต (หน่วยเป็นเดือน, 1–OL_MAX_MONTHS)
   // 🔁 รายจ่ายซ้ำทุกวัน (เช่น ค่าข้าววันละ 150) — สร้างรายการใน S.transactions ให้เองทุกวัน ดู materializeDailyItems
   dailyItems:[],
-  // 💸 แผนโปะหนี้ทุกเดือน [{id,debtId:'auto'|id,amount,startYM,lastYM}] — ดู materializePrepayPlans
-  prepayPlans:[],
   // 🛟 เงินสำรองฉุกเฉิน + 🧾 ภาษี (taxSsoMonthly: null = คำนวณอัตโนมัติ)
   emergencySavings:0,taxExtraDeduct:0,taxSsoMonthly:null,
   // 💾 เตือนสำรองข้อมูล (ข้อมูลอยู่ในเบราว์เซอร์นี้เท่านั้น)
@@ -1126,7 +1070,7 @@ let S={
 // ── COMPUTED: ยอดรวมที่คำนวณจาก S (ไม่ได้ save ลง localStorage)
 let C={inc:0,exp:0,bal:0};
 // ── UI STATE: mood ที่เลือกอยู่ (reset หลัง addTx)
-let currentMood='';
+
 
 /* ── PERSIST ── */
 // บันทึก state ทั้งหมดลง localStorage (key: ft8)
@@ -1146,7 +1090,7 @@ const stateFrom=p=>({
   legacyWage:p.legacyWage??(p.paySettings?{paySettings:p.paySettings,payHistory:p.payHistory||[]}:null),
   investPlan:{...S.investPlan,...(p.investPlan||{})},
   firstSeenAt:p.firstSeenAt||new Date().toISOString(),lastBackupAt:p.lastBackupAt||null,backupSnoozeUntil:p.backupSnoozeUntil||null,
-  prepayPlans:safeList(p.prepayPlans,'p'),dailyItems:safeList(p.dailyItems,'r'),olEvents:safeList(p.olEvents,'ev'),outlookWhatIf:olCleanWhatIf(p.outlookWhatIf),outlookMonths:olClampMonths(p.outlookMonths),outlookRaisePct:olPctOrDefault(p.outlookRaisePct),outlookInflPct:olPctOrDefault(p.outlookInflPct),
+  dailyItems:safeList(p.dailyItems,'r'),olEvents:safeList(p.olEvents,'ev'),outlookWhatIf:olCleanWhatIf(p.outlookWhatIf),outlookMonths:olClampMonths(p.outlookMonths),outlookRaisePct:olPctOrDefault(p.outlookRaisePct),outlookInflPct:olPctOrDefault(p.outlookInflPct),
   emergencySavings:Math.max(0,+p.emergencySavings||0),taxExtraDeduct:Math.max(0,+p.taxExtraDeduct||0),
   taxSsoMonthly:p.taxSsoMonthly==null?null:Math.max(0,+p.taxSsoMonthly||0),
 });
@@ -1238,7 +1182,6 @@ const calc=()=>{
   renderInvestPlanner(); // เงินเหลือให้ลงทุนก็เปลี่ยนตาม รายรับ/รายจ่าย/หนี้เช่นกัน
   renderEmergency();renderDue();renderTax();
   renderBurden(); // สรุปภาระรายจ่ายคงที่/หนี้ เทียบเงินเดือน
-  renderPrepay(); // ตัวเลข "เงินเหลือ" ในการ์ดโปะหนี้ก็ต้องตาม
 };
 
 // แสดงยอดสรุปใน hero card, sidebar stats, badge นับถอยหลัง
@@ -1460,108 +1403,8 @@ const addDebt=()=>{
   save();applyAutoPayments();renderDebtList();calc();
 };
 // ลบหนี้สินตาม id
-/* ── 💸 โปะหนี้ก้อนพิเศษ: ลดยอดคงเหลือทันที + บันทึกเป็นรายจ่ายเดือนนี้ (flag prepay จึงไม่ถูกนับเข้าค่าเฉลี่ยรายจ่ายรายวัน) ── */
-const prepayTarget=()=>{
-  const v=document.getElementById('prepayDebt')?.value,open=S.debts.filter(d=>debtRem(d)>0);
-  if(v&&v!=='auto')return open.find(d=>d.id===v)||null;
-  return open.length?open.reduce((a,b)=>(b.interestRate||0)>(a.interestRate||0)?b:a):null; // แนะนำ: ดอกเบี้ยสูงสุดก่อน
-};
-let prepayFreq='once';
-const setPrepayFreq=f=>{
-  prepayFreq=f;
-  document.querySelectorAll('#prepayFreqBar .tab').forEach(b=>b.classList.toggle('on',b.dataset.f===f));
-  document.getElementById('prepayBtn').textContent=f==='monthly'?'🔁 ตั้งโปะทุกเดือน':'💸 โปะหนี้เลย';
-  document.getElementById('prepayTimesWrap').style.display=f==='monthly'?'block':'none';
-  renderPrepayPreview();
-};
-// ทำการโปะตามแผนทุกเดือนที่ยังค้างอยู่ (ตั้งแต่เดือนเริ่มหรือเดือนหลังสุดที่ทำไว้ จนถึงเดือนนี้) — id ตายตัวต่อแผน+เดือน จึงไม่ทำซ้ำ
-// เป้าหมาย 'auto' = ก้อนที่ดอกเบี้ยสูงสุด ณ เวลานั้น; ถ้าก้อนที่เลือกหมดแล้วก็ข้ามเดือนนั้น (ไม่ย้ายไปก้อนอื่นเอง)
-// คืน true ถ้ามีการเปลี่ยนแปลง (ผู้เรียกต้อง save)
-const materializePrepayPlans=()=>{
-  const nowYM=localYM();let changed=false;
-  S.prepayPlans.forEach(pl=>{
-    let ym=pl.lastYM?addYM(pl.lastYM,1):pl.startYM,guard=0;
-    while(ym<=nowYM&&guard++<60&&(pl.times==null||(pl.done||0)<pl.times)){
-      const open=S.debts.filter(d=>debtRem(d)>0);
-      const d=pl.debtId==='auto'?(open.length?open.reduce((a,b)=>(b.interestRate||0)>(a.interestRate||0)?b:a):null):open.find(x=>x.id===pl.debtId);
-      if(d){
-        const amt=Math.round(Math.min(pl.amount,debtRem(d))*100)/100;
-        if(amt>0){
-          d.remaining=Math.max(0,Math.round((debtRem(d)-amt)*100)/100);d.prepaidTotal=(d.prepaidTotal||0)+amt;
-          S.transactions.unshift({id:`pp${pl.id}_${ym}`,name:`โปะหนี้: ${d.name}`,amount:amt,category:'personal',date:ym===nowYM?localYMD():ym+'-01',note:'โปะหนี้ทุกเดือน',mood:'',prepay:true,debtId:d.id});
-          pl.done=(pl.done||0)+1;changed=true;
-        }
-      }
-      pl.lastYM=ym;changed=true;ym=addYM(ym,1);
-    }
-  });
-  // แผนที่ครบจำนวนครั้ง หรือหนี้เป้าหมายหมด/ถูกลบแล้ว → เลิกแผน (รายการที่ทำไปแล้วยังอยู่)
-  const before=S.prepayPlans.length;
-  S.prepayPlans=S.prepayPlans.filter(pl=>{
-    if(pl.times!=null&&(pl.done||0)>=pl.times)return false;
-    const open=S.debts.filter(d=>debtRem(d)>0);
-    return pl.debtId==='auto'?open.length>0:open.some(x=>x.id===pl.debtId);
-  });
-  if(S.prepayPlans.length!==before)changed=true;
-  if(changed)S.transactions.sort((a,b)=>b.date.localeCompare(a.date));
-  return changed;
-};
-const prepayTimesVal=()=>{const v=Math.floor(+document.getElementById('prepayTimes')?.value);return v>=2?v:null}; // null = ไม่จำกัด
 const addYM=(ym,n)=>{const[y,m]=ym.split('-').map(Number);return localYM(new Date(y,m-1+n,1))};
-const stopPrepayPlan=id=>{S.prepayPlans=S.prepayPlans.filter(p=>p.id!==id);save();renderPrepay();renderOutlook();};
-const renderPrepay=()=>{
-  const acc=document.getElementById('prepayAcc');if(!acc)return;
-  const open=S.debts.filter(d=>debtRem(d)>0);
-  const hist=S.transactions.filter(x=>x.prepay).slice(0,5);
-  acc.style.display=(open.length||hist.length||S.prepayPlans.length)?'block':'none';
-  document.getElementById('prepayPlans').innerHTML=S.prepayPlans.length?`<div class="slbl">แผนโปะทุกเดือนที่ตั้งไว้</div>`+S.prepayPlans.map(pl=>{const tg=pl.debtId==='auto'?'ก้อนดอกเบี้ยสูงสุด':(S.debts.find(x=>x.id===pl.debtId)?.name||'(หนี้ถูกลบแล้ว)');return`<div class="tx"><div class="txic" style="background:rgba(139,92,246,.12)">🔁</div><div class="txb"><div class="txn">${esc(tg)}</div><div class="txd">ทุกเดือน · เริ่ม ${pl.startYM} · ${pl.times!=null?`ครั้งที่ ${pl.done||0}/${pl.times}`:`โปะแล้ว ${pl.done||0} ครั้ง (ไม่จำกัด)`}</div></div><span class="txa tp">${FM.cur(pl.amount)}</span><button class="btn bSm bO" onclick="stopPrepayPlan('${pl.id}')">หยุด</button></div>`}).join('')+'<div style="height:8px"></div>':'';
-  document.getElementById('prepayForm').style.display=open.length?'block':'none';
-  document.getElementById('prepayHistory').innerHTML=hist.length?`<div class="slbl" style="margin-top:6px">ประวัติการโปะล่าสุด</div>`+hist.map(x=>`<div class="tx"><div class="txic" style="background:rgba(139,92,246,.12)">💸</div><div class="txb"><div class="txn">${esc(x.name.replace(/^โปะหนี้: /,''))}</div><div class="txd">${x.date}</div></div><span class="txa tg">${FM.cur(x.amount)}</span><button class="btn bSm bO" onclick="undoPrepay('${x.id}')">↩ ยกเลิก</button></div>`).join(''):'';
-  if(!open.length){document.getElementById('prepaySum').textContent=hist.length?`โปะแล้ว ${hist.length} ครั้ง`:'';return}
-  const sel=document.getElementById('prepayDebt'),keep=sel.value;
-  const best=open.reduce((a,b)=>(b.interestRate||0)>(a.interestRate||0)?b:a);
-  sel.innerHTML=`<option value="auto">⭐ แนะนำ · ${esc(best.name)}</option>`+open.map(d=>`<option value="${d.id}">${esc(d.name)} · เหลือ ${FM.compact(debtRem(d))}${d.interestRate>0?` · ${d.interestRate}%`:''}</option>`).join('');
-  if([...sel.options].some(o=>o.value===keep))sel.value=keep;
-  const s=computeSurplus();
-  document.getElementById('prepayCash').innerHTML=s.ready?`เงินเหลือประมาณ <b class="tp mono">${FM.cur(Math.max(0,s.surplus))}</b> ต่อเดือน (หลังรายจ่ายและค่างวดหนี้) — เลือกได้ว่าจะโปะเท่าไรกับหนี้ก้อนไหน`:'กรอกรายรับ/รายจ่ายที่หน้าหลักก่อน เพื่อให้เห็นว่าเหลือเงินโปะได้เท่าไร';
-  document.getElementById('prepayChips').innerHTML=[500,1000,2000,5000].map(v=>`<button class="qchip" onclick="setPrepayAmt(${v})">฿${v.toLocaleString('en-US')}</button>`).join('')+`<button class="qchip" onclick="setPrepayAmt('all')">ทั้งก้อน</button>`;
-  document.getElementById('prepaySum').textContent=`${open.length} ก้อน`+(S.prepayPlans.length?` · ทุกเดือน ${S.prepayPlans.length}`:'')+(hist.length?` · โปะแล้ว ${hist.length}`:'');
-  renderPrepayPreview();
-};
-const setPrepayAmt=v=>{
-  const d=prepayTarget();if(!d)return;
-  document.getElementById('prepayAmt').value=v==='all'?Math.ceil(debtRem(d)*100)/100:v;
-  renderPrepayPreview();
-};
-const openPrepay=id=>{
-  const acc=document.getElementById('prepayAcc');if(!acc)return;
-  acc.open=true;document.getElementById('prepayDebt').value=id;renderPrepayPreview();
-  acc.scrollIntoView({behavior:'smooth',block:'center'});
-};
-const renderPrepayPreview=()=>{
-  const el=document.getElementById('prepayPreview');if(!el)return;
-  const d=prepayTarget(),raw=FM.parse(document.getElementById('prepayAmt').value);
-  if(!d){el.innerHTML='';return}
-  if(!(raw>0)){el.innerHTML='<div class="fxs tm">ใส่จำนวนเงินเพื่อดูผลว่าหนี้จะหมดเร็วขึ้นและประหยัดดอกเบี้ยเท่าไร</div>';return}
-  const rem=debtRem(d),amt=Math.min(raw,rem);
-  // ครั้งเดียว: ค่างวดเท่าเดิม | ทุกเดือน: โปะครั้งแรกทันที แล้วจ่ายเพิ่มเดือนละ amt ไปพร้อมค่างวด
-  const monthlyMode=prepayFreq==='monthly';
-  const times=monthlyMode?prepayTimesVal():null; // null = ไม่จำกัด
-  const b=debtPayoffPlan(rem,d.interestRate,d.monthlyPayment),a=debtPayoffPlanExtra(rem-amt,d.interestRate,d.monthlyPayment,monthlyMode?amt:0,times==null?Infinity:times-1);
-  const lbl=n=>!isFinite(n)?'ไม่มีวันหมด':n===0?'หมดทันที 🎉':olSpanLabel(n);
-  const s=computeSurplus();
-  const m0=n=>'฿'+Math.round(n).toLocaleString('th-TH');
-  const lines=[];
-  lines.push(`<div class="ol-cmp-r hd"><div class="k"></div><div class="v">ก่อนโปะ</div><div class="v">หลังโปะ</div><div class="v">ต่าง</div></div>`);
-  lines.push(`<div class="ol-cmp-r"><div class="k">ยอดคงเหลือ</div><div class="v">${m0(rem)}</div><div class="v">${m0(rem-amt)}</div><div class="v tg">−${m0(amt)}</div></div>`);
-  lines.push(`<div class="ol-cmp-r"><div class="k">หมดใน</div><div class="v">${lbl(b.months)}</div><div class="v">${lbl(a.months)}</div><div class="v ${isFinite(b.months)&&isFinite(a.months)?'tg':'tm'}">${isFinite(b.months)&&isFinite(a.months)?(b.months-a.months>0?'เร็วขึ้น '+olSpanLabel(b.months-a.months):'เท่าเดิม'):'—'}</div></div>`);
-  lines.push(`<div class="ol-cmp-r"><div class="k">ดอกเบี้ยที่ต้องจ่าย</div><div class="v">${isFinite(b.interest)?m0(b.interest):'—'}</div><div class="v">${isFinite(a.interest)?m0(a.interest):'—'}</div><div class="v ${isFinite(b.interest)&&isFinite(a.interest)?'tg':'tm'}">${isFinite(b.interest)&&isFinite(a.interest)?'ประหยัด '+m0(b.interest-a.interest):'—'}</div></div>`);
-  const warn=[];
-  if(raw>rem)warn.push(`ยอดเกินหนี้คงเหลือ จะโปะเพียง ${FM.cur(rem)} (ปิดหนี้ก้อนนี้)`);
-  if(s.ready&&amt>Math.max(0,s.surplus))warn.push(`จำนวนนี้มากกว่าเงินเหลือต่อเดือนประมาณ ${FM.cur(Math.max(0,s.surplus))} — เงินสดเดือนนี้อาจติดลบ`);
-  el.innerHTML=`<div class="fxs tm" style="margin-bottom:4px">โปะ${monthlyMode?`ทุกเดือน${times?` ${times} ครั้ง`:''} `:' '}<b class="tp">${FM.cur(amt)}</b> ให้ <b>${esc(d.name)}</b>${monthlyMode&&document.getElementById('prepayDebt').value==='auto'?' (ก้อนดอกเบี้ยสูงสุด ณ ขณะนั้น)':''}</div><div class="ol-cmp">${lines.join('')}</div>${warn.map(w=>`<div class="fxs" style="color:var(--y,#b45309);background:rgba(245,158,11,.1);padding:6px 8px;border-radius:8px;margin-top:6px">⚠️ ${w}</div>`).join('')}`;
-};
-// โปะครั้งเดียว: ลดยอดหนี้ + บันทึกรายจ่าย (ยกเลิกภายหลังได้ด้วย undoPrepay) — ใช้ร่วมกับช่อง "จ่ายเพิ่ม" ในแถวหนี้
+// จ่ายเพิ่ม (ช่อง "+ จ่าย" ในแถวหนี้): ลดยอดหนี้ + บันทึกเป็นรายจ่าย ให้เงินสดตรงกับหนี้
 const applyPrepayOnce=(d,amt)=>{
   const rem=debtRem(d);amt=Math.round(Math.min(amt,rem)*100)/100;if(!(amt>0))return;
   d.remaining=Math.max(0,Math.round((rem-amt)*100)/100);
@@ -1570,24 +1413,6 @@ const applyPrepayOnce=(d,amt)=>{
   save();renderDebtList();renderTxLists();renderSummary();renderDailyChart();calc();
   if(d.remaining<=0)celebrate('🕊️','ปลดหนี้ก้อนนี้แล้ว!',`"${d.name}" จ่ายครบแล้ว 🎉`);
   else celebrate('💸','โปะหนี้สำเร็จ',`"${d.name}" เหลือ ${FM.cur(d.remaining)}`);
-};
-const doPrepay=async()=>{
-  const d=prepayTarget(),raw=FM.parse(document.getElementById('prepayAmt').value);
-  if(!d||!(raw>0)){modal('ข้อมูลไม่ครบ','กรุณาใส่จำนวนเงินที่จะโปะ และเลือกหนี้');return}
-  const rem=debtRem(d),amt=Math.round(Math.min(raw,rem)*100)/100;
-  if(prepayFreq==='monthly'){
-    const plan=Math.round(raw*100)/100;
-    if(!await ask('🔁 ตั้งโปะหนี้ทุกเดือน',`ตั้งโปะหนี้ทุกเดือน ${FM.cur(plan)} ให้ ${document.getElementById('prepayDebt').value==='auto'?'ก้อนดอกเบี้ยสูงสุด (ปัจจุบัน: '+d.name+')':'"'+d.name+'"'} ?\nโปะครั้งแรกทันที (${FM.cur(Math.min(plan,rem))}) แล้วโปะซ้ำให้อัตโนมัติทุกเดือน ${prepayTimesVal()?`รวม ${prepayTimesVal()} ครั้ง`:'ไม่จำกัดจำนวนครั้ง'} หยุดได้ตลอด`))return;
-    S.prepayPlans.push({id:'p'+Date.now(),debtId:document.getElementById('prepayDebt').value,amount:plan,startYM:localYM(),lastYM:null,times:prepayTimesVal(),done:0});
-    materializePrepayPlans();
-    document.getElementById('prepayAmt').value='';document.getElementById('prepayTimes').value='';setPrepayFreq('once');
-    save();renderDebtList();renderTxLists();renderSummary();renderDailyChart();calc();
-    celebrate('🔁','ตั้งโปะทุกเดือนแล้ว',`${FM.cur(plan)} / เดือน — โปะครั้งแรกแล้ว`);
-    return;
-  }
-  if(!await ask('💸 ยืนยันการโปะหนี้',`โปะหนี้ "${d.name}" ${FM.cur(amt)} ?\nยอดคงเหลือจะลดจาก ${FM.cur(rem)} เป็น ${FM.cur(rem-amt)} และบันทึกเป็นรายจ่ายเดือนนี้`))return;
-  document.getElementById('prepayAmt').value='';
-  applyPrepayOnce(d,amt);
 };
 const removeDebt=id=>{S.debts=S.debts.filter(x=>x.id!==id);save();renderDebtList();calc()};
 // เรียงลำดับรายการหนี้ตามโหมดที่เลือก (ไม่ลบข้อมูล แค่เปลี่ยนลำดับแสดงผล)
@@ -1657,9 +1482,7 @@ const renderDebtSummary=()=>{
 // render รายการหนี้สินพร้อมแสดงยอดคงเหลือ, ค่าผ่อน, เวลาที่เหลือ(นับจากเดือนจริงที่ผ่านไป), % ผ่อนไปแล้ว
 const renderDebtList=()=>{
   applyAutoPayments();
-  if(materializePrepayPlans())save();
   renderDebtSummary();
-  renderPrepay();
   renderStrategy();
   const el=document.getElementById('debtList');
   if(!S.debts.length){el.innerHTML='<div class="empty" style="padding:8px 0"><div class="ei">🎉</div><p>ไม่มีหนี้สิน!</p></div>';return}
@@ -1683,7 +1506,7 @@ const renderDebtList=()=>{
     return`<div class="li" style="flex-direction:column;align-items:stretch;gap:7px">
       <div style="display:flex;align-items:center;justify-content:space-between">
         <div><div class="lin">${esc(d.name)}</div><div class="lim mt1">${cb(d.debtType)}${d.interestRate>0?`<span class="pill" style="background:rgba(239,68,68,.1);color:var(--r);margin-left:4px">${d.interestRate}%/ปี</span>`:''}${d.payDay?`<span class="pill" style="background:rgba(59,130,246,.1);color:var(--b);margin-left:4px">📅 ทุกวันที่ ${d.payDay}</span>`:''}${r<=0?'<span class="pill" style="background:rgba(16,185,129,.12);color:var(--g2);margin-left:4px">✅ ปิดแล้ว</span>':''}</div></div>
-        <div style="display:flex;gap:4px">${r>0?`<button class="btn bGh" title="โปะหนี้ก้อนนี้" onclick="openPrepay('${d.id}')">💸</button>`:''}<button class="btn bGh" onclick="openDebtEdit('${d.id}')">✏️</button><button class="btn bGh" onclick="removeDebt('${d.id}')">✕</button></div>
+        <div style="display:flex;gap:4px"><button class="btn bGh" onclick="openDebtEdit('${d.id}')">✏️</button><button class="btn bGh" onclick="removeDebt('${d.id}')">✕</button></div>
       </div>
       <div class="g3">
         <div style="text-align:center;padding:6px 3px;background:rgba(239,68,68,.07);border-radius:8px"><div class="fxs tm">คงเหลือ</div><div class="fw8 fxs tr2 mono">${FM.compact(r)}</div></div>
@@ -1798,8 +1621,6 @@ const computeOutlook=(investPlan,monthsCount,growth)=>{
   };
   const monthlyGrowthRate=investPlan?((investPlan.assumedReturnPct||0)+(investPlan.assumedDividendPct||0))/100/12:0;
 
-  // สำเนาแผนโปะทุกเดือน พร้อมจำนวนครั้งที่เหลือ (ไม่จำกัด = Infinity) — ไม่แตะ S.prepayPlans ตัวจริง
-  const plansLeft=S.prepayPlans.map(pl=>({...pl,left:pl.times==null?Infinity:Math.max(0,pl.times-(pl.done||0))}));
   const months=[];
   let totalInterest=0,debtFreeAt=startDebt>0?null:0;
   let bal=startBalance;
@@ -1815,15 +1636,6 @@ const computeOutlook=(investPlan,monthsCount,growth)=>{
       d.rem=d.rem+interest-pay;
       if(d.rem<0.01)d.rem=0;
       debtPaid+=pay;interestPaid+=interest;
-      if(d.rem<=0&&!d.paidOffAt){d.paidOffAt=m;paidOff.push({name:d.name,freed:d.monthly})}
-    });
-    // แผนโปะทุกเดือนที่ผู้ใช้ตั้งไว้จริง (ตั้งแต่เดือนหน้า — เดือนนี้ทำไปแล้วใน state จริง)
-    plansLeft.forEach(pl=>{
-      if(pl.left<=0)return;
-      const open=debts.filter(x=>x.rem>0);if(!open.length)return;
-      const d=pl.debtId==='auto'?open.reduce((a,b)=>b.rate>a.rate?b:a):open.find(x=>x.id===pl.debtId);if(!d)return;
-      const pay=Math.min(pl.amount,d.rem);d.rem-=pay;debtPaid+=pay;pl.left--;
-      if(d.rem<0.01)d.rem=0;
       if(d.rem<=0&&!d.paidOffAt){d.paidOffAt=m;paidOff.push({name:d.name,freed:d.monthly})}
     });
     // โปะหนี้เพิ่ม (what-if): จ่ายเพิ่มให้ก้อนดอกเบี้ยสูงสุดก่อน จนกว่าเงินโปะหรือหนี้จะหมด
@@ -2112,7 +1924,7 @@ const renderOutlookDetail=(o,sc)=>{
       <div>• <b>รายรับ ${FM.cur(o.income)}/เดือน</b> ← เงินเดือน + รายรับเพิ่มเติม ที่การ์ด "รายรับรายเดือน"</div>
       <div>• <b>รายจ่ายคงที่ ${FM.cur(o.fixedExp)}/เดือน</b> ← รวมทุกรายการในการ์ด "รายจ่ายคงที่/เดือน"</div>
       <div>• <b>รายจ่ายรายวัน ${FM.cur(o.variableExp)}/เดือน</b> ← ${o.vsBasis}</div>
-      ${S.prepayPlans.length?`<div>• <b>โปะหนี้ทุกเดือน ${FM.cur(S.prepayPlans.reduce((s,p)=>s+p.amount,0))}/เดือน</b> ← แผนที่ตั้งไว้ในการ์ด "หนี้สิน" (คิดตั้งแต่เดือนหน้า)</div>`:''}<div>• <b>ค่างวดหนี้ ${FM.cur(o.startDebtMonthly)}/เดือน</b> ← รวม "จ่าย/เดือน" ของหนี้ที่ยังมียอดคงเหลือ พร้อมคิดดอกเบี้ยทบต้นรายเดือน</div>
+      <div>• <b>ค่างวดหนี้ ${FM.cur(o.startDebtMonthly)}/เดือน</b> ← รวม "จ่าย/เดือน" ของหนี้ที่ยังมียอดคงเหลือ พร้อมคิดดอกเบี้ยทบต้นรายเดือน</div>
       <div>• <b>เงินคงเหลือปัจจุบัน ${FM.cur(o.startBalance)}</b> ← คงเหลือสุทธิเดือนนี้ (${FM.cur(C.bal)}) − รายจ่ายที่บันทึกแล้วเดือนนี้ (${FM.cur(o.spentThisMonth)})</div>
     </div>
     ${o.missing.length?`<div class="slbl mt2">ข้อมูลที่ยังขาด (เติมแล้วคาดการณ์จะแม่นขึ้น)</div><ul class="ol-src" style="padding-left:16px;margin:0">${o.missing.map(m=>`<li>${m}</li>`).join('')}</ul>`:''}
@@ -2189,24 +2001,6 @@ const applyOlSpan=()=>{
 const renderOutlook=()=>{const o=computeOutlook(null,S.outlookMonths,olGrowth(false));
   const sc=olWhatIfActive()?computeOutlook(null,S.outlookMonths,olGrowth(true)):null;
   renderOlPicker();renderOlPlan();renderOutlookHero(o);renderOutlookDetail(o,sc)};
-/* ── MOOD ── */
-// เลือก mood การใช้จ่าย (need/want/impulse/regret) → toggle UI
-const setMood=m=>{currentMood=m;document.querySelectorAll('.mood-btn').forEach(b=>b.classList.toggle('sel',b.dataset.mood===m))};
-
-/* ── QUICK AMOUNT ── */
-// กด quick chip → ใส่จำนวนเงินใน txAmt input อัตโนมัติ
-const setQAmt=v=>{const el=document.getElementById('txAmt');if(el){el.value=v;el.focus()}};
-
-/* ── TRANSACTIONS ── */
-// บันทึกค่าใช้จ่าย → validate → unshift S.transactions → save → render ทุก section
-let txFreq='once';
-const setTxFreq=f=>{
-  txFreq=f;
-  document.querySelectorAll('#txFreqBar .tab').forEach(b=>b.classList.toggle('on',b.dataset.f===f));
-  document.getElementById('txDateLbl').textContent=f==='daily'?'เริ่มตั้งแต่วันที่':'วันที่';
-  document.getElementById('txSubmit').textContent=f==='daily'?'+ บันทึกเป็นรายจ่ายทุกวัน':'+ บันทึก';
-  document.getElementById('txFreqHint').textContent=f==='daily'?'จำนวนที่กรอก = ต่อ 1 วัน เช่น ค่าข้าววันละ 150 — สร้างรายการให้ทุกวันตั้งแต่วันเริ่มจนถึงวันนี้ และต่อไปเรื่อยๆ':'บันทึกเป็นรายการเดียวในวันที่เลือก';
-};
 const DAILY_DAYS_PER_MONTH=365/12;
 const dlyAddDays=(ds,n)=>{const d=new Date(ds+'T00:00:00Z');d.setUTCDate(d.getUTCDate()+n);return d.toISOString().slice(0,10)};
 // สร้างรายการค่าใช้จ่ายของทุกวันที่ค้างอยู่ (ตั้งแต่วันเริ่มหรือวันหลังสุดที่สร้างไว้ จนถึงวันนี้) — ผ่าน id ตายตัวต่อวัน จึงไม่สร้างซ้ำ
@@ -2226,48 +2020,21 @@ const materializeDailyItems=()=>{
   if(added)S.transactions.sort((a,b)=>b.date.localeCompare(a.date));
   return added>0;
 };
-const addDailyItem=(name,amt,cat,date,note)=>{
-  const today=localYMD();
-  if(date<dlyAddDays(today,-366)){modal('วันเริ่มไกลเกินไป','รายจ่ายทุกวันย้อนหลังได้ไม่เกิน 1 ปี');return}
-  S.dailyItems.push({id:'d'+Date.now(),name,amount:amt,category:cat,startDate:date,lastGenAt:null,note,mood:currentMood});
+const addDailyFromForm=()=>{
+  const name=document.getElementById('dlName').value.trim(),amt=FM.parse(document.getElementById('dlAmt').value);
+  const cat=document.getElementById('dlCat').value,date=document.getElementById('dlStart').value||localYMD();
+  if(!name||!(amt>0)){modal('ข้อมูลไม่ครบ','กรุณากรอกชื่อรายการและจำนวนต่อวัน');return}
+  if(date<dlyAddDays(localYMD(),-366)){modal('วันเริ่มไกลเกินไป','รายจ่ายทุกวันย้อนหลังได้ไม่เกิน 1 ปี');return}
+  S.dailyItems.push({id:'d'+Date.now(),name,amount:amt,category:cat,startDate:date,lastGenAt:null,note:'',mood:''});
   materializeDailyItems();
-  currentMood='';document.querySelectorAll('.mood-btn').forEach(b=>b.classList.remove('sel'));
-  document.getElementById('txName').value='';document.getElementById('txAmt').value='';document.getElementById('txNote').value='';
-  setTxFreq('once');
+  document.getElementById('dlName').value='';document.getElementById('dlAmt').value='';
   renderTxLists();calc();
 };
 const removeDailyItem=id=>{S.dailyItems=S.dailyItems.filter(x=>x.id!==id);save();renderTxLists();renderInvestPlanner();renderOutlook();};
 const renderDailyItems=()=>{
   const card=document.getElementById('dailyItemsCard'),el=document.getElementById('dailyItemsList');if(!card||!el)return;
-  card.style.display=S.dailyItems.length?'block':'none';
   el.innerHTML=S.dailyItems.map(it=>{const m=CAT[it.category]||CAT.other;
     return`<div class="tx"><div class="txic" style="background:${m.c}18">${m.e}</div><div class="txb"><div class="txn">${esc(it.name)}</div><div class="txd">ทุกวัน · เริ่ม ${it.startDate} · ≈ ${FM.cur(it.amount*DAILY_DAYS_PER_MONTH)}/เดือน</div></div><span class="txa">${FM.cur(it.amount)}/วัน</span><button class="btn bGh" onclick="removeDailyItem('${it.id}')">✕</button></div>`;}).join('');
-};
-const addTx=()=>{
-  const name=document.getElementById('txName').value.trim();
-  const amt=FM.parse(document.getElementById('txAmt').value);
-  const cat=document.getElementById('txCat').value;
-  const date=document.getElementById('txDate').value;
-  const note=document.getElementById('txNote').value.trim();
-  if(!name||!amt||!date){modal('ข้อมูลไม่ครบ','กรุณากรอกชื่อ, จำนวน และวันที่');return}
-  if(txFreq==='daily'){addDailyItem(name,amt,cat,date,note);return}
-  S.transactions.unshift({id:'t'+Date.now(),name,amount:amt,category:cat,date,note,mood:currentMood});
-  currentMood='';document.querySelectorAll('.mood-btn').forEach(b=>b.classList.remove('sel'));
-  document.getElementById('txName').value='';document.getElementById('txAmt').value='';document.getElementById('txNote').value='';
-  renderTxLists();calc();
-};
-// คืนยอดหนี้ + ลบรายการโปะ (ไม่ถาม ไม่ render) — แยกไว้ให้ทดสอบได้
-const revertPrepay=(tx,d)=>{
-  if(d){d.remaining=Math.round((debtRem(d)+tx.amount)*100)/100;d.prepaidTotal=Math.max(0,(d.prepaidTotal||0)-tx.amount);}
-  S.transactions=S.transactions.filter(x=>x.id!==tx.id);
-};
-const undoPrepay=async id=>{
-  const tx=S.transactions.find(x=>x.id===id&&x.prepay);if(!tx)return;
-  const d=S.debts.find(x=>x.id===tx.debtId)||S.debts.find(x=>'โปะหนี้: '+x.name===tx.name); // รายการเก่าที่ยังไม่มี debtId จับคู่ด้วยชื่อ
-  const msg=d?`ยกเลิกการโปะ "${d.name}" ${FM.cur(tx.amount)} ?\nยอดคงเหลือจะกลับเป็น ${FM.cur(debtRem(d)+tx.amount)} และลบรายจ่ายนี้ออก (เงินสดคืนกลับ)`:`หนี้ก้อนนี้ถูกลบไปแล้ว จะลบเฉพาะรายการรายจ่าย ${FM.cur(tx.amount)} เท่านั้น ต้องการต่อไหม?`;
-  if(!await ask('↩ ยกเลิกการโปะ',msg,{ok:'ยกเลิกการโปะ',danger:true}))return;
-  revertPrepay(tx,d);
-  save();renderDebtList();renderTxLists();renderSummary();renderDailyChart();calc();
 };
 // รายการค่าใช้จ่ายเปลี่ยน → สร้างรายจ่ายทุกวันที่ค้าง + render การ์ดที่เกี่ยวข้อง
 const renderTxLists=()=>{
@@ -2343,7 +2110,6 @@ const validateBackup=p=>{
   arr('otherIncomes',x=>num(x.amount),'รายรับเพิ่มเติม');
   arr('debts',x=>num(x.totalAmount)&&num(x.monthlyPayment)&&(x.remaining==null||num(x.remaining)),'หนี้สิน');
   arr('dailyItems',x=>num(x.amount)&&ymd(x.startDate),'รายจ่ายทุกวัน');
-  arr('prepayPlans',x=>num(x.amount),'แผนโปะหนี้');
   arr('olEvents',x=>num(x.amount)&&/^\d{4}-\d{2}$/.test(x.month||''),'เหตุการณ์ในอนาคต');
   return err;
 };
@@ -2476,7 +2242,7 @@ const renderStrategy=()=>{
     <div class="fxs tm mt2">❄️ <b>Snowball</b> (ก้อนเล็กก่อน): ${seq(sb)}</div>
     <div class="fxs tm mt1">🔥 <b>Avalanche</b> (ดอกเบี้ยสูงก่อน): ${seq(av)}</div>
     <div class="ins-item mt2"><div class="ins-ico">💡</div><div class="ins-body"><div class="ins-d">${tips.join('<br>')}</div></div></div>
-    <div class="fxs tm mt2">ทั้ง 2 วิธีจ่ายขั้นต่ำทุกก้อน แล้วเอาเงินเพิ่ม + ค่างวดของก้อนที่ปิดแล้ว ไปโปะก้อนเป้าหมายต่อ · เป็นการวางแผนเท่านั้น ไม่เปลี่ยนยอดหนี้จริง (ใช้ "โปะหนี้ก้อนพิเศษ" ด้านบนเมื่อจะจ่ายจริง)</div>`;
+    <div class="fxs tm mt2">ทั้ง 2 วิธีจ่ายขั้นต่ำทุกก้อน แล้วเอาเงินเพิ่ม + ค่างวดของก้อนที่ปิดแล้ว ไปโปะก้อนเป้าหมายต่อ · เป็นการวางแผนเท่านั้น ไม่เปลี่ยนยอดหนี้จริง (จ่ายจริงใช้ช่อง "+ จ่าย" ในแถวหนี้)</div>`;
 };
 
 /* ── 🛟 เงินสำรองฉุกเฉิน: พอใช้กี่เดือนของรายจ่ายจำเป็น (เกณฑ์ทั่วไป 3–6 เดือน) ── */
@@ -2573,7 +2339,6 @@ const loadDemo=async()=>{
   const debt=(i,name,total,remaining,monthly,rate,type,payDay)=>({id:'demod'+i,name,totalAmount:total,remaining,monthlyPayment:monthly,interestRate:rate,debtType:type,payDay,startDate:today,lastAutoPayAt:today,interestAccrued:0,createdAt:past});
   Object.assign(S,{
     salary:35000,emergencySavings:40000,taxExtraDeduct:0,taxSsoMonthly:null,
-    prepayPlans:[],
     olEvents:[{id:'demoev1',name:'โบนัสสิ้นปี',type:'income',amount:30000,month:localYM(new Date(now.getFullYear(),now.getMonth()+3,1))},{id:'demoev2',name:'ซื้อโน้ตบุ๊ก',type:'expense',amount:25000,month:localYM(new Date(now.getFullYear(),now.getMonth()+6,1))}],
     outlookWhatIf:{cutVar:0,extraDebt:0,extraInc:0},
     dailyItems:[{id:'demor1',name:'ค่าข้าว',amount:150,category:'food',startDate:localYMD(new Date(now.getTime()-6*864e5)),lastGenAt:null,note:'',mood:'need'}],
@@ -2921,7 +2686,7 @@ const init=()=>{
   renderIncList();renderExpList();renderDebtList();
   renderTxLists();
   const today=localYMD();
-  document.getElementById('txDate').value=today;
+  document.getElementById('dlStart').value=today;
   document.getElementById('dStartDate').value=today;
   // แสดง dashboard เริ่มต้น
   ['outlook','budget'].forEach(id=>{
