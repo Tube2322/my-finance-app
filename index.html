@@ -529,6 +529,38 @@ body::before{
 .ol-acc[open]>summary::after{transform:rotate(180deg)}
 .ol-acc-s{font-weight:700;font-size:.68rem;color:var(--p);background:rgba(139,92,246,.1);padding:2px 8px;border-radius:99px}
 .ol-acc-s:empty{display:none}
+.txf{display:flex;flex-direction:column;gap:7px}
+.txf-row{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}
+#mMsg{white-space:pre-line}
+#askOv{z-index:950}#modalOv{z-index:960}
+.ms-chart{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:6px;align-items:end;height:130px;margin-bottom:10px}
+.ms-bar{all:unset;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px;height:100%;min-width:0}
+.ms-bar:focus-visible{outline:2px solid var(--p);outline-offset:2px;border-radius:6px}
+.ms-col{flex:1;width:100%;display:flex;align-items:flex-end;background:var(--s2);border-radius:6px;overflow:hidden}
+.ms-col>span{display:block;width:100%;background:rgba(139,92,246,.32);border-radius:6px 6px 0 0}
+.ms-bar.on .ms-col>span{background:var(--p)}
+.ms-v{font-size:.58rem;color:var(--mt);font-family:'IBM Plex Mono',monospace;white-space:nowrap}
+.ms-m{font-size:.64rem;color:var(--mt)}
+.ms-bar.on .ms-m{color:var(--p);font-weight:800}
+.ms-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:3px 10px;padding:7px 0;border-top:1px dashed var(--bdr);align-items:center}
+.ms-row .n{font-size:.76rem;font-weight:700;min-width:0}
+.ms-row .a{font-family:'IBM Plex Mono',monospace;font-weight:800;font-size:.76rem;text-align:right}
+.ms-row .s{font-size:.66rem;color:var(--mt)}
+.ms-row .bar{grid-column:1/-1;height:5px;background:var(--s2);border-radius:99px;overflow:hidden}
+.ms-row .bar>span{display:block;height:100%;border-radius:99px}
+.tax-r{display:flex;justify-content:space-between;gap:8px;font-size:.72rem;padding:4px 0;color:var(--mt)}
+.tax-r b{font-family:'IBM Plex Mono',monospace;color:var(--txt2)}
+.tax-r.hl{border-top:1px dashed var(--bdr);margin-top:3px;padding-top:7px;color:var(--txt2);font-weight:800}
+.bd{background:var(--s2);border:1px solid var(--bdr);border-radius:var(--rM);padding:10px 12px;margin-bottom:10px}
+.bd-top{display:flex;align-items:baseline;justify-content:space-between;gap:8px;flex-wrap:wrap}
+.bd-l{font-size:.7rem;color:var(--mt);font-weight:700}
+.bd-v{font-family:'IBM Plex Mono',monospace;font-weight:800;font-size:1rem}
+.bd-pct{font-family:'IBM Plex Mono',monospace;font-weight:800;font-size:.78rem;padding:2px 9px;border-radius:99px}
+.bd-bar{height:6px;border-radius:99px;background:var(--bdr);overflow:hidden;margin:7px 0 6px}
+.bd-bar>div{height:100%;border-radius:99px}
+.bd-row{font-size:.7rem;color:var(--mt);display:flex;justify-content:space-between;gap:8px;padding-top:2px}
+.bd-row b{color:var(--txt2);font-family:'IBM Plex Mono',monospace}
+.bd-all{margin-top:7px;padding-top:7px;border-top:1px dashed var(--bdr)}
 .ol-cmp{display:flex;flex-direction:column}
 .ol-cmp-r{display:grid;grid-template-columns:minmax(0,.95fr) repeat(3,minmax(0,1fr));gap:5px;padding:7px 0;border-top:1px dashed var(--bdr);align-items:center}
 .ol-cmp-r.hd{border-top:none;font-size:.66rem;font-weight:800;color:var(--mt)}
@@ -607,6 +639,7 @@ input[type=range]::-moz-range-track{background:var(--bg2);height:6px;border-radi
 <!-- ════════════ 1. DASHBOARD ════════════ -->
 <div class="sec" id="s-dashboard">
   <div id="backupNudge"></div>
+  <div id="dueReminders"></div>
   <div class="hero">
     <div class="hero-in">
       <div style="font-size:.72rem;opacity:.8;font-weight:700;margin-bottom:4px">💜 สรุปการเงินรายเดือน</div>
@@ -645,6 +678,7 @@ input[type=range]::-moz-range-track{background:var(--bg2);height:6px;border-radi
       <!-- รายจ่าย -->
       <div class="card">
         <div class="ch"><div class="ct"><div class="ci" style="background:rgba(239,68,68,.1)">💳</div>รายจ่ายคงที่/เดือน</div><button class="btn bSm bO" onclick="clearArr('fixedExpenses')">🗑️ ล้าง</button></div>
+        <div id="expBurden"></div>
         <div id="expList"></div>
         <div class="irow mt2">
           <input type="text" id="eName" class="inp" placeholder="ชื่อรายจ่าย" style="flex:2;min-width:0">
@@ -656,12 +690,14 @@ input[type=range]::-moz-range-track{background:var(--bg2);height:6px;border-radi
             <option value="education">📚 ศึกษา</option><option value="insurance">🛡️ ประกัน</option>
             <option value="other">📌 อื่นๆ</option>
           </select>
+          <input type="number" id="eDay" class="inp" min="1" max="31" inputmode="numeric" placeholder="จ่ายวันที่" aria-label="วันที่จ่ายของทุกเดือน (ไม่บังคับ)" style="flex:1;min-width:84px;max-width:110px">
           <button class="btn bP bIco" onclick="addExpense()">+</button>
         </div>
       </div>
       <!-- หนี้สิน -->
       <div class="card">
         <div class="ch"><div class="ct"><div class="ci" style="background:rgba(245,158,11,.1)">🏦</div>หนี้สิน</div><button class="btn bSm bO" onclick="clearArr('debts')">🗑️ ล้าง</button></div>
+        <div id="debtBurden"></div>
         <div id="debtSummary"></div>
         <details class="ol-acc" id="prepayAcc" style="display:none">
           <summary>💸 โปะหนี้ก้อนพิเศษ <span class="ol-acc-s" id="prepaySum"></span></summary>
@@ -685,6 +721,11 @@ input[type=range]::-moz-range-track{background:var(--bg2);height:6px;border-radi
           <div class="fxs tm" style="padding-bottom:6px">ยอดคงเหลือของหนี้ก้อนนั้นลดทันที และบันทึกเป็นรายจ่ายเดือนนี้ (เงินสดลดลงเท่ากัน) · <b>ทุกเดือน</b> = โปะครั้งแรกทันที แล้วโปะซ้ำให้เองเมื่อขึ้นเดือนใหม่ และนำไปคิดในหน้า 🔮 อนาคตด้วย · ค่างวดต่อเดือนเท่าเดิม แต่หนี้หมดเร็วขึ้นและดอกเบี้ยลดลง</div>
           </div>
           <div id="prepayHistory" style="padding-bottom:8px"></div>
+        </details>
+        <details class="ol-acc" id="stratAcc" style="display:none">
+          <summary>🧮 วางแผนปลดหนี้ (Snowball / Avalanche)</summary>
+          <div class="fg" style="margin:0"><label class="fl" for="stratExtra">เงินที่จะเพิ่มเข้าโปะหนี้ต่อเดือน (฿)</label><div class="ipr"><span class="pre">฿</span><input type="text" inputmode="decimal" id="stratExtra" class="inp" placeholder="0" oninput="FM.clean(this);renderStrategy()"></div></div>
+          <div id="stratBody" style="margin:10px 0 8px"></div>
         </details>
         <div class="tab-bar" id="debtSortBar" style="margin-top:9px">
           <button class="tab on" data-sort="default" onclick="sortDebts('default')">🗂️ ล่าสุด</button>
@@ -767,8 +808,20 @@ input[type=range]::-moz-range-track{background:var(--bg2);height:6px;border-radi
         <div id="todayList"></div>
       </div>
       <div class="card">
-        <div class="ct mb2"><div class="ci" style="background:rgba(139,92,246,.1)">🕐</div><span>30 วันล่าสุด</span></div>
+        <div class="ch"><div class="ct"><div class="ci" style="background:rgba(139,92,246,.1)">🕐</div>รายการค่าใช้จ่าย</div><button class="btn bSm bO" onclick="exportTxCsv()">⬇️ CSV</button></div>
+        <div class="txf">
+          <input type="search" id="txQ" class="inp" placeholder="🔍 ค้นหาชื่อหรือหมายเหตุ" aria-label="ค้นหารายการ" oninput="txFilter.q=this.value;renderTxFilter()">
+          <div class="txf-row">
+            <select id="txFCat" class="inp" aria-label="กรองตามหมวด" onchange="txFilter.cat=this.value;renderTxFilter()"></select>
+            <select id="txFMonth" class="inp" aria-label="กรองตามเดือน" onchange="txFilter.month=this.value;renderTxFilter()"></select>
+          </div>
+        </div>
+        <div class="fxs tm" id="txFInfo" style="margin:7px 0 2px"></div>
         <div id="recentList"></div>
+      </div>
+      <div class="card">
+        <div class="ch"><div class="ct"><div class="ci" style="background:rgba(59,130,246,.1)">📊</div>สรุปรายเดือน</div><button class="btn bSm bO" onclick="exportMonthlyCsv()">⬇️ CSV</button></div>
+        <div id="monthlyBody"></div>
       </div>
     </div>
     <!-- Sidebar dashboard -->
@@ -793,11 +846,26 @@ input[type=range]::-moz-range-track{background:var(--bg2);height:6px;border-radi
         <div id="dailyChart" style="height:160px;width:100%"></div>
       </div>
       <div class="card csm">
+        <div class="ct mb2"><div class="ci" style="background:rgba(16,185,129,.1)">🛟</div><span>เงินสำรองฉุกเฉิน</span></div>
+        <div class="fg" style="margin:0"><label class="fl" for="efSavings">เงินเก็บสำรองที่มีตอนนี้ (฿)</label><div class="ipr"><span class="pre">฿</span><input type="text" inputmode="decimal" id="efSavings" class="inp" placeholder="0" oninput="FM.clean(this)" onfocus="FM.unformat(this)" onblur="FM.format(this);setEfSavings()"></div></div>
+        <div id="efBody" class="mt2"></div>
+      </div>
+      <div class="card csm">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
           <div class="ct" style="margin:0"><div class="ci" style="background:rgba(139,92,246,.1)">💡</div><span>Smart Insights</span></div>
           <span class="rate-badge" id="savingsRateBadge">ออม 0%</span>
         </div>
         <div id="insightsBox"></div>
+      </div>
+      <div class="card csm">
+        <details class="ol-acc" id="taxAcc" style="border-top:none;margin-top:0">
+          <summary>🧾 ประมาณภาษีเงินได้ <span class="ol-acc-s" id="taxSum"></span></summary>
+          <div class="g2">
+            <div class="fg" style="margin:0"><label class="fl" for="taxSso">ประกันสังคม (฿/เดือน)</label><input type="number" min="0" inputmode="decimal" id="taxSso" class="inp" placeholder="อัตโนมัติ" onchange="setTaxInputs()"></div>
+            <div class="fg" style="margin:0"><label class="fl" for="taxExtra">ลดหย่อนอื่น (฿/ปี)</label><input type="number" min="0" inputmode="decimal" id="taxExtra" class="inp" placeholder="0" onchange="setTaxInputs()"></div>
+          </div>
+          <div id="taxBody" style="margin:10px 0 8px"></div>
+        </details>
       </div>
       <div class="card csm">
         <div class="ct mb2"><div class="ci" style="background:rgba(245,158,11,.1)">🥧</div><span>สัดส่วนรายจ่าย</span></div>
@@ -998,6 +1066,32 @@ input[type=range]::-moz-range-track{background:var(--bg2);height:6px;border-radi
     </div>
   </div>
 </div>
+<!-- ยืนยันการทำงาน (แทน confirm() ของเบราว์เซอร์) -->
+<div class="ov" id="askOv">
+  <div class="modal" role="alertdialog" aria-modal="true" aria-labelledby="askT" aria-describedby="askM">
+    <div class="mbar"></div>
+    <div class="mttl" id="askT"></div>
+    <div class="mmsg" id="askM" style="white-space:pre-line"></div>
+    <div class="irow"><button class="btn bO bFull" id="askNo">ยกเลิก</button><button class="btn bP bFull" id="askYes">ยืนยัน</button></div>
+  </div>
+</div>
+<!-- แก้ไขรายการค่าใช้จ่าย -->
+<div class="ov" id="txEditOv">
+  <div class="modal">
+    <div class="mbar"></div>
+    <div class="mttl">✏️ แก้ไขรายการค่าใช้จ่าย</div>
+    <input type="hidden" id="teId">
+    <div class="g2">
+      <div class="fg"><label class="fl" for="teName">รายการ</label><input type="text" id="teName" class="inp"></div>
+      <div class="fg"><label class="fl" for="teAmt">จำนวน (฿)</label><div class="ipr"><span class="pre">฿</span><input type="text" inputmode="decimal" id="teAmt" class="inp" oninput="FM.clean(this)"></div></div>
+      <div class="fg"><label class="fl" for="teCat">หมวดหมู่</label><select id="teCat" class="inp"></select></div>
+      <div class="fg"><label class="fl" for="teDate">วันที่</label><input type="date" id="teDate" class="inp"></div>
+    </div>
+    <div class="fg"><label class="fl" for="teNote">หมายเหตุ</label><input type="text" id="teNote" class="inp"></div>
+    <div class="fxs tm" id="teHint"></div>
+    <div class="irow mt2"><button class="btn bO bFull" onclick="closeTxEdit()">ยกเลิก</button><button class="btn bP bFull" onclick="saveTxEdit()">💾 บันทึก</button></div>
+  </div>
+</div>
 <!-- CELEBRATE -->
 <div class="cov" id="celOv">
   <div class="cbox"><div class="cico" id="celI">🎉</div><div class="cttl" id="celT"></div><div class="csub" id="celS"></div></div>
@@ -1036,6 +1130,8 @@ let S={
   dailyItems:[],
   // 💸 แผนโปะหนี้ทุกเดือน [{id,debtId:'auto'|id,amount,startYM,lastYM}] — ดู materializePrepayPlans
   prepayPlans:[],
+  // 🛟 เงินสำรองฉุกเฉิน + 🧾 ภาษี (taxSsoMonthly: null = คำนวณอัตโนมัติ)
+  emergencySavings:0,taxExtraDeduct:0,taxSsoMonthly:null,
   // 💾 เตือนสำรองข้อมูล (ข้อมูลอยู่ในเบราว์เซอร์นี้เท่านั้น)
   firstSeenAt:null,lastBackupAt:null,backupSnoozeUntil:null,
   // 🔮 เหตุการณ์ครั้งเดียวในอนาคต [{id,name,type:'income'|'expense',amount,month:'YYYY-MM'}] และตัวเลข what-if
@@ -1058,20 +1154,23 @@ let currentMood='';
 /* ── PERSIST ── */
 // บันทึก state ทั้งหมดลง localStorage (key: ft8)
 const save=()=>{try{localStorage.setItem('ft8',JSON.stringify(S));}catch(e){}};
+// แปลงข้อมูลดิบ (localStorage หรือไฟล์สำรอง) เป็น state — จุดเดียวที่ทั้ง load และการกู้คืนใช้ ค่าที่ขาดได้ค่าเริ่มต้น
+const stateFrom=p=>({
+  salary:+p.salary||0,otherIncomes:p.otherIncomes||[],
+  fixedExpenses:p.fixedExpenses||[],debts:p.debts||[],
+  transactions:p.transactions||[],
+  legacyWage:p.legacyWage??(p.paySettings?{paySettings:p.paySettings,payHistory:p.payHistory||[]}:null),
+  investPlan:{...S.investPlan,...(p.investPlan||{})},
+  firstSeenAt:p.firstSeenAt||new Date().toISOString(),lastBackupAt:p.lastBackupAt||null,backupSnoozeUntil:p.backupSnoozeUntil||null,
+  prepayPlans:p.prepayPlans||[],dailyItems:p.dailyItems||[],olEvents:p.olEvents||[],outlookWhatIf:olCleanWhatIf(p.outlookWhatIf),outlookMonths:olClampMonths(p.outlookMonths),outlookRaisePct:olPctOrDefault(p.outlookRaisePct),outlookInflPct:olPctOrDefault(p.outlookInflPct),
+  emergencySavings:Math.max(0,+p.emergencySavings||0),taxExtraDeduct:Math.max(0,+p.taxExtraDeduct||0),
+  taxSsoMonthly:p.taxSsoMonthly==null?null:Math.max(0,+p.taxSsoMonthly||0),
+});
 // โหลด state จาก localStorage — ถ้าไม่มีข้อมูลใช้ค่า default
 const load=()=>{
   try{
     const r=localStorage.getItem('ft8');if(!r)return;
-    const p=JSON.parse(r);
-    Object.assign(S,{
-      salary:+p.salary||0,otherIncomes:p.otherIncomes||[],
-      fixedExpenses:p.fixedExpenses||[],debts:p.debts||[],
-      transactions:p.transactions||[],
-      legacyWage:p.legacyWage??(p.paySettings?{paySettings:p.paySettings,payHistory:p.payHistory||[]}:null),
-      investPlan:{...S.investPlan,...(p.investPlan||{})},
-      firstSeenAt:p.firstSeenAt||new Date().toISOString(),lastBackupAt:p.lastBackupAt||null,backupSnoozeUntil:p.backupSnoozeUntil||null,
-      prepayPlans:p.prepayPlans||[],prepayPlans:p.prepayPlans||[],dailyItems:p.dailyItems||[],olEvents:p.olEvents||[],outlookWhatIf:olCleanWhatIf(p.outlookWhatIf),outlookMonths:olClampMonths(p.outlookMonths),outlookRaisePct:olPctOrDefault(p.outlookRaisePct),outlookInflPct:olPctOrDefault(p.outlookInflPct),
-    });
+    Object.assign(S,stateFrom(JSON.parse(r)));
   }catch(e){}
 };
 
@@ -1083,7 +1182,8 @@ const FM={
   unformat(e){e.value=e.value.replace(/,/g,'')},
   parse:v=>parseFloat(String(v||'').replace(/,/g,''))||0,
   cur:n=>'฿'+Number(n).toLocaleString('th-TH',{minimumFractionDigits:2,maximumFractionDigits:2}),
-  compact:n=>n>=1e6?'฿'+(n/1e6).toFixed(1)+'ล้าน':n>=1e3?'฿'+(n/1e3).toFixed(0)+'K':FM.cur(n),
+  // แสดงเลขเต็มเสมอ (ไม่ย่อเป็น K/ล้าน — ย่อแล้ว 1,500 กลายเป็น 2K ทำให้เข้าใจผิด) ตัดทศนิยมเมื่อไม่มีเศษสตางค์
+  compact:n=>{const v=Math.round(Number(n)*100)/100;return(v<0?'−':'')+'฿'+Math.abs(v).toLocaleString('th-TH',{minimumFractionDigits:v%1?2:0,maximumFractionDigits:2})},
 };
 // ป้องกัน XSS: escape HTML entities ก่อนแสดงผลใน innerHTML
 const esc=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
@@ -1093,6 +1193,24 @@ const esc=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'
 const modal=(t,m)=>{document.getElementById('mTitle').textContent=t;document.getElementById('mMsg').textContent=m;document.getElementById('modalOv').classList.add('on')};
 // ปิด modal
 const closeModal=()=>document.getElementById('modalOv').classList.remove('on');
+// หน้าต่างยืนยันของแอป แทน confirm() (หน้าตาตรงกับดีไซน์บนมือถือ) — คืน Promise<boolean>
+let askResolve=null;
+const ask=(title,msg,opt={})=>new Promise(res=>{
+  if(askResolve)askResolve(false);
+  askResolve=res;
+  document.getElementById('askT').textContent=title;
+  document.getElementById('askM').textContent=msg;
+  const y=document.getElementById('askYes');
+  y.textContent=opt.ok||'ยืนยัน';
+  y.className='btn bFull '+(opt.danger?'bR':'bP');
+  document.getElementById('askOv').classList.add('on');
+  setTimeout(()=>y.focus(),60);
+});
+const askDone=v=>{document.getElementById('askOv').classList.remove('on');const r=askResolve;askResolve=null;if(r)r(v);};
+document.getElementById('askYes').addEventListener('click',()=>askDone(true));
+document.getElementById('askNo').addEventListener('click',()=>askDone(false));
+document.getElementById('askOv').addEventListener('click',e=>{if(e.target.id==='askOv')askDone(false)});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&askResolve)askDone(false)});
 document.getElementById('modalOv').addEventListener('click',e=>{if(e.target.id==='modalOv')closeModal()});
 // แสดง celebration popup พร้อม animation (หายเองใน 3.2 วิ)
 const celebrate=(ic,t,s)=>{
@@ -1134,6 +1252,8 @@ const calc=()=>{
   renderDailyChart();renderInsights();
   renderOutlook(); // ข้อมูลต้นทางเปลี่ยน → คาดการณ์อนาคตต้องคำนวณใหม่เสมอ
   renderInvestPlanner(); // เงินเหลือให้ลงทุนก็เปลี่ยนตาม รายรับ/รายจ่าย/หนี้เช่นกัน
+  renderEmergency();renderDue();renderTax();
+  renderBurden(); // สรุปภาระรายจ่ายคงที่/หนี้ เทียบเงินเดือน
   renderPrepay(); // ตัวเลข "เงินเหลือ" ในการ์ดโปะหนี้ก็ต้องตาม
 };
 
@@ -1185,16 +1305,53 @@ const addExpense=()=>{
   const amt=FM.parse(document.getElementById('eAmt').value);
   const cat=document.getElementById('eCat').value;
   if(!name||!amt){modal('ข้อมูลไม่ครบ','กรุณากรอกชื่อและจำนวน');return}
-  S.fixedExpenses.push({id:'e'+Date.now(),name,amount:amt,category:cat});
-  document.getElementById('eName').value='';document.getElementById('eAmt').value='';
+  const day=Math.floor(+document.getElementById('eDay').value),dueDay=day>=1&&day<=31?day:null;
+  S.fixedExpenses.push({id:'e'+Date.now(),name,amount:amt,category:cat,dueDay});
+  document.getElementById('eName').value='';document.getElementById('eAmt').value='';document.getElementById('eDay').value='';
   renderExpList();calc();
 };
 // ลบรายจ่ายคงที่ตาม id
 const removeExpense=id=>{S.fixedExpenses=S.fixedExpenses.filter(x=>x.id!==id);renderExpList();calc()};
 // render รายการรายจ่ายคงที่ทั้งหมด
+/* ── สรุปภาระต่อเดือน: รายจ่ายคงที่ + ค่างวดหนี้ เทียบเงินเดือน และรายการที่สูงที่สุด ── */
+// ฐานเปอร์เซ็นต์ = เงินเดือนหลัก (ตามที่ผู้ใช้กรอก) ถ้ายังไม่กรอก ใช้รายรับรวมแทนและบอกให้รู้
+// เกณฑ์สี: รายจ่ายคงที่ ≤50% ดี / ≤70% ระวัง; ค่างวดหนี้ ≤30% ดี / ≤40% ระวัง (เกณฑ์ภาระหนี้ทั่วไปของสถาบันการเงิน)
+const burdenBase=()=>S.salary>0?{amt:S.salary,lbl:'เงินเดือน'}:C.inc>0?{amt:C.inc,lbl:'รายรับรวม'}:null;
+const burdenTone=(pct,good,warn)=>pct<=good?['#10b981','rgba(16,185,129,.13)']:pct<=warn?['#f59e0b','rgba(245,158,11,.15)']:['#ef4444','rgba(239,68,68,.13)'];
+const burdenBlock=(title,total,items,good,warn,unit)=>{
+  const base=burdenBase();
+  const pct=base?total/base.amt*100:null;
+  const [c,bg]=pct==null?['var(--mt)','var(--bdr)']:burdenTone(pct,good,warn);
+  const top=items.length?items.reduce((a,b)=>b.amt>a.amt?b:a):null;
+  return`<div class="bd">
+    <div class="bd-top"><span class="bd-l">${title}</span>${pct!=null?`<span class="bd-pct" style="color:${c};background:${bg}">${pct.toFixed(1)}% ของ${base.lbl}</span>`:''}</div>
+    <div class="bd-v" style="color:${c}">${FM.cur(total)}<span class="bd-l"> /เดือน</span></div>
+    ${pct!=null?`<div class="bd-bar"><div style="width:${Math.min(100,pct)}%;background:${c}"></div></div>`:'<div class="bd-row">กรอกเงินเดือนที่การ์ดรายรับ เพื่อดูว่าคิดเป็นกี่ % ของเงินเดือน</div>'}
+    ${top?`<div class="bd-row"><span>🔝 สูงสุด: ${esc(top.name)}${unit?` <span>${unit(top)}</span>`:''}</span><b>${FM.cur(top.amt)}${total>0?` · ${(top.amt/total*100).toFixed(0)}%`:''}</b></div>`:''}
+  </div>`;
+};
+const renderBurden=()=>{
+  const e=document.getElementById('expBurden'),d=document.getElementById('debtBurden');if(!e||!d)return;
+  const fx=S.fixedExpenses.map(x=>({name:x.name,amt:x.amount,kind:'รายจ่ายคงที่'}));
+  const dt=S.debts.filter(x=>debtRem(x)>0).map(x=>({name:x.name,amt:x.monthlyPayment,rem:debtRem(x),kind:'ค่างวดหนี้'}));
+  const sum=a=>a.reduce((s,x)=>s+x.amt,0);
+  e.innerHTML=fx.length?burdenBlock('💳 รวมรายจ่ายคงที่',sum(fx),fx,50,70):'';
+  if(!dt.length){d.innerHTML='';return}
+  // ภาพรวม 2 หมวด: ยอดรวม + รายการที่สูงที่สุดข้ามหมวด
+  const all=[...fx,...dt],base=burdenBase(),tot=sum(all),pct=base?tot/base.amt*100:null,top=all.reduce((a,b)=>b.amt>a.amt?b:a);
+  const [c]=pct==null?['var(--txt2)']:burdenTone(pct,60,80);
+  const largestRem=dt.reduce((a,b)=>b.rem>a.rem?b:a);
+  d.innerHTML=burdenBlock('🏦 รวมค่างวดหนี้',sum(dt),dt,30,40,x=>`(เหลือ ${FM.compact(x.rem)})`).replace(/<\/div>\s*$/,'')+
+    `${dt.length>1&&largestRem.name!==dt.reduce((a,b)=>b.amt>a.amt?b:a).name?`<div class="bd-row"><span>💰 ยอดคงเหลือมากสุด: ${esc(largestRem.name)}</span><b>${FM.cur(largestRem.rem)}</b></div>`:''}
+    <div class="bd-all">
+      <div class="bd-row"><span>📊 รวม 2 หมวด (รายจ่ายคงที่ + ค่างวดหนี้)</span><b style="color:${c}">${FM.cur(tot)}${pct!=null?` · ${pct.toFixed(1)}%`:''}</b></div>
+      <div class="bd-row"><span>🔝 สูงสุดของ 2 หมวด: ${esc(top.name)} (${top.kind})</span><b>${FM.cur(top.amt)}</b></div>
+      ${pct!=null?`<div class="bd-row"><span>เหลือจาก${base.lbl}หลังหัก 2 หมวดนี้</span><b class="${base.amt-tot>=0?'tg':'tr2'}">${olSigned(base.amt-tot)}</b></div>`:''}
+    </div></div>`;
+};
 const renderExpList=()=>{
   document.getElementById('expList').innerHTML=S.fixedExpenses.length
-    ?S.fixedExpenses.map(e=>`<div class="li"><div class="lib"><div class="lin">${esc(e.name)}</div><div class="lim">${cb(e.category)}</div></div><span class="lia tr2">${FM.cur(e.amount)}</span><button class="btn bGh" onclick="removeExpense('${e.id}')">✕</button></div>`).join('')
+    ?S.fixedExpenses.map(e=>`<div class="li"><div class="lib"><div class="lin">${esc(e.name)}</div><div class="lim">${cb(e.category)}${e.dueDay?`<span class="pill" style="margin-left:4px">📅 ทุกวันที่ ${e.dueDay}</span>`:''}</div></div><span class="lia tr2">${FM.cur(e.amount)}</span><button class="btn bGh" onclick="removeExpense('${e.id}')">✕</button></div>`).join('')
     :'<div class="empty" style="padding:8px 0"><p>ยังไม่มีรายจ่ายคงที่</p></div>';
 };
 
@@ -1407,13 +1564,13 @@ const applyPrepayOnce=(d,amt)=>{
   if(d.remaining<=0)celebrate('🕊️','ปลดหนี้ก้อนนี้แล้ว!',`"${d.name}" จ่ายครบแล้ว 🎉`);
   else celebrate('💸','โปะหนี้สำเร็จ',`"${d.name}" เหลือ ${FM.cur(d.remaining)}`);
 };
-const doPrepay=()=>{
+const doPrepay=async()=>{
   const d=prepayTarget(),raw=FM.parse(document.getElementById('prepayAmt').value);
   if(!d||!(raw>0)){modal('ข้อมูลไม่ครบ','กรุณาใส่จำนวนเงินที่จะโปะ และเลือกหนี้');return}
   const rem=debtRem(d),amt=Math.round(Math.min(raw,rem)*100)/100;
   if(prepayFreq==='monthly'){
     const plan=Math.round(raw*100)/100;
-    if(!confirm(`ตั้งโปะหนี้ทุกเดือน ${FM.cur(plan)} ให้ ${document.getElementById('prepayDebt').value==='auto'?'ก้อนดอกเบี้ยสูงสุด (ปัจจุบัน: '+d.name+')':'"'+d.name+'"'} ?\nโปะครั้งแรกทันที (${FM.cur(Math.min(plan,rem))}) แล้วโปะซ้ำให้อัตโนมัติทุกเดือน ${prepayTimesVal()?`รวม ${prepayTimesVal()} ครั้ง`:'ไม่จำกัดจำนวนครั้ง'} หยุดได้ตลอด`))return;
+    if(!await ask('🔁 ตั้งโปะหนี้ทุกเดือน',`ตั้งโปะหนี้ทุกเดือน ${FM.cur(plan)} ให้ ${document.getElementById('prepayDebt').value==='auto'?'ก้อนดอกเบี้ยสูงสุด (ปัจจุบัน: '+d.name+')':'"'+d.name+'"'} ?\nโปะครั้งแรกทันที (${FM.cur(Math.min(plan,rem))}) แล้วโปะซ้ำให้อัตโนมัติทุกเดือน ${prepayTimesVal()?`รวม ${prepayTimesVal()} ครั้ง`:'ไม่จำกัดจำนวนครั้ง'} หยุดได้ตลอด`))return;
     S.prepayPlans.push({id:'p'+Date.now(),debtId:document.getElementById('prepayDebt').value,amount:plan,startYM:localYM(),lastYM:null,times:prepayTimesVal(),done:0});
     materializePrepayPlans();
     document.getElementById('prepayAmt').value='';document.getElementById('prepayTimes').value='';setPrepayFreq('once');
@@ -1421,7 +1578,7 @@ const doPrepay=()=>{
     celebrate('🔁','ตั้งโปะทุกเดือนแล้ว',`${FM.cur(plan)} / เดือน — โปะครั้งแรกแล้ว`);
     return;
   }
-  if(!confirm(`โปะหนี้ "${d.name}" ${FM.cur(amt)} ?\nยอดคงเหลือจะลดจาก ${FM.cur(rem)} เป็น ${FM.cur(rem-amt)} และบันทึกเป็นรายจ่ายเดือนนี้`))return;
+  if(!await ask('💸 ยืนยันการโปะหนี้',`โปะหนี้ "${d.name}" ${FM.cur(amt)} ?\nยอดคงเหลือจะลดจาก ${FM.cur(rem)} เป็น ${FM.cur(rem-amt)} และบันทึกเป็นรายจ่ายเดือนนี้`))return;
   document.getElementById('prepayAmt').value='';
   applyPrepayOnce(d,amt);
 };
@@ -1496,6 +1653,7 @@ const renderDebtList=()=>{
   if(materializePrepayPlans())save();
   renderDebtSummary();
   renderPrepay();
+  renderStrategy();
   const el=document.getElementById('debtList');
   if(!S.debts.length){el.innerHTML='<div class="empty" style="padding:8px 0"><div class="ei">🎉</div><p>ไม่มีหนี้สิน!</p></div>';return}
   const list=[...S.debts];
@@ -1535,7 +1693,12 @@ const renderDebtList=()=>{
     </div>`;}).join('');
 };
 // ล้างข้อมูลทั้ง array ตาม key ที่ระบุ (incomes/expenses/debts)
-const clearArr=key=>{S[key]=[];save();if(key==='otherIncomes')renderIncList();else if(key==='fixedExpenses')renderExpList();else if(key==='debts')renderDebtList();calc()};
+const CLEAR_LABEL={otherIncomes:'รายรับเพิ่มเติม',fixedExpenses:'รายจ่ายคงที่',debts:'หนี้สิน'};
+const clearArr=async key=>{
+  if(!S[key].length)return;
+  if(!await ask('🗑️ ล้างทั้งหมด',`ลบ${CLEAR_LABEL[key]||'รายการ'}ทั้งหมด ${S[key].length} รายการ?\nกู้คืนไม่ได้ ยกเว้นมีไฟล์สำรอง (💾)`,{ok:'ลบทั้งหมด',danger:true}))return;
+  S[key]=[];save();if(key==='otherIncomes')renderIncList();else if(key==='fixedExpenses')renderExpList();else if(key==='debts')renderDebtList();calc();
+};
 
 /* ════════════════════════════════
    🔮 FINANCIAL OUTLOOK — คาดการณ์การเงิน 5 เดือนข้างหน้า
@@ -1753,14 +1916,15 @@ const renderOlChart=o=>{
   for(let m=step;m<=N;m+=step)pts.push({m,bal:o.months[m-1].end,debt:o.months[m-1].debtLeft,label:o.months[m-1].label});
   if(pts[pts.length-1].m!==N)pts.push({m:N,bal:o.months[N-1].end,debt:o.months[N-1].debtLeft,label:o.months[N-1].label});
   // กว้างตามการ์ดจริง (ตัวหนังสือจะได้ขนาด 1:1 บนมือถือ ไม่ถูกย่อจน อ่านไม่ออก) — ถ้าหน้าถูกซ่อนอยู่ใช้ 600 แล้ววาดใหม่ตอนเปิดหน้า
-  const cw=(document.getElementById('olBody')?.clientWidth||0)-34,W=Math.max(280,Math.min(760,cw>0?cw:600)),H=W<420?210:230,L=W<420?46:58,R=12,T=14,B=28;
+  const cw=(document.getElementById('olBody')?.clientWidth||0)-34,W=Math.max(280,Math.min(760,cw>0?cw:600)),H=W<420?210:230,R=12,T=14,B=28;let L=58;
   const vals=pts.flatMap(p=>[p.bal,p.debt]).concat(0);
   let lo=Math.min(...vals),hi=Math.max(...vals);if(hi-lo<1){hi=lo+1}
   const pad=(hi-lo)*.06;lo-=pad;hi+=pad;
   const x=m=>L+(N?m/N:0)*(W-L-R),y=v=>T+(1-(v-lo)/(hi-lo))*(H-T-B);
   const line=k=>pts.map((p,i)=>`${i?'L':'M'}${x(p.m).toFixed(1)},${y(p[k]).toFixed(1)}`).join(' ');
-  const axisFmt=v=>{const a=Math.abs(v),s=v<0?'−':'';return s+(a>=1e6?(a/1e6).toFixed(1)+'M':a>=1e3?Math.round(a/1e3)+'K':Math.round(a))};
+  const axisFmt=v=>(v<0?'−':'')+Math.round(Math.abs(v)).toLocaleString('th-TH'); // เลขเต็ม ไม่ย่อ K/M
   const ticks=[0,1,2,3].map(i=>lo+(hi-lo)*i/3);
+  L=Math.min(W*.32,12+Math.max(...ticks.map(v=>axisFmt(v).length))*6.2); // กว้างพอให้ตัวเลขเต็มไม่ล้นซ้าย
   const grid=ticks.map(v=>`<line x1="${L}" x2="${W-R}" y1="${y(v).toFixed(1)}" y2="${y(v).toFixed(1)}" stroke="var(--bdr)" stroke-width="1"/><text x="${L-6}" y="${(y(v)+3).toFixed(1)}" text-anchor="end" font-size="10" fill="var(--mt)">${axisFmt(v)}</text>`).join('');
   const zero=lo<0&&hi>0?`<line x1="${L}" x2="${W-R}" y1="${y(0).toFixed(1)}" y2="${y(0).toFixed(1)}" stroke="var(--mt)" stroke-width="1" stroke-dasharray="4 3"/>`:'';
   const area=`${line('bal')} L${x(N).toFixed(1)},${y(Math.max(lo,Math.min(0,hi))).toFixed(1)} L${x(0).toFixed(1)},${y(Math.max(lo,Math.min(0,hi))).toFixed(1)} Z`;
@@ -2063,7 +2227,7 @@ const addDailyItem=(name,amt,cat,date,note)=>{
   currentMood='';document.querySelectorAll('.mood-btn').forEach(b=>b.classList.remove('sel'));
   document.getElementById('txName').value='';document.getElementById('txAmt').value='';document.getElementById('txNote').value='';
   setTxFreq('once');
-  save();renderTxLists();renderSummary();renderInvestPlanner();renderDailyChart();renderOutlook();
+  renderTxLists();calc();
 };
 const removeDailyItem=id=>{S.dailyItems=S.dailyItems.filter(x=>x.id!==id);save();renderTxLists();renderInvestPlanner();renderOutlook();};
 const renderDailyItems=()=>{
@@ -2083,27 +2247,31 @@ const addTx=()=>{
   S.transactions.unshift({id:'t'+Date.now(),name,amount:amt,category:cat,date,note,mood:currentMood});
   currentMood='';document.querySelectorAll('.mood-btn').forEach(b=>b.classList.remove('sel'));
   document.getElementById('txName').value='';document.getElementById('txAmt').value='';document.getElementById('txNote').value='';
-  save();renderTxLists();renderSummary();renderInvestPlanner();renderDailyChart();renderOutlook();
+  renderTxLists();calc();
 };
 // ลบรายการค่าใช้จ่ายตาม id → save → render
 // ยกเลิกการโปะ: คืนยอดหนี้ก้อนนั้น + ลบรายการรายจ่ายที่บันทึกไว้ (เงินสดกลับมา) — ยอดคืนเป็นจำนวนที่โปะไปตรงๆ ไม่คิดดอกเบี้ยที่อาจเกิดเพิ่มระหว่างนั้น
-const undoPrepay=id=>{
+// คืนยอดหนี้ + ลบรายการโปะ (ไม่ถาม ไม่ render) — แยกไว้ให้ทดสอบได้
+const revertPrepay=(tx,d)=>{
+  if(d){d.remaining=Math.round((debtRem(d)+tx.amount)*100)/100;d.prepaidTotal=Math.max(0,(d.prepaidTotal||0)-tx.amount);}
+  S.transactions=S.transactions.filter(x=>x.id!==tx.id);
+};
+const undoPrepay=async id=>{
   const tx=S.transactions.find(x=>x.id===id&&x.prepay);if(!tx)return;
   const d=S.debts.find(x=>x.id===tx.debtId)||S.debts.find(x=>'โปะหนี้: '+x.name===tx.name); // รายการเก่าที่ยังไม่มี debtId จับคู่ด้วยชื่อ
   const msg=d?`ยกเลิกการโปะ "${d.name}" ${FM.cur(tx.amount)} ?\nยอดคงเหลือจะกลับเป็น ${FM.cur(debtRem(d)+tx.amount)} และลบรายจ่ายนี้ออก (เงินสดคืนกลับ)`:`หนี้ก้อนนี้ถูกลบไปแล้ว จะลบเฉพาะรายการรายจ่าย ${FM.cur(tx.amount)} เท่านั้น ต้องการต่อไหม?`;
-  if(!confirm(msg))return;
-  if(d){d.remaining=Math.round((debtRem(d)+tx.amount)*100)/100;d.prepaidTotal=Math.max(0,(d.prepaidTotal||0)-tx.amount);}
-  S.transactions=S.transactions.filter(x=>x.id!==id);
+  if(!await ask('↩ ยกเลิกการโปะ',msg,{ok:'ยกเลิกการโปะ',danger:true}))return;
+  revertPrepay(tx,d);
   save();renderDebtList();renderTxLists();renderSummary();renderDailyChart();calc();
 };
 const removeTx=id=>{
   if(S.transactions.find(x=>x.id===id&&x.prepay)){undoPrepay(id);return}  // ห้ามลบเฉพาะรายจ่าย ไม่งั้นยอดหนี้กับเงินสดไม่ตรงกัน
-  S.transactions=S.transactions.filter(x=>x.id!==id);save();renderTxLists();renderSummary();renderInvestPlanner();renderDailyChart();renderOutlook()};
+  S.transactions=S.transactions.filter(x=>x.id!==id);renderTxLists();calc()};
 // สร้าง HTML สำหรับรายการค่าใช้จ่าย 1 รายการ (ใช้ใน renderTxLists)
 const txHtml=t=>{
   const m=CAT[t.category]||CAT.other;
   const moodMap={need:'✅',want:'😊',impulse:'⚡',regret:'😬'};
-  return`<div class="tx"><div class="txic" style="background:${m.c}18">${m.e}</div><div class="txb"><div class="txn">${esc(t.name)}${t.mood?` <span style="font-size:.8rem">${moodMap[t.mood]||''}</span>`:''}</div><div class="txd">${t.date} · ${cb(t.category)}${t.note?` · <span style="color:var(--mt)">${esc(t.note)}</span>`:''}</div></div><span class="txa">${FM.cur(t.amount)}</span>${t.prepay?`<button class="btn bSm bO" title="ยกเลิกการโปะ" onclick="undoPrepay('${t.id}')">↩ ยกเลิก</button>`:`<button class="btn bGh" onclick="removeTx('${t.id}')">✕</button>`}</div>`;
+  return`<div class="tx"><div class="txic" style="background:${m.c}18">${m.e}</div><div class="txb"><div class="txn">${esc(t.name)}${t.mood?` <span style="font-size:.8rem">${moodMap[t.mood]||''}</span>`:''}</div><div class="txd">${t.date} · ${cb(t.category)}${t.note?` · <span style="color:var(--mt)">${esc(t.note)}</span>`:''}</div></div><span class="txa">${FM.cur(t.amount)}</span>${t.prepay?`<button class="btn bSm bO" title="ยกเลิกการโปะ" onclick="undoPrepay('${t.id}')">↩ ยกเลิก</button>`:`<button class="btn bGh" title="แก้ไข" aria-label="แก้ไข" onclick="openTxEdit('${t.id}')">✏️</button><button class="btn bGh" aria-label="ลบ" onclick="removeTx('${t.id}')">✕</button>`}</div>`;
 };
 // render รายการวันนี้ + 30 วันล่าสุด (แยก 2 list)
 const renderTxLists=()=>{
@@ -2113,8 +2281,8 @@ const renderTxLists=()=>{
   const td=S.transactions.filter(t=>t.date===today);
   document.getElementById('todayTot').textContent=FM.cur(td.reduce((s,t)=>s+t.amount,0));
   document.getElementById('todayList').innerHTML=td.length?td.map(txHtml).join(''):'<div class="empty"><div class="ei">☀️</div><p>ยังไม่มีรายการวันนี้</p></div>';
-  const rec=S.transactions.slice(0,60);
-  document.getElementById('recentList').innerHTML=rec.length?rec.map(txHtml).join(''):'<div class="empty"><div class="ei">📋</div><p>ยังไม่มีรายการ</p></div>';
+  renderTxFilter();
+  renderMonthly();
 };
 // render bar chart รายจ่าย 7 วันย้อนหลัง และอัพเดทยอดเดือนนี้
 // ── DAILY CHART: Pure CSS bar chart (7 วันย้อนหลัง)
@@ -2167,38 +2335,318 @@ const doBackup=()=>{
 };
 document.getElementById('backupBtn').addEventListener('click',doBackup);
 document.getElementById('restoreBtn').addEventListener('click',()=>document.getElementById('restoreFile').click());
+// ตรวจไฟล์สำรองก่อนเขียนทับ — คืนรายการปัญหา (ว่าง = ใช้ได้)
+const validateBackup=p=>{
+  if(!p||typeof p!=='object'||Array.isArray(p))return['ไฟล์นี้ไม่ใช่ข้อมูลของ FinTrack'];
+  if(!['salary','transactions','debts','fixedExpenses','otherIncomes','investPlan'].some(k=>k in p))return['ไม่พบข้อมูลของ FinTrack ในไฟล์นี้ (อาจเป็นไฟล์ JSON อื่น)'];
+  const err=[],num=v=>typeof v==='number'&&isFinite(v),ymd=v=>/^\d{4}-\d{2}-\d{2}$/.test(v||'');
+  if(p.salary!=null&&!(isFinite(+p.salary)&&+p.salary>=0))err.push('เงินเดือนไม่ใช่ตัวเลข');
+  const arr=(k,ok,lbl)=>{
+    if(p[k]==null)return;
+    if(!Array.isArray(p[k])){err.push(`${lbl}: รูปแบบไม่ถูกต้อง`);return}
+    const bad=p[k].filter(x=>!x||typeof x!=='object'||!ok(x)).length;
+    if(bad)err.push(`${lbl}: ผิดรูปแบบ ${bad} รายการ`);
+  };
+  arr('transactions',x=>num(x.amount)&&ymd(x.date),'รายการค่าใช้จ่าย');
+  arr('fixedExpenses',x=>num(x.amount),'รายจ่ายคงที่');
+  arr('otherIncomes',x=>num(x.amount),'รายรับเพิ่มเติม');
+  arr('debts',x=>num(x.totalAmount)&&num(x.monthlyPayment)&&(x.remaining==null||num(x.remaining)),'หนี้สิน');
+  arr('dailyItems',x=>num(x.amount)&&ymd(x.startDate),'รายจ่ายทุกวัน');
+  arr('prepayPlans',x=>num(x.amount),'แผนโปะหนี้');
+  arr('olEvents',x=>num(x.amount)&&/^\d{4}-\d{2}$/.test(x.month||''),'เหตุการณ์ในอนาคต');
+  return err;
+};
 document.getElementById('restoreFile').addEventListener('change',e=>{
   const file=e.target.files[0];if(!file)return;
   const reader=new FileReader();
-  reader.onload=ev=>{
+  reader.onload=async ev=>{
+    let p;
+    try{p=JSON.parse(ev.target.result)}catch(err){modal('อ่านไฟล์ไม่ได้','ไฟล์นี้ไม่ใช่ไฟล์สำรองที่ถูกต้อง ข้อมูลเดิมยังอยู่ครบ');return}
+    const err=validateBackup(p);
+    if(err.length){modal('ไฟล์สำรองไม่ถูกต้อง','ไม่ได้นำเข้า ข้อมูลเดิมยังอยู่ครบ\n• '+err.slice(0,5).join('\n• '));return}
+    const when=p.exportDate&&!isNaN(Date.parse(p.exportDate))?` (สำรองเมื่อ ${fmtDate(new Date(p.exportDate))})`:'';
+    const msg=`ไฟล์${when}\nรายการค่าใช้จ่าย ${(p.transactions||[]).length} · หนี้ ${(p.debts||[]).length} ก้อน · รายจ่ายคงที่ ${(p.fixedExpenses||[]).length} รายการ\n\nข้อมูลปัจจุบันทั้งหมดจะถูกแทนที่ด้วยข้อมูลในไฟล์นี้`;
+    if(!await ask('📂 นำเข้าไฟล์สำรอง',msg,{ok:'แทนที่ด้วยไฟล์นี้',danger:true}))return;
     try{
-      const p=JSON.parse(ev.target.result);
-      Object.assign(S,{salary:+p.salary||0,otherIncomes:p.otherIncomes||[],fixedExpenses:p.fixedExpenses||[],debts:p.debts||[],transactions:p.transactions||[],legacyWage:p.legacyWage??(p.paySettings?{paySettings:p.paySettings,payHistory:p.payHistory||[]}:null),investPlan:{...S.investPlan,...(p.investPlan||{})},dailyItems:p.dailyItems||[],olEvents:p.olEvents||[],outlookWhatIf:olCleanWhatIf(p.outlookWhatIf),outlookMonths:olClampMonths(p.outlookMonths),outlookRaisePct:olPctOrDefault(p.outlookRaisePct),outlookInflPct:olPctOrDefault(p.outlookInflPct)});
-      S.lastBackupAt=new Date().toISOString();
+      const next=stateFrom(p); // สร้างให้ครบก่อน แล้วค่อยแทนที่ทีเดียว
+      Object.assign(S,next);S.lastBackupAt=new Date().toISOString();
       save();init();modal('นำเข้าสำเร็จ ✅','ข้อมูลถูกนำเข้าเรียบร้อย');
-    }catch(err){modal('เกิดข้อผิดพลาด','ไม่สามารถอ่านไฟล์ได้');}
+    }catch(err){modal('เกิดข้อผิดพลาด','นำเข้าไม่สำเร็จ');}
   };
   reader.readAsText(file);e.target.value='';
 });
 
+/* ── 🕐 รายการค่าใช้จ่าย: ค้นหา / กรอง / แก้ไข ── */
+const ymLabel=ym=>{const[y,m]=ym.split('-').map(Number);return`${TH_MONTHS_FULL[m-1]} ${y+543}`};
+const txFilter={q:'',cat:'all',month:'30d'};
+const TX_LIST_MAX=200; // จำกัดจำนวนที่ render ต่อครั้ง กันหน้าช้าเมื่อข้อมูลเยอะ
+const txFiltered=()=>{
+  const q=txFilter.q.trim().toLowerCase(),since=localYMD(new Date(Date.now()-29*864e5));
+  return S.transactions.filter(t=>{
+    if(txFilter.cat!=='all'&&t.category!==txFilter.cat)return false;
+    if(txFilter.month==='30d'){if((t.date||'')<since)return false}
+    else if(txFilter.month!=='all'&&!(t.date||'').startsWith(txFilter.month))return false;
+    if(q&&!((t.name||'').toLowerCase().includes(q)||(t.note||'').toLowerCase().includes(q)))return false;
+    return true;
+  });
+};
+const renderTxFilter=()=>{
+  const el=document.getElementById('recentList');if(!el)return;
+  const cs=document.getElementById('txFCat'),ms=document.getElementById('txFMonth');
+  const cats=[...new Set(S.transactions.map(t=>t.category))];
+  if(txFilter.cat!=='all'&&!cats.includes(txFilter.cat))txFilter.cat='all';
+  cs.innerHTML='<option value="all">ทุกหมวด</option>'+cats.map(k=>{const m=CAT[k]||CAT.other;return`<option value="${esc(k)}">${m.e} ${m.l}</option>`}).join('');
+  cs.value=txFilter.cat;
+  const months=[...new Set(S.transactions.map(t=>(t.date||'').slice(0,7)).filter(Boolean))].sort().reverse();
+  if(!['30d','all',...months].includes(txFilter.month))txFilter.month='30d';
+  ms.innerHTML='<option value="30d">30 วันล่าสุด</option>'+months.map(m=>`<option value="${m}">${ymLabel(m)}</option>`).join('')+'<option value="all">ทั้งหมด</option>';
+  ms.value=txFilter.month;
+  const list=txFiltered(),tot=list.reduce((s,t)=>s+t.amount,0);
+  document.getElementById('txFInfo').textContent=list.length?`${list.length} รายการ · รวม ${FM.cur(tot)}${list.length>TX_LIST_MAX?` · แสดง ${TX_LIST_MAX} รายการล่าสุด`:''}`:'';
+  el.innerHTML=list.length?list.slice(0,TX_LIST_MAX).map(txHtml).join(''):`<div class="empty"><div class="ei">📋</div><p>${S.transactions.length?'ไม่พบรายการที่ตรงกับตัวกรอง':'ยังไม่มีรายการ'}</p></div>`;
+};
+const openTxEdit=id=>{
+  const t=S.transactions.find(x=>x.id===id);if(!t||t.prepay)return; // รายการโปะหนี้แก้ไม่ได้ (ยอดหนี้จะไม่ตรง) ต้องยกเลิกแล้วโปะใหม่
+  document.getElementById('teId').value=id;
+  document.getElementById('teName').value=t.name;
+  document.getElementById('teAmt').value=t.amount;
+  document.getElementById('teDate').value=t.date;
+  document.getElementById('teNote').value=t.note||'';
+  const sel=document.getElementById('teCat');
+  sel.innerHTML=document.getElementById('txCat').innerHTML;
+  if(![...sel.options].some(o=>o.value===t.category)){const m=CAT[t.category]||CAT.other;sel.insertAdjacentHTML('beforeend',`<option value="${esc(t.category)}">${m.e} ${m.l}</option>`)}
+  sel.value=t.category;
+  document.getElementById('teHint').textContent=t.recurId?'รายการนี้มาจาก "รายจ่ายทุกวัน" — แก้เฉพาะวันนี้ ไม่กระทบวันอื่น':'';
+  document.getElementById('txEditOv').classList.add('on');
+  setTimeout(()=>document.getElementById('teAmt').focus(),60);
+};
+const closeTxEdit=()=>document.getElementById('txEditOv').classList.remove('on');
+document.getElementById('txEditOv').addEventListener('click',e=>{if(e.target.id==='txEditOv')closeTxEdit()});
+const saveTxEdit=()=>{
+  const t=S.transactions.find(x=>x.id===document.getElementById('teId').value);if(!t){closeTxEdit();return}
+  const name=document.getElementById('teName').value.trim(),amt=FM.parse(document.getElementById('teAmt').value),date=document.getElementById('teDate').value;
+  if(!name||!(amt>0)||!/^\d{4}-\d{2}-\d{2}$/.test(date)){modal('ข้อมูลไม่ครบ','กรุณากรอกชื่อ, จำนวน และวันที่');return}
+  Object.assign(t,{name,amount:amt,category:document.getElementById('teCat').value,date,note:document.getElementById('teNote').value.trim()});
+  S.transactions.sort((a,b)=>b.date.localeCompare(a.date));
+  closeTxEdit();renderTxLists();calc();
+};
+
+/* ── 📊 สรุปรายเดือนแยกหมวด ── */
+// ค่าใช้จ่ายที่บันทึกในเดือน ym แยกหมวด — รายการโปะหนี้แยกออก (เป็นการจ่ายหนี้ ไม่ใช่การใช้จ่าย)
+// upToDay: นับเฉพาะวันที่ ≤ วันนั้น ใช้เทียบ "ช่วงเดียวกัน" ของเดือนก่อนตอนเดือนนี้ยังไม่จบ
+const monthSpend=(ym,upToDay)=>{
+  const by={};let total=0,prepay=0,count=0;
+  S.transactions.forEach(t=>{
+    if(!t.date||t.date.slice(0,7)!==ym)return;
+    if(upToDay&&+t.date.slice(8,10)>upToDay)return;
+    if(t.prepay){prepay+=t.amount;return}
+    by[t.category]=(by[t.category]||0)+t.amount;total+=t.amount;count++;
+  });
+  return{by,total,prepay,count};
+};
+let msSel=null;
+const setMsSel=ym=>{msSel=ym;renderMonthly()};
+const renderMonthly=()=>{
+  const el=document.getElementById('monthlyBody');if(!el)return;
+  if(!S.transactions.some(t=>!t.prepay)){el.innerHTML='<div class="empty" style="padding:8px 0"><div class="ei">📊</div><p>บันทึกค่าใช้จ่ายแล้ว สรุปรายเดือนจะขึ้นที่นี่</p></div>';return}
+  const cur=localYM(),months=[0,1,2,3,4,5].map(i=>addYM(cur,i-5));
+  if(!months.includes(msSel))msSel=cur;
+  const totals=months.map(m=>monthSpend(m).total),max=Math.max(...totals,1);
+  const isCur=msSel===cur,day=new Date().getDate(),prevYM=addYM(msSel,-1);
+  const a=monthSpend(msSel),b=monthSpend(prevYM,isCur?day:null);
+  const shortM=ym=>{const[y,m]=ym.split('-').map(Number);return new Date(y,m-1,1).toLocaleDateString('th-TH',{month:'short'})};
+  const bars=months.map((m,i)=>`<button class="ms-bar${m===msSel?' on':''}" onclick="setMsSel('${m}')" aria-label="${ymLabel(m)} ${FM.cur(totals[i])}"><span class="ms-v">${totals[i]?FM.compact(totals[i]):''}</span><span class="ms-col"><span style="height:${totals[i]?Math.max(4,totals[i]/max*100):0}%"></span></span><span class="ms-m">${shortM(m)}</span></button>`).join('');
+  const cmpLbl=isCur?`เทียบวันที่ 1–${day} ของ${ymLabel(prevYM)}`:`เทียบ${ymLabel(prevYM)}`;
+  const d=a.total-b.total,dp=b.total>0?d/b.total*100:null;
+  const delta=(x,y)=>{if(!y)return x?'<span class="ty">ใหม่</span>':'';const p=(x-y)/y*100;if(Math.abs(p)<0.5)return'<span class="tm">เท่าเดิม</span>';return`<span class="${p>0?'tr2':'tg'}">${p>0?'▲':'▼'} ${Math.abs(p).toFixed(0)}%</span>`};
+  const keys=[...new Set([...Object.keys(a.by),...Object.keys(b.by)])].sort((x,y)=>(a.by[y]||0)-(a.by[x]||0));
+  const cmax=Math.max(...keys.map(k=>a.by[k]||0),1);
+  const rows=keys.map(k=>{const m=CAT[k]||CAT.other,v=a.by[k]||0;return`<div class="ms-row"><div class="n">${m.e} ${m.l} <span class="s">${a.total>0?(v/a.total*100).toFixed(0)+'%':''} · ${delta(v,b.by[k]||0)}</span></div><div class="a">${FM.cur(v)}</div><div class="bar"><span style="width:${v/cmax*100}%;background:${m.c}"></span></div></div>`}).join('');
+  const top=keys.length&&a.by[keys[0]]?keys[0]:null;
+  el.innerHTML=`<div class="ms-chart">${bars}</div>
+    <div class="bd">
+      <div class="bd-top"><span class="bd-l">ค่าใช้จ่ายที่บันทึก · ${ymLabel(msSel)}${isCur?' (ยังไม่จบเดือน)':''}</span>${dp!=null?`<span class="bd-pct" style="color:${d>0?'#ef4444':'#10b981'};background:${d>0?'rgba(239,68,68,.12)':'rgba(16,185,129,.13)'}">${d>0?'▲':'▼'} ${Math.abs(dp).toFixed(0)}%</span>`:''}</div>
+      <div class="bd-v">${FM.cur(a.total)} <span class="bd-l">${a.count} รายการ</span></div>
+      <div class="bd-row"><span>${cmpLbl}</span><b>${FM.cur(b.total)}${b.total?` (${olSigned(d)})`:''}</b></div>
+      ${top?`<div class="bd-row"><span>🔝 ใช้มากสุด: ${(CAT[top]||CAT.other).e} ${(CAT[top]||CAT.other).l}</span><b>${FM.cur(a.by[top])}</b></div>`:''}
+      ${a.prepay?`<div class="bd-row"><span>💸 โปะหนี้เดือนนี้ (ไม่นับรวมด้านบน)</span><b>${FM.cur(a.prepay)}</b></div>`:''}
+    </div>
+    ${rows||'<p class="fxs tm">ไม่มีรายการในเดือนนี้</p>'}
+    <div class="fxs tm mt2">นับเฉพาะค่าใช้จ่ายที่บันทึก ไม่รวมรายจ่ายคงที่และค่างวดหนี้ · % ข้างหมวด = สัดส่วนของเดือน และการเปลี่ยนแปลงเทียบเดือนก่อน</div>`;
+};
+
+/* ── ⬇️ ส่งออก CSV (เปิดใน Excel ได้ ภาษาไทยไม่เพี้ยน) ── */
+// ข้อความที่ขึ้นต้นด้วย = + - @ ถูกเติม ' นำหน้า กัน Excel ตีความเป็นสูตร (CSV injection)
+const csvCell=v=>{let s=String(v??'');if(typeof v==='string'&&/^[=+\-@\t\r]/.test(s))s="'"+s;return/[",\r\n]/.test(s)?`"${s.replace(/"/g,'""')}"`:s};
+const downloadCsv=(name,rows)=>{
+  const blob=new Blob(['\ufeff'+rows.map(r=>r.map(csvCell).join(',')).join('\r\n')],{type:'text/csv;charset=utf-8'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;a.click();
+  setTimeout(()=>URL.revokeObjectURL(a.href),2000);
+};
+const exportTxCsv=()=>{
+  const list=txFiltered();
+  if(!list.length){modal('ไม่มีข้อมูล','ไม่มีรายการตามตัวกรองที่เลือก');return}
+  downloadCsv(`fintrack_รายการ_${localYMD()}.csv`,[['วันที่','รายการ','หมวดหมู่','จำนวน (บาท)','หมายเหตุ','ที่มา'],
+    ...list.map(t=>[t.date,t.name,(CAT[t.category]||CAT.other).l,t.amount,t.note||'',t.prepay?'โปะหนี้':t.recurId?'รายจ่ายทุกวัน':'บันทึกเอง'])]);
+};
+const exportMonthlyCsv=()=>{
+  const months=[...new Set(S.transactions.map(t=>(t.date||'').slice(0,7)).filter(Boolean))].sort();
+  if(!months.length){modal('ไม่มีข้อมูล','ยังไม่มีรายการค่าใช้จ่าย');return}
+  const data=months.map(m=>({m,...monthSpend(m)}));
+  const cats=[...new Set(data.flatMap(x=>Object.keys(x.by)))];
+  downloadCsv(`fintrack_สรุปรายเดือน_${localYMD()}.csv`,[['เดือน',...cats.map(k=>(CAT[k]||CAT.other).l),'รวมค่าใช้จ่าย','โปะหนี้'],
+    ...data.map(x=>[x.m,...cats.map(k=>x.by[k]||0),x.total,x.prepay])]);
+};
+
+/* ── 🧮 วางแผนปลดหนี้: Snowball (ก้อนเล็กก่อน) vs Avalanche (ดอกเบี้ยสูงก่อน) ── */
+// mode 'min' = จ่ายขั้นต่ำเหมือนเดิม ก้อนไหนหมดไม่ย้ายเงินไปก้อนอื่น
+// mode อื่น = จ่ายขั้นต่ำทุกก้อน แล้วเอาเงินเพิ่ม + ค่างวดของก้อนที่หมดแล้ว ไปโปะก้อนเป้าหมายตามลำดับ
+const simPayoff=(debts,extra,mode)=>{
+  const ds=debts.map(d=>({name:d.name,rem:d.rem,rate:d.rate||0,min:d.min,done:0}));
+  const order=mode==='snowball'?(a,b)=>a.rem-b.rem||b.rate-a.rate:mode==='avalanche'?(a,b)=>b.rate-a.rate||a.rem-b.rem:null;
+  let n=0,interest=0;const seq=[];
+  while(ds.some(d=>d.rem>0.005)&&n<600){
+    n++;let pool=order?extra:0;
+    ds.forEach(d=>{
+      if(d.rem<=0.005){if(order)pool+=d.min;return}
+      const i=d.rem*d.rate/1200;interest+=i;d.rem+=i;
+      const p=Math.min(d.min,d.rem);d.rem-=p;if(order)pool+=d.min-p;
+    });
+    if(order)ds.filter(d=>d.rem>0.005).sort(order).forEach(d=>{const p=Math.min(pool,d.rem);d.rem-=p;pool-=p});
+    ds.forEach(d=>{if(d.rem<=0.005&&!d.done){d.rem=0;d.done=n;seq.push({name:d.name,month:n})}});
+  }
+  const ok=!ds.some(d=>d.rem>0.005);
+  return{months:ok?n:Infinity,interest:ok?interest:Infinity,seq};
+};
+const renderStrategy=()=>{
+  const acc=document.getElementById('stratAcc'),el=document.getElementById('stratBody');if(!acc||!el)return;
+  const open=S.debts.filter(d=>debtRem(d)>0).map(d=>({name:d.name,rem:debtRem(d),rate:d.interestRate||0,min:d.monthlyPayment}));
+  acc.style.display=open.length>=2?'block':'none';
+  if(open.length<2)return;
+  const extra=Math.max(0,FM.parse(document.getElementById('stratExtra').value));
+  const base=simPayoff(open,0,'min'),sb=simPayoff(open,extra,'snowball'),av=simPayoff(open,extra,'avalanche');
+  const m0=n=>'฿'+Math.round(n).toLocaleString('th-TH');
+  const mo=x=>isFinite(x.months)?olSpanLabel(x.months):'ไม่มีวันหมด';
+  const it=x=>isFinite(x.interest)?m0(x.interest):'—';
+  const seq=x=>x.seq.map(s=>esc(s.name)).join(' → ')||'—';
+  const best=av.interest<sb.interest-1?'av':sb.interest<av.interest-1?'sb':'eq';
+  const tips=[];
+  if(best==='av')tips.push(`<b>Avalanche ประหยัดดอกเบี้ยกว่า ${m0(sb.interest-av.interest)}</b>${av.months<sb.months?` และปลดหนี้เร็วกว่า ${olSpanLabel(sb.months-av.months)}`:''}`);
+  else if(best==='sb')tips.push(`<b>Snowball ประหยัดดอกเบี้ยกว่า ${m0(av.interest-sb.interest)}</b>`);
+  else tips.push('ทั้ง 2 วิธีให้ดอกเบี้ยรวมใกล้เคียงกัน เลือกแบบที่ทำได้ต่อเนื่องกว่า');
+  if(sb.seq[0]&&av.seq[0]&&sb.seq[0].month<av.seq[0].month)tips.push(`Snowball ปิดก้อนแรกได้เร็วกว่า (เดือนที่ ${sb.seq[0].month} เทียบ ${av.seq[0].month}) เห็นผลไว ช่วยให้มีกำลังใจทำต่อ`);
+  if(isFinite(base.interest)&&isFinite(av.interest)&&base.interest-Math.min(av.interest,sb.interest)>1)tips.push(`เทียบกับจ่ายขั้นต่ำแบบเดิม ประหยัดดอกเบี้ยได้สูงสุด ${m0(base.interest-Math.min(av.interest,sb.interest))}`);
+  el.innerHTML=`<div class="ol-cmp">
+      <div class="ol-cmp-r hd"><div class="k"></div><div class="v">จ่ายแบบเดิม</div><div class="v">Snowball</div><div class="v">Avalanche</div></div>
+      <div class="ol-cmp-r"><div class="k">ปลดหนี้หมดใน</div><div class="v">${mo(base)}</div><div class="v">${mo(sb)}</div><div class="v">${mo(av)}</div></div>
+      <div class="ol-cmp-r"><div class="k">ดอกเบี้ยรวม</div><div class="v">${it(base)}</div><div class="v ${best==='sb'?'tg':''}">${it(sb)}</div><div class="v ${best==='av'?'tg':''}">${it(av)}</div></div>
+    </div>
+    <div class="fxs tm mt2">❄️ <b>Snowball</b> (ก้อนเล็กก่อน): ${seq(sb)}</div>
+    <div class="fxs tm mt1">🔥 <b>Avalanche</b> (ดอกเบี้ยสูงก่อน): ${seq(av)}</div>
+    <div class="ins-item mt2"><div class="ins-ico">💡</div><div class="ins-body"><div class="ins-d">${tips.join('<br>')}</div></div></div>
+    <div class="fxs tm mt2">ทั้ง 2 วิธีจ่ายขั้นต่ำทุกก้อน แล้วเอาเงินเพิ่ม + ค่างวดของก้อนที่ปิดแล้ว ไปโปะก้อนเป้าหมายต่อ · เป็นการวางแผนเท่านั้น ไม่เปลี่ยนยอดหนี้จริง (ใช้ "โปะหนี้ก้อนพิเศษ" ด้านบนเมื่อจะจ่ายจริง)</div>`;
+};
+
+/* ── 🛟 เงินสำรองฉุกเฉิน: พอใช้กี่เดือนของรายจ่ายจำเป็น (เกณฑ์ทั่วไป 3–6 เดือน) ── */
+const EF_MIN=3,EF_GOOD=6;
+const setEfSavings=()=>{S.emergencySavings=Math.max(0,FM.parse(document.getElementById('efSavings').value));save();renderEmergency();};
+const renderEmergency=()=>{
+  const el=document.getElementById('efBody');if(!el)return;
+  const inp=document.getElementById('efSavings');
+  if(inp&&document.activeElement!==inp){inp.value=S.emergencySavings||'';if(S.emergencySavings)FM.format(inp)}
+  const s=computeSurplus(),need=s.fixedExp+s.variableExp+s.debtMonthly;
+  if(!(need>0)){el.innerHTML='<p class="fxs tm">เพิ่มรายจ่ายคงที่หรือบันทึกค่าใช้จ่ายก่อน เพื่อคำนวณว่าเงินสำรองพอใช้กี่เดือน</p>';return}
+  const mo=S.emergencySavings/need;
+  const [c,bg,lbl]=mo>=EF_GOOD?['#10b981','rgba(16,185,129,.13)','✅ ปลอดภัย']:mo>=EF_MIN?['#f59e0b','rgba(245,158,11,.15)','🟡 พอใช้']:['#ef4444','rgba(239,68,68,.13)','🔴 ยังน้อย'];
+  const gap=Math.max(0,need*EF_GOOD-S.emergencySavings),toGoal=gap>0&&s.surplus>0?Math.ceil(gap/s.surplus):null;
+  el.innerHTML=`<div class="bd-top"><span class="bd-l">พอใช้ได้</span><span class="bd-pct" style="color:${c};background:${bg}">${lbl}</span></div>
+    <div class="bd-v" style="color:${c}">${mo.toFixed(1)} เดือน</div>
+    <div class="bd-bar" style="position:relative"><div style="width:${Math.min(100,mo/EF_GOOD*100)}%;background:${c}"></div><span style="position:absolute;left:50%;top:0;bottom:0;width:2px;background:var(--mt);opacity:.5" title="3 เดือน"></span></div>
+    <div class="bd-row"><span>รายจ่ายจำเป็น/เดือน</span><b>${FM.cur(need)}</b></div>
+    <div class="bd-row"><span>เป้าหมาย ${EF_GOOD} เดือน</span><b>${FM.cur(need*EF_GOOD)}</b></div>
+    ${gap>0?`<div class="bd-row"><span>ยังขาด</span><b class="tr2">${FM.cur(gap)}</b></div>`:''}
+    ${toGoal?`<div class="fxs tm mt1">ถ้าเก็บเงินเหลือทั้งหมด ${FM.cur(s.surplus)}/เดือน จะครบ ${EF_GOOD} เดือนในอีก ${olSpanLabel(toGoal)}</div>`:''}
+    <div class="fxs tm mt1">รายจ่ายจำเป็น = รายจ่ายคงที่ + รายจ่ายรายวันเฉลี่ย + ค่างวดหนี้ · เกณฑ์ทั่วไป อย่างน้อย ${EF_MIN} เดือน ดีที่สุด ${EF_GOOD} เดือน</div>`;
+};
+
+/* ── ⏰ ใกล้ถึงกำหนดจ่าย (บิลที่ตั้งวันที่ + ค่างวดหนี้ที่ตั้งวันชำระ) ── */
+const DUE_WINDOW=7;
+// วันที่ day ถัดไปที่ ≥ from (เดือนที่สั้นกว่า ตัดเป็นวันสุดท้ายของเดือน)
+const nextDayOfMonth=(day,from)=>{const f=new Date(from.getFullYear(),from.getMonth(),from.getDate());for(let k=0;k<2;k++){const d=clampPayDate(f.getFullYear(),f.getMonth()+k,day);if(d>=f)return d}return null};
+const renderDue=()=>{
+  const el=document.getElementById('dueReminders');if(!el)return;
+  const today=new Date();today.setHours(0,0,0,0);
+  const items=[];
+  S.fixedExpenses.forEach(e=>{if(!e.dueDay)return;const d=nextDayOfMonth(e.dueDay,today);if(d)items.push({name:e.name,amt:e.amount,d,kind:'บิล/รายจ่ายคงที่',icon:(CAT[e.category]||CAT.other).e})});
+  S.debts.forEach(x=>{if(debtRem(x)<=0)return;const d=nextDueDate(x);if(d)items.push({name:x.name,amt:Math.min(x.monthlyPayment,debtRem(x)),d,kind:'ค่างวดหนี้',icon:'🏦'})});
+  const soon=items.map(i=>({...i,days:Math.round((new Date(i.d.getFullYear(),i.d.getMonth(),i.d.getDate())-today)/864e5)}))
+    .filter(i=>i.days>=0&&i.days<=DUE_WINDOW).sort((a,b)=>a.days-b.days);
+  if(!soon.length){el.innerHTML='';return}
+  el.innerHTML=`<div class="card csm" style="border-color:rgba(245,158,11,.45)">
+    <div class="ch"><div class="ct"><div class="ci" style="background:rgba(245,158,11,.12)">⏰</div>ใกล้ถึงกำหนดจ่าย (${DUE_WINDOW} วัน)</div><span class="fw8 mono tr2">${FM.cur(soon.reduce((s,i)=>s+i.amt,0))}</span></div>
+    ${soon.map(i=>`<div class="tx"><div class="txic" style="background:${i.days<=1?'rgba(239,68,68,.12)':'rgba(245,158,11,.12)'}">${i.icon}</div><div class="txb"><div class="txn">${esc(i.name)}</div><div class="txd">${i.kind} · ${fmtDate(i.d)}</div></div><span class="txa ${i.days<=1?'tr2':'ty'}" style="text-align:right">${i.days===0?'วันนี้':i.days===1?'พรุ่งนี้':`อีก ${i.days} วัน`}<br><span class="fxs mono">${FM.cur(i.amt)}</span></span></div>`).join('')}
+  </div>`;
+};
+
+/* ── 🧾 ประมาณภาษีเงินได้บุคคลธรรมดา (เฉพาะเงินเดือน — เงินได้ 40(1)) ──
+   อัตราขั้นบันไดและค่าลดหย่อนพื้นฐานตามประมวลรัษฎากร: หักค่าใช้จ่าย 50% ไม่เกิน 100,000 · ลดหย่อนส่วนตัว 60,000
+   ประกันสังคม 5% เพดาน 875/เดือน (ฐานค่าจ้าง 17,500) — ผู้ใช้แก้ได้ เพราะเพดานอาจต่างตามปีภาษี */
+const TH_TAX_BRACKETS=[[150000,0],[300000,.05],[500000,.10],[750000,.15],[1000000,.20],[2000000,.25],[5000000,.30],[Infinity,.35]];
+const SSO_RATE=.05,SSO_MAX_MONTHLY=875,TAX_EXPENSE_CAP=100000,TAX_PERSONAL=60000;
+const thaiTax=net=>{let tax=0,prev=0,marginal=0;for(const[cap,r]of TH_TAX_BRACKETS){if(net>prev){tax+=(Math.min(net,cap)-prev)*r;marginal=r}if(net<=cap)break;prev=cap}return{tax,marginal}};
+const computeTax=()=>{
+  const income=S.salary*12,expense=Math.min(income*.5,TAX_EXPENSE_CAP);
+  const ssoM=S.taxSsoMonthly!=null?S.taxSsoMonthly:Math.min(S.salary*SSO_RATE,SSO_MAX_MONTHLY);
+  const sso=ssoM*12,extra=S.taxExtraDeduct||0;
+  const net=Math.max(0,income-expense-TAX_PERSONAL-sso-extra);
+  const{tax,marginal}=thaiTax(net);
+  return{income,expense,personal:TAX_PERSONAL,sso,ssoAuto:S.taxSsoMonthly==null,extra,net,tax,marginal,monthly:tax/12,effective:income>0?tax/income*100:0};
+};
+const setTaxInputs=()=>{
+  const sv=document.getElementById('taxSso').value,ev=document.getElementById('taxExtra').value;
+  S.taxSsoMonthly=sv===''?null:Math.max(0,+sv||0);S.taxExtraDeduct=Math.max(0,+ev||0);save();renderTax();
+};
+const renderTax=()=>{
+  const el=document.getElementById('taxBody');if(!el)return;
+  const si=document.getElementById('taxSso'),ei=document.getElementById('taxExtra');
+  if(si&&document.activeElement!==si)si.value=S.taxSsoMonthly??'';
+  if(ei&&document.activeElement!==ei)ei.value=S.taxExtraDeduct||'';
+  const sum=document.getElementById('taxSum');
+  if(!(S.salary>0)){el.innerHTML='<p class="fxs tm">กรอกเงินเดือนที่การ์ดรายรับก่อน</p>';if(sum)sum.textContent='';return}
+  const x=computeTax(),r=(k,v,cls='')=>`<div class="tax-r ${cls}"><span>${k}</span><b>${v}</b></div>`;
+  if(sum)sum.textContent=x.tax>0?`≈ ${FM.cur(x.tax)}/ปี`:'ไม่ต้องเสียภาษี';
+  const save10k=x.tax-thaiTax(Math.max(0,x.net-10000)).tax;
+  el.innerHTML=r('เงินเดือนทั้งปี',FM.cur(x.income))+
+    r('หักค่าใช้จ่าย (50% ไม่เกิน 100,000)','−'+FM.cur(x.expense))+
+    r('ลดหย่อนส่วนตัว','−'+FM.cur(x.personal))+
+    r(`ประกันสังคม${x.ssoAuto?' (อัตโนมัติ)':''}`,'−'+FM.cur(x.sso))+
+    (x.extra?r('ลดหย่อนอื่น','−'+FM.cur(x.extra)):'')+
+    r('เงินได้สุทธิ',FM.cur(x.net),'hl')+
+    r('ภาษีทั้งปี (ประมาณ)',`<span class="${x.tax>0?'tr2':'tg'}">${FM.cur(x.tax)}</span>`,'hl')+
+    r('เฉลี่ยต่อเดือน',FM.cur(x.monthly))+
+    r('อัตราภาษีเฉลี่ย / ขั้นสูงสุด',`${x.effective.toFixed(2)}% / ${(x.marginal*100).toFixed(0)}%`)+
+    (save10k>0?`<div class="fxs tm mt1">💡 ลดหย่อนเพิ่ม 10,000 (เช่น กองทุน, ประกัน) ประหยัดภาษีได้ราว ${FM.cur(save10k)}</div>`:'')+
+    `<div class="fxs tm mt1">คิดเฉพาะเงินเดือน ไม่รวมรายรับอื่น · ประกันสังคมอัตโนมัติ = 5% เพดาน ${SSO_MAX_MONTHLY}/เดือน แก้ได้ตามสลิปจริง · เป็นการประมาณเท่านั้น ตรวจกับกรมสรรพากรก่อนยื่นภาษี</div>`;
+};
+
 /* ── DEMO DATA ── */
 // โหลดข้อมูลตัวอย่างเพื่อดูภาพรวมทุกหน้า — แทนที่ข้อมูลปัจจุบัน จึงถามยืนยันก่อนถ้ามีข้อมูลอยู่
 const DEMO_TX=[[1,'ข้าวมันไก่','food',65],[2,'BTS/MRT','transport',48],[3,'กาแฟ','food',85],[4,'ค่าไฟ','utility',1450],[6,'ซื้อเสื้อ','shopping',990],[8,'หมูกระทะ','food',420],[10,'ค่าน้ำมัน','transport',800],[12,'ดูหนัง','entertainment',360],[15,'ร้านยา','health',280],[18,'Grab','transport',190],[22,'ข้าวกลางวัน','food',120],[27,'ซุปเปอร์มาร์เก็ต','food',1250]];
-const loadDemo=()=>{
+const loadDemo=async()=>{
   const has=S.salary||S.fixedExpenses.length||S.debts.length||S.transactions.length||S.otherIncomes.length;
-  if(has&&!(confirm('โหลดข้อมูลตัวอย่างจะแทนที่ข้อมูลรายรับ/รายจ่าย/หนี้/ธุรกรรมปัจจุบันทั้งหมด ต้องการต่อไหม?')&&confirm('ยืนยันอีกครั้ง: ข้อมูลจริงของคุณจะถูกลบและกู้คืนไม่ได้ ถ้ายังไม่ได้สำรอง (💾) ให้กดยกเลิกแล้วสำรองก่อน')))return;
+  if(has&&!(await ask('🎬 โหลดข้อมูลตัวอย่าง','โหลดข้อมูลตัวอย่างจะแทนที่ข้อมูลรายรับ/รายจ่าย/หนี้/ธุรกรรมปัจจุบันทั้งหมด ต้องการต่อไหม?',{ok:'ต่อไป',danger:true})&&await ask('⚠️ ยืนยันอีกครั้ง','ยืนยันอีกครั้ง: ข้อมูลจริงของคุณจะถูกลบและกู้คืนไม่ได้ ถ้ายังไม่ได้สำรอง (💾) ให้กดยกเลิกแล้วสำรองก่อน',{ok:'แทนที่ข้อมูล',danger:true})))return;
   const now=new Date(),ym=localYM(now),today=localYMD(now),day=now.getDate();
   const mk=(i,n,c,a)=>({id:'demo'+i,name:n,category:c,amount:a});
   const past=localYMD(new Date(now.getFullYear(),now.getMonth()-8,1));
   const debt=(i,name,total,remaining,monthly,rate,type,payDay)=>({id:'demod'+i,name,totalAmount:total,remaining,monthlyPayment:monthly,interestRate:rate,debtType:type,payDay,startDate:today,lastAutoPayAt:today,interestAccrued:0,createdAt:past});
   Object.assign(S,{
-    salary:35000,
+    salary:35000,emergencySavings:40000,taxExtraDeduct:0,taxSsoMonthly:null,
     prepayPlans:[],
     olEvents:[{id:'demoev1',name:'โบนัสสิ้นปี',type:'income',amount:30000,month:localYM(new Date(now.getFullYear(),now.getMonth()+3,1))},{id:'demoev2',name:'ซื้อโน้ตบุ๊ก',type:'expense',amount:25000,month:localYM(new Date(now.getFullYear(),now.getMonth()+6,1))}],
     outlookWhatIf:{cutVar:0,extraDebt:0,extraInc:0},
     dailyItems:[{id:'demor1',name:'ค่าข้าว',amount:150,category:'food',startDate:localYMD(new Date(now.getTime()-6*864e5)),lastGenAt:null,note:'',mood:'need'}],
     otherIncomes:[mk(1,'งานฟรีแลนซ์','freelance',6000),mk(2,'ค่าเช่าคอนโด','rental',4500)],
-    fixedExpenses:[mk(1,'ค่าเช่าห้อง','housing',9000),mk(2,'อินเทอร์เน็ต + มือถือ','utility',1100),mk(3,'ประกันสุขภาพ','insurance',1500),mk(4,'ฟิตเนส','health',1200),mk(5,'Netflix + Spotify','entertainment',450)],
+    fixedExpenses:[{...mk(1,'ค่าเช่าห้อง','housing',9000),dueDay:new Date(now.getTime()+2*864e5).getDate()},{...mk(2,'อินเทอร์เน็ต + มือถือ','utility',1100),dueDay:25},mk(3,'ประกันสุขภาพ','insurance',1500),mk(4,'ฟิตเนส','health',1200),mk(5,'Netflix + Spotify','entertainment',450)],
     debts:[debt(1,'บัตรเครดิต KTC',48000,32000,3500,18,'credit',15),debt(2,'ผ่อนมอเตอร์ไซค์',60000,24000,3000,6,'car',5)],
     transactions:DEMO_TX.filter(x=>x[0]<=day).map((x,i)=>({id:'demot'+i,name:x[1],amount:x[3],category:x[2],date:`${ym}-${String(x[0]).padStart(2,'0')}`,note:'',mood:''})).reverse(),
     investPlan:{...S.investPlan,bufferMode:'percent',bufferPercent:20,amountMode:'percent',percent:50,frequency:'monthly',
