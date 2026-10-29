@@ -103,7 +103,6 @@ body::before{
   white-space:nowrap;cursor:pointer;transition:var(--tr);position:relative;
 }
 .dnav.on{background:rgba(139,92,246,.12);color:var(--p2)}
-.dnav .bx{position:absolute;top:3px;right:2px;background:var(--r);color:#fff;border-radius:99px;min-width:15px;height:15px;padding:0 3px;font-size:.58rem;font-weight:800;display:flex;align-items:center;justify-content:center}
 @media(min-width:768px){.desk-nav{display:flex}body{padding-bottom:20px}.bot-nav{display:none!important}}
 
 /* ══ BOTTOM NAV ══ */
@@ -130,7 +129,6 @@ body::before{
 .bnav.on .bi{transform:translateY(-3px) scale(1.2)}
 .bnav::after{content:'';position:absolute;top:6px;width:0;height:3px;border-radius:99px;background:var(--gh);transition:width var(--sp)}
 .bnav.on::after{width:26px}
-.bnav .bx{position:absolute;top:4px;left:50%;margin-left:5px;background:var(--r);color:#fff;border-radius:99px;min-width:15px;height:15px;padding:0 3px;font-size:.58rem;font-weight:800;display:flex;align-items:center;justify-content:center}
 
 /* ══ PAGE ══ */
 .page{max-width:1280px;margin:0 auto;padding:calc(var(--hh) + 14px) 12px 16px;position:relative;z-index:1}
@@ -283,10 +281,6 @@ body::before{
 .rt-time{font-size:.9rem;font-weight:800;font-family:'IBM Plex Mono',monospace;color:var(--p2)}
 
 /* ══ MOOD ══ */
-.mood-row{display:flex;gap:5px;flex-wrap:wrap;margin:8px 0}
-.mood-btn{flex:1;min-width:65px;padding:7px 4px;border-radius:var(--rM);border:1.5px solid var(--bdr2);background:var(--s2);cursor:pointer;text-align:center;transition:var(--tr);font-family:'Noto Sans Thai','Sarabun',Arial,sans-serif;font-size:.7rem;font-weight:700;color:var(--mt)}
-.mood-btn.sel{border-color:var(--p);background:rgba(139,92,246,.1);color:var(--p2)}
-.moji{font-size:1.3rem;display:block;margin-bottom:2px}
 
 /* ══ QUICK CHIPS ══ */
 .chiprow{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0}
@@ -468,8 +462,6 @@ body::before{
 
 /* Mood row */
 @media(max-width:360px){
-  .mood-btn{min-width:55px;padding:6px 3px;font-size:.65rem}
-  .moji{font-size:1.1rem}
 }
 
 /* quick chips */
@@ -613,7 +605,7 @@ input[type=range]::-moz-range-track{background:var(--bg2);height:6px;border-radi
 <header class="hdr">
   <a class="logo" href="#"><div class="logo-ball">💜</div><span class="logo-txt">FinTrack</span></a>
   <nav class="desk-nav" id="deskNav">
-    <button class="dnav on" data-s="dashboard">🏠 หน้าหลัก <span class="bx" id="bdgD">0</span></button>
+    <button class="dnav on" data-s="dashboard">🏠 หน้าหลัก</button>
     <button class="dnav" data-s="outlook">🔮 อนาคต</button>
     <button class="dnav" data-s="budget">💰 ลงทุน</button>
   </nav>
@@ -627,7 +619,7 @@ input[type=range]::-moz-range-track{background:var(--bg2);height:6px;border-radi
 
 <!-- BOTTOM NAV -->
 <nav class="bot-nav">
-  <button class="bnav on" data-s="dashboard"><div class="bi">🏠</div><span>หน้าหลัก</span><span class="bx" id="bdgM">0</span></button>
+  <button class="bnav on" data-s="dashboard"><div class="bi">🏠</div><span>หน้าหลัก</span></button>
   <button class="bnav" data-s="outlook"><div class="bi">🔮</div><span>อนาคต</span></button>
   <button class="bnav" data-s="budget"><div class="bi">💰</div><span>ลงทุน</span></button>
 </nav>
@@ -758,8 +750,7 @@ input[type=range]::-moz-range-track{background:var(--bg2);height:6px;border-radi
         </div>
         <div class="bal"><div class="bal-l">คงเหลือสุทธิ / เดือน</div><div class="bal-n bzer" id="balDisp">฿0</div></div>
         <div class="srow">
-          <div class="sb sy"><div class="sl">วันนี้ใช้</div><div class="sv" id="todaySpend">฿0</div></div>
-          <div class="sb sbl"><div class="sl">เดือนนี้ออม</div><div class="sv" id="monthSaved">฿0</div></div>
+          <div class="sb sbl" style="grid-column:1/-1"><div class="sl">เดือนนี้ออม</div><div class="sv" id="monthSaved">฿0</div></div>
         </div>
       </div>
       <div class="card csm">
@@ -768,7 +759,6 @@ input[type=range]::-moz-range-track{background:var(--bg2);height:6px;border-radi
           <div class="sb sr"><div class="sl">ใช้ไปแล้ว</div><div class="sv" id="monthSpent">฿0</div></div>
           <div class="sb sg"><div class="sl">ใช้ได้อีก</div><div class="sv" id="monthLeft">฿0</div></div>
         </div>
-        <div id="dailyChart" style="height:160px;width:100%"></div>
       </div>
       <div class="card csm">
         <div class="ct mb2"><div class="ci" style="background:rgba(16,185,129,.1)">🛟</div><span>เงินสำรองฉุกเฉิน</span></div>
@@ -1196,14 +1186,9 @@ const renderSummary=()=>{
   document.getElementById('totExp').textContent=f(C.exp);
   const b=document.getElementById('balDisp');
   b.textContent=f(C.bal);b.className='bal-n '+(C.bal>0?'bpos':C.bal<0?'bneg':'bzer');
-  const today=localYMD();
-  const ta=S.transactions.filter(t=>t.date===today).reduce((s,t)=>s+t.amount,0);
-  document.getElementById('todaySpend').textContent=f(ta);
-  const ym=today.slice(0,7);
+  const ym=localYM();
   const ms=S.transactions.filter(t=>t.date.startsWith(ym)).reduce((s,t)=>s+t.amount,0);
   document.getElementById('monthSaved').textContent=f(Math.max(0,C.bal-ms));
-  const cnt=S.transactions.filter(t=>t.date===today).length;
-  ['bdgD','bdgM'].forEach(id=>{const el=document.getElementById(id);if(el)el.textContent=cnt});
 };
 
 /* ── INCOME / EXPENSE / DEBT ── */
@@ -1340,18 +1325,6 @@ const debtPayoffPlan=(P,annualRate,monthly)=>{
   while(r>0.005&&n<1200){const i=r*mr;int+=i;r=r+i-Math.min(monthly,r+i);n++}
   return{months:n,interest:int};
 };
-// เหมือน debtPayoffPlan แต่จ่ายเพิ่ม extra ทุกเดือนใน extraMonths เดือนแรก (หลังโปะครั้งแรกไปแล้ว)
-const debtPayoffPlanExtra=(P,annualRate,monthly,extra,extraMonths)=>{
-  if(P<=0)return{months:0,interest:0};
-  const mr=(annualRate||0)/100/12;
-  let r=P,n=0,int=0;
-  while(r>0.005&&n<1200){
-    const i=r*mr;int+=i;
-    const pay=monthly+(n<extraMonths?extra:0);
-    r=r+i-Math.min(pay,r+i);n++;
-  }
-  return n>=1200?{months:Infinity,interest:Infinity}:{months:n,interest:int};
-};
 const debtRem=d=>d.remaining??d.totalAmount;
 // จำลองการชำระหนี้อัตโนมัติตามวันที่ชำระจริงที่ตั้งไว้ — คิดดอกเบี้ยทบต้นรายเดือนก่อนหักค่างวด แล้วหักยอดคงเหลือตามจำนวนรอบที่ผ่านไปจริง
 const applyAutoPayments=()=>{
@@ -1404,16 +1377,6 @@ const addDebt=()=>{
 };
 // ลบหนี้สินตาม id
 const addYM=(ym,n)=>{const[y,m]=ym.split('-').map(Number);return localYM(new Date(y,m-1+n,1))};
-// จ่ายเพิ่ม (ช่อง "+ จ่าย" ในแถวหนี้): ลดยอดหนี้ + บันทึกเป็นรายจ่าย ให้เงินสดตรงกับหนี้
-const applyPrepayOnce=(d,amt)=>{
-  const rem=debtRem(d);amt=Math.round(Math.min(amt,rem)*100)/100;if(!(amt>0))return;
-  d.remaining=Math.max(0,Math.round((rem-amt)*100)/100);
-  d.prepaidTotal=(d.prepaidTotal||0)+amt;
-  S.transactions.unshift({id:'t'+Date.now(),name:`โปะหนี้: ${d.name}`,amount:amt,category:'personal',date:localYMD(),note:'โปะหนี้ก้อนพิเศษ',mood:'',prepay:true,debtId:d.id});
-  save();renderDebtList();renderTxLists();renderSummary();renderDailyChart();calc();
-  if(d.remaining<=0)celebrate('🕊️','ปลดหนี้ก้อนนี้แล้ว!',`"${d.name}" จ่ายครบแล้ว 🎉`);
-  else celebrate('💸','โปะหนี้สำเร็จ',`"${d.name}" เหลือ ${FM.cur(d.remaining)}`);
-};
 const removeDebt=id=>{S.debts=S.debts.filter(x=>x.id!==id);save();renderDebtList();calc()};
 // เรียงลำดับรายการหนี้ตามโหมดที่เลือก (ไม่ลบข้อมูล แค่เปลี่ยนลำดับแสดงผล)
 let debtSort='default';
@@ -1421,12 +1384,6 @@ const sortDebts=mode=>{
   debtSort=mode;
   document.querySelectorAll('#debtSortBar .tab').forEach(b=>b.classList.toggle('on',b.dataset.sort===mode));
   renderDebtList();
-};
-// จ่ายหนี้เพิ่ม (เฉพาะยอดคงเหลือ) โดยไม่ต้องลบ/แก้ทั้งรายการ
-// ช่อง "จ่ายเพิ่ม" ในแถวหนี้ = โปะครั้งเดียว (เดิมลดยอดหนี้เฉยๆ ไม่บันทึกรายจ่าย ทำให้เงินสดไม่ตรง) — ใช้ทางเดียวกับการ์ดโปะหนี้
-const payDebt=(id,amt)=>{
-  const d=S.debts.find(x=>x.id===id);if(!d||!amt||amt<=0)return;
-  applyPrepayOnce(d,amt);
 };
 // เปิดฟอร์มแก้ไขหนี้สิน (ไม่ต้องลบแล้วเพิ่มใหม่)
 const openDebtEdit=id=>{
@@ -1519,7 +1476,6 @@ const renderDebtList=()=>{
         ${d.interestRate>0&&(d.interestAccrued||0)>0?`<div class="fxs tm">ดอกเบี้ยสะสม: <strong class="tr2">${FM.compact(d.interestAccrued)}</strong></div>`:''}
       </div>
       <div class="pbw"><div class="pbh"><span class="fxs tm">ผ่อนไปแล้ว</span><span class="fxs fw8">${pct.toFixed(0)}%</span></div><div class="pbb"><div class="pbf kok" style="width:${pct}%"></div></div></div>
-      ${r>0?`<div class="irow"><div class="ipr" style="flex:1"><span class="pre">฿</span><input type="text" inputmode="decimal" placeholder="จ่ายเพิ่ม" class="inp" id="dp_${d.id}" oninput="FM.clean(this)"></div><button class="btn bP bSm" onclick="payDebt('${d.id}',FM.parse(document.getElementById('dp_${d.id}').value))">+ จ่าย</button></div>`:''}
     </div>`;}).join('');
 };
 // ล้างข้อมูลทั้ง array ตาม key ที่ระบุ (incomes/expenses/debts)
@@ -1693,7 +1649,7 @@ const computeOutlook=(investPlan,monthsCount,growth)=>{
   const missing=[];
   if(income<=0)missing.push('<b>รายรับ</b> — กรอก "เงินเดือน / รายรับหลัก" ที่หน้าหลัก');
   if(fixedExp<=0)missing.push('<b>รายจ่ายคงที่</b> — เพิ่มที่การ์ด "รายจ่ายคงที่/เดือน"');
-  if(!vs.solid)missing.push('<b>รายจ่ายรายวัน</b> — บันทึกที่การ์ด "บันทึกค่าใช้จ่าย" อย่างน้อย 1 เดือนเต็ม เพื่อให้คาดการณ์แม่นขึ้น');
+  if(!vs.solid)missing.push('<b>รายจ่ายรายวัน</b> — เพิ่มที่การ์ด "รายจ่ายทุกวัน" อย่างน้อย 1 เดือนเต็ม เพื่อให้คาดการณ์แม่นขึ้น');
 
   return{ready:income>0,income,fixedExp,variableExp,vsBasis:vs.basis,vsSolid:vs.solid,spentThisMonth,
     startBalance,startDebt,startDebtMonthly,endBal,endDebt,avgFlow,months,status,riskMonth,riskBy,flatFlow,missing,
@@ -1910,7 +1866,7 @@ const renderOutlookDetail=(o,sc)=>{
     const stillPaying=o.months[o.months.length-1].debtPaid;
     if(stillPaying>0)ins.push({i:'💳',t:`หลังครบ ${olSpanLabel(o.months.length)} คุณยังมีหนี้เหลือ <b>${FM.cur(o.endDebt)}</b> และยังต้องผ่อนต่อเดือนละ <b>${FM.cur(stillPaying)}</b>`});
   }
-  if(!o.vsSolid)ins.push({i:'📝',t:`ตัวเลขรายจ่ายรายวันยังอ้างอิงข้อมูลไม่ครบเดือน — บันทึกค่าใช้จ่ายให้ครบอย่างน้อย 1 เดือนเต็ม การคาดการณ์จะแม่นยำขึ้นมาก`});
+  if(!o.vsSolid)ins.push({i:'📝',t:`ตัวเลขรายจ่ายรายวันยังอ้างอิงข้อมูลไม่ครบเดือน — ตั้งรายจ่ายที่เกิดประจำ (เช่น ค่าข้าว ค่าเดินทาง) ในการ์ด "รายจ่ายทุกวัน" การคาดการณ์จะแม่นขึ้นมาก`});
 
   const insight=`<div class="ol-insight">
     <div class="ct mb2"><div class="ci" style="background:rgba(139,92,246,.12)">🧠</div><span>สิ่งที่ระบบวิเคราะห์ให้คุณ</span></div>
@@ -2042,32 +1998,13 @@ const renderTxLists=()=>{
   renderDailyItems();
   renderMonthly();
 };
-// render bar chart รายจ่าย 7 วันย้อนหลัง และอัพเดทยอดเดือนนี้
-// ── DAILY CHART: Pure CSS bar chart (7 วันย้อนหลัง)
+// ยอดใช้จ่ายเดือนนี้ / ใช้ได้อีก (การ์ด "เดือนนี้")
 const renderDailyChart=()=>{
   const ym=localYM();
   const ms=S.transactions.filter(t=>t.date.startsWith(ym)).reduce((s,t)=>s+t.amount,0);
   const e1=document.getElementById('monthSpent'),e2=document.getElementById('monthLeft');
   if(e1)e1.textContent=FM.cur(ms);
   if(e2)e2.textContent=FM.cur(Math.max(0,C.bal-ms));
-  const days=[],amts=[];
-  for(let i=6;i>=0;i--){const d=new Date();d.setDate(d.getDate()-i);const ds=localYMD(d);days.push(ds.slice(5));amts.push(S.transactions.filter(t=>t.date===ds).reduce((s,t)=>s+t.amount,0));}
-  const ctx=document.getElementById('dailyChart');if(!ctx)return;
-  const max=Math.max(...amts,1);
-  ctx.style.display='grid';
-  ctx.style.gridTemplateColumns=`repeat(${days.length},1fr)`;
-  ctx.style.alignItems='end';
-  ctx.style.gap='4px';
-  ctx.style.height='160px';
-  ctx.style.padding='8px 0 0';
-  ctx.innerHTML=days.map((d,i)=>{
-    const pct=Math.max(4,(amts[i]/max)*100);
-    return`<div style="display:flex;flex-direction:column;align-items:center;gap:3px">
-      <div style="font-size:.6rem;color:var(--mt)">${amts[i]>0?FM.compact(amts[i]):''}</div>
-      <div style="width:100%;height:${pct}%;background:${amts[i]>0?'var(--p)':'var(--bg2)'};border-radius:5px 5px 0 0;min-height:4px;transition:height .4s ease"></div>
-      <div style="font-size:.58rem;color:var(--mt);white-space:nowrap">${d}</div>
-    </div>`;
-  }).join('');
 };
 /* ── BACKUP / RESTORE ── */
 // export ข้อมูลทั้งหมดเป็น JSON file ให้ดาวน์โหลด
@@ -2152,7 +2089,7 @@ let msSel=null;
 const setMsSel=ym=>{msSel=ym;renderMonthly()};
 const renderMonthly=()=>{
   const el=document.getElementById('monthlyBody');if(!el)return;
-  if(!S.transactions.some(t=>!t.prepay)){el.innerHTML='<div class="empty" style="padding:8px 0"><div class="ei">📊</div><p>บันทึกค่าใช้จ่ายแล้ว สรุปรายเดือนจะขึ้นที่นี่</p></div>';return}
+  if(!S.transactions.some(t=>!t.prepay)){el.innerHTML='<div class="empty" style="padding:8px 0"><div class="ei">📊</div><p>เพิ่มรายจ่ายทุกวันแล้ว สรุปรายเดือนจะขึ้นที่นี่</p></div>';return}
   const cur=localYM(),months=[0,1,2,3,4,5].map(i=>addYM(cur,i-5));
   if(!months.includes(msSel))msSel=cur;
   const totals=months.map(m=>monthSpend(m).total),max=Math.max(...totals,1);
@@ -2253,7 +2190,7 @@ const renderEmergency=()=>{
   const inp=document.getElementById('efSavings');
   if(inp&&document.activeElement!==inp){inp.value=S.emergencySavings||'';if(S.emergencySavings)FM.format(inp)}
   const s=computeSurplus(),need=s.fixedExp+s.variableExp+s.debtMonthly;
-  if(!(need>0)){el.innerHTML='<p class="fxs tm">เพิ่มรายจ่ายคงที่หรือบันทึกค่าใช้จ่ายก่อน เพื่อคำนวณว่าเงินสำรองพอใช้กี่เดือน</p>';return}
+  if(!(need>0)){el.innerHTML='<p class="fxs tm">เพิ่มรายจ่ายคงที่หรือรายจ่ายทุกวันก่อน เพื่อคำนวณว่าเงินสำรองพอใช้กี่เดือน</p>';return}
   const mo=S.emergencySavings/need;
   const [c,bg,lbl]=mo>=EF_GOOD?['#10b981','rgba(16,185,129,.13)','✅ ปลอดภัย']:mo>=EF_MIN?['#f59e0b','rgba(245,158,11,.15)','🟡 พอใช้']:['#ef4444','rgba(239,68,68,.13)','🔴 ยังน้อย'];
   const gap=Math.max(0,need*EF_GOOD-S.emergencySavings),toGoal=gap>0&&s.surplus>0?Math.ceil(gap/s.surplus):null;
