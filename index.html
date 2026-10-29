@@ -539,7 +539,7 @@ body::before{
 .ms-col{flex:1;width:100%;display:flex;align-items:flex-end;background:var(--s2);border-radius:6px;overflow:hidden}
 .ms-col>span{display:block;width:100%;background:rgba(139,92,246,.32);border-radius:6px 6px 0 0}
 .ms-bar.on .ms-col>span{background:var(--p)}
-.ms-v{font-size:.58rem;color:var(--mt);font-family:'IBM Plex Mono',monospace;white-space:nowrap}
+.ms-v{max-width:100%;overflow:hidden;text-overflow:clip;font-size:.52rem;color:var(--mt);font-family:'IBM Plex Mono',monospace;white-space:nowrap}
 .ms-m{font-size:.64rem;color:var(--mt)}
 .ms-bar.on .ms-m{color:var(--p);font-weight:800}
 .ms-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:3px 10px;padding:7px 0;border-top:1px dashed var(--bdr);align-items:center}
@@ -1075,6 +1075,21 @@ input[type=range]::-moz-range-track{background:var(--bg2);height:6px;border-radi
     <div class="irow"><button class="btn bO bFull" id="askNo">ยกเลิก</button><button class="btn bP bFull" id="askYes">ยืนยัน</button></div>
   </div>
 </div>
+<!-- แก้ไขรายจ่ายคงที่ -->
+<div class="ov" id="expEditOv">
+  <div class="modal">
+    <div class="mbar"></div>
+    <div class="mttl">✏️ แก้ไขรายจ่ายคงที่</div>
+    <input type="hidden" id="xeId">
+    <div class="g2">
+      <div class="fg" style="grid-column:1/-1"><label class="fl" for="xeName">ชื่อรายจ่าย</label><input type="text" id="xeName" class="inp"></div>
+      <div class="fg"><label class="fl" for="xeAmt">จำนวน/เดือน (฿)</label><div class="ipr"><span class="pre">฿</span><input type="text" inputmode="decimal" id="xeAmt" class="inp" oninput="FM.clean(this)"></div></div>
+      <div class="fg"><label class="fl" for="xeCat">หมวดหมู่</label><select id="xeCat" class="inp"></select></div>
+      <div class="fg"><label class="fl" for="xeDay">จ่ายทุกวันที่ (ไม่บังคับ)</label><input type="number" min="1" max="31" inputmode="numeric" id="xeDay" class="inp" placeholder="เช่น 5"></div>
+    </div>
+    <div class="irow mt2"><button class="btn bO bFull" onclick="closeExpEdit()">ยกเลิก</button><button class="btn bP bFull" onclick="saveExpEdit()">💾 บันทึก</button></div>
+  </div>
+</div>
 <!-- แก้ไขรายการค่าใช้จ่าย -->
 <div class="ov" id="txEditOv">
   <div class="modal">
@@ -1155,14 +1170,21 @@ let currentMood='';
 // บันทึก state ทั้งหมดลง localStorage (key: ft8)
 const save=()=>{try{localStorage.setItem('ft8',JSON.stringify(S));}catch(e){}};
 // แปลงข้อมูลดิบ (localStorage หรือไฟล์สำรอง) เป็น state — จุดเดียวที่ทั้ง load และการกู้คืนใช้ ค่าที่ขาดได้ค่าเริ่มต้น
+// id ถูกใส่ใน onclick="...('id')" จึงต้องเป็นตัวอักษรปลอดภัยเท่านั้น — ไฟล์สำรองที่ถูกแก้มาจะไม่รันสคริปต์ได้
+const safeList=(a,pre)=>(Array.isArray(a)?a:[]).filter(x=>x&&typeof x==='object').map((x,i)=>{
+  const o={...x};
+  if(!/^[\w-]{1,64}$/.test(String(o.id??'')))o.id=pre+Date.now()+'_'+i;
+  if('dueDay' in o){const d=Math.floor(+o.dueDay);o.dueDay=d>=1&&d<=31?d:null}
+  return o;
+});
 const stateFrom=p=>({
-  salary:+p.salary||0,otherIncomes:p.otherIncomes||[],
-  fixedExpenses:p.fixedExpenses||[],debts:p.debts||[],
-  transactions:p.transactions||[],
+  salary:+p.salary||0,otherIncomes:safeList(p.otherIncomes,'i'),
+  fixedExpenses:safeList(p.fixedExpenses,'e'),debts:safeList(p.debts,'d'),
+  transactions:safeList(p.transactions,'t'),
   legacyWage:p.legacyWage??(p.paySettings?{paySettings:p.paySettings,payHistory:p.payHistory||[]}:null),
   investPlan:{...S.investPlan,...(p.investPlan||{})},
   firstSeenAt:p.firstSeenAt||new Date().toISOString(),lastBackupAt:p.lastBackupAt||null,backupSnoozeUntil:p.backupSnoozeUntil||null,
-  prepayPlans:p.prepayPlans||[],dailyItems:p.dailyItems||[],olEvents:p.olEvents||[],outlookWhatIf:olCleanWhatIf(p.outlookWhatIf),outlookMonths:olClampMonths(p.outlookMonths),outlookRaisePct:olPctOrDefault(p.outlookRaisePct),outlookInflPct:olPctOrDefault(p.outlookInflPct),
+  prepayPlans:safeList(p.prepayPlans,'p'),dailyItems:safeList(p.dailyItems,'r'),olEvents:safeList(p.olEvents,'ev'),outlookWhatIf:olCleanWhatIf(p.outlookWhatIf),outlookMonths:olClampMonths(p.outlookMonths),outlookRaisePct:olPctOrDefault(p.outlookRaisePct),outlookInflPct:olPctOrDefault(p.outlookInflPct),
   emergencySavings:Math.max(0,+p.emergencySavings||0),taxExtraDeduct:Math.max(0,+p.taxExtraDeduct||0),
   taxSsoMonthly:p.taxSsoMonthly==null?null:Math.max(0,+p.taxSsoMonthly||0),
 });
@@ -1310,6 +1332,29 @@ const addExpense=()=>{
   document.getElementById('eName').value='';document.getElementById('eAmt').value='';document.getElementById('eDay').value='';
   renderExpList();calc();
 };
+// แก้ไขรายจ่ายคงที่ (แบบเดียวกับแก้ไขหนี้)
+const openExpEdit=id=>{
+  const e=S.fixedExpenses.find(x=>x.id===id);if(!e)return;
+  document.getElementById('xeId').value=id;
+  document.getElementById('xeName').value=e.name;
+  document.getElementById('xeAmt').value=e.amount;
+  document.getElementById('xeDay').value=e.dueDay||'';
+  const sel=document.getElementById('xeCat');sel.innerHTML=document.getElementById('eCat').innerHTML;
+  if(![...sel.options].some(o=>o.value===e.category)){const m=CAT[e.category]||CAT.other;sel.insertAdjacentHTML('beforeend',`<option value="${esc(e.category)}">${m.e} ${m.l}</option>`)}
+  sel.value=e.category;
+  document.getElementById('expEditOv').classList.add('on');
+  setTimeout(()=>document.getElementById('xeAmt').focus(),60);
+};
+const closeExpEdit=()=>document.getElementById('expEditOv').classList.remove('on');
+document.getElementById('expEditOv').addEventListener('click',e=>{if(e.target.id==='expEditOv')closeExpEdit()});
+const saveExpEdit=()=>{
+  const e=S.fixedExpenses.find(x=>x.id===document.getElementById('xeId').value);if(!e){closeExpEdit();return}
+  const name=document.getElementById('xeName').value.trim(),amt=FM.parse(document.getElementById('xeAmt').value);
+  if(!name||!(amt>0)){modal('ข้อมูลไม่ครบ','กรุณากรอกชื่อและจำนวน');return}
+  const d=Math.floor(+document.getElementById('xeDay').value);
+  Object.assign(e,{name,amount:amt,category:document.getElementById('xeCat').value,dueDay:d>=1&&d<=31?d:null});
+  closeExpEdit();renderExpList();calc();
+};
 // ลบรายจ่ายคงที่ตาม id
 const removeExpense=id=>{S.fixedExpenses=S.fixedExpenses.filter(x=>x.id!==id);renderExpList();calc()};
 // render รายการรายจ่ายคงที่ทั้งหมด
@@ -1351,7 +1396,7 @@ const renderBurden=()=>{
 };
 const renderExpList=()=>{
   document.getElementById('expList').innerHTML=S.fixedExpenses.length
-    ?S.fixedExpenses.map(e=>`<div class="li"><div class="lib"><div class="lin">${esc(e.name)}</div><div class="lim">${cb(e.category)}${e.dueDay?`<span class="pill" style="margin-left:4px">📅 ทุกวันที่ ${e.dueDay}</span>`:''}</div></div><span class="lia tr2">${FM.cur(e.amount)}</span><button class="btn bGh" onclick="removeExpense('${e.id}')">✕</button></div>`).join('')
+    ?S.fixedExpenses.map(e=>`<div class="li"><div class="lib"><div class="lin">${esc(e.name)}</div><div class="lim">${cb(e.category)}${e.dueDay?`<span class="pill" style="margin-left:4px">📅 ทุกวันที่ ${e.dueDay}</span>`:''}</div></div><span class="lia tr2">${FM.cur(e.amount)}</span><button class="btn bGh" aria-label="แก้ไข" onclick="openExpEdit('${e.id}')">✏️</button><button class="btn bGh" onclick="removeExpense('${e.id}')">✕</button></div>`).join('')
     :'<div class="empty" style="padding:8px 0"><p>ยังไม่มีรายจ่ายคงที่</p></div>';
 };
 
@@ -2393,7 +2438,7 @@ const txFiltered=()=>{
 const renderTxFilter=()=>{
   const el=document.getElementById('recentList');if(!el)return;
   const cs=document.getElementById('txFCat'),ms=document.getElementById('txFMonth');
-  const cats=[...new Set(S.transactions.map(t=>t.category))];
+  const cats=[...new Set(S.transactions.map(t=>t.category).filter(Boolean))];
   if(txFilter.cat!=='all'&&!cats.includes(txFilter.cat))txFilter.cat='all';
   cs.innerHTML='<option value="all">ทุกหมวด</option>'+cats.map(k=>{const m=CAT[k]||CAT.other;return`<option value="${esc(k)}">${m.e} ${m.l}</option>`}).join('');
   cs.value=txFilter.cat;
@@ -2985,7 +3030,7 @@ const renderInvInsight=(s,buf,inv,plan)=>{
 
 const init=()=>{
   const sal=document.getElementById('salary');
-  if(S.salary){sal.value=S.salary;FM.format(sal);}
+  sal.value=S.salary||'';if(S.salary)FM.format(sal); // ล้างค่าเก่าด้วย ไม่งั้น calc() อ่านเงินเดือนเดิมกลับมาทับค่าที่กู้คืน
   renderIncList();renderExpList();renderDebtList();
   renderTxLists();
   const today=localYMD();
