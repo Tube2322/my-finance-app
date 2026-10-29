@@ -578,6 +578,7 @@ body::before{
   .ol-pin{transform-box:fill-box;transform-origin:center;animation:fxPop .5s cubic-bezier(.34,1.56,.64,1) both}
 }
 @media (prefers-reduced-motion:reduce){.fx-press{animation:none}}
+@media print{.fx-rv{opacity:1!important;transform:none!important}}
 .bd{background:var(--s2);border:1px solid var(--bdr);border-radius:var(--rM);padding:10px 12px;margin-bottom:10px}
 .bd-top{display:flex;align-items:baseline;justify-content:space-between;gap:8px;flex-wrap:wrap}
 .bd-l{font-size:.7rem;color:var(--mt);font-weight:700}
@@ -1175,6 +1176,8 @@ const fxPulse=()=>{
   document.body.classList.add('fx-on');
   clearTimeout(fxPulse.t);fxPulse.t=setTimeout(()=>document.body.classList.remove('fx-on'),1400);
   requestAnimationFrame(fxReveal);
+  // กันพลาด: ถ้า IntersectionObserver ไม่ทำงาน การ์ดที่อยู่ในจอต้องไม่ค้างโปร่งใส
+  clearTimeout(fxPulse.s);fxPulse.s=setTimeout(()=>document.querySelectorAll('.fx-rv:not(.in)').forEach(el=>{const r=el.getBoundingClientRect();if(el.offsetParent!==null&&r.top<innerHeight&&r.bottom>0)el.classList.remove('fx-rv')}),3000);
 };
 const fxPrev=new Map();
 const FX_NUM_SEL='#heroBalance,#hInc,#hExp,#totInc,#totExp,#balDisp,#monthSaved,#monthSpent,#monthLeft,.ol-zone-big,.ol-v,.bd-v,.fx-num,#invSurplusCard .pr strong,#invBufferSummary .pr strong,#invImpactCard .sv';
@@ -1206,7 +1209,7 @@ document.addEventListener('pointerdown',e=>{
   if(!MOTION)return;
   const b=e.target.closest('.btn,.qchip,.tab,.dnav,.bnav,.hbtn,.ms-bar,.ol-mchip');if(!b)return;
   b.classList.remove('fx-press');void b.offsetWidth;b.classList.add('fx-press');
-  b.addEventListener('animationend',()=>b.classList.remove('fx-press'),{once:true});
+  clearTimeout(b._fxT);b._fxT=setTimeout(()=>b.classList.remove('fx-press'),420); // ไม่ใช้ animationend เพราะอนิเมชันของลูกเด้งขึ้นมาได้
 });
 // หน้าต่างยืนยันของแอป แทน confirm() (หน้าตาตรงกับดีไซน์บนมือถือ) — คืน Promise<boolean>
 let askResolve=null;
@@ -1802,7 +1805,9 @@ const olMilestones=o=>{
   }
   const start=S.emergencySavings+o.startBalance;
   OL_WEALTH_MARKS.forEach(th=>{if(start>=th)return;const hit=o.months.find(x=>sav(x)>=th);if(hit)ms.push({m:hit.m,icon:'💰',t:`เงินเก็บแตะ ${FM.compact(th)}`,d:`เงินเก็บ ${FM.cur(sav(hit))}`})});
-  return ms.sort((a,b)=>a.m-b.m).slice(0,10);
+  // เกิน 10 หมุด: เก็บปลอดหนี้/เงินเก็บไว้ก่อน (มักอยู่ท้ายช่วง) แล้วค่อยเรียงตามเดือน
+  const pri=x=>x.icon==='🎉'||x.icon==='💰'?0:1;
+  return ms.sort((a,b)=>pri(a)-pri(b)||a.m-b.m).slice(0,10).sort((a,b)=>a.m-b.m);
 };
 // การ์ด "ตัวคุณในอนาคต" — สรุปผลเป็นประโยค
 const renderOlFuture=(o,mils)=>{
@@ -1860,7 +1865,7 @@ const renderOlChart=(o,mils)=>{
           <circle id="olScrubB" r="5.5" fill="var(--p)" stroke="var(--surface)" stroke-width="2"/>
         </g>
       </svg>
-      <div class="ol-tip" id="olTip" hidden></div>
+      <div class="ol-tip" id="olTip" hidden aria-live="polite"></div>
     </div>
     <div class="cal-leg" style="margin-top:6px"><div class="leg"><div class="legdot" style="background:var(--p)"></div>เงินคงเหลือสะสม</div><div class="leg"><div class="legdot" style="background:#ef4444"></div>หนี้คงเหลือ</div>${o.months.some(mo=>mo.oneOff)?'<div class="leg"><div class="legdot" style="background:#10b981;border-radius:2px;transform:rotate(45deg)"></div>เหตุการณ์ครั้งเดียว</div>':''}</div>
     ${mils.length?`<div class="ol-mchips">${mils.map(p=>`<button class="ol-mchip" onclick="olScrubTo(${p.m},true)">${p.icon} ${esc(p.t)} · ${o.months[p.m-1].label}</button>`).join('')}</div>`:''}
@@ -1894,6 +1899,7 @@ const bindOlChart=()=>{
   svg.addEventListener('pointermove',e=>olScrubTo(toM(e)));
   svg.addEventListener('pointerdown',e=>olScrubTo(toM(e)));
   svg.addEventListener('pointerleave',e=>{if(e.pointerType==='mouse')olScrubHide()});
+  svg.addEventListener('pointercancel',olScrubHide); // มือถือ: แตะแล้วเลื่อนหน้า → ไม่ให้ตัวชี้ค้าง
   svg.addEventListener('blur',()=>{if(!svg.matches(':hover'))olScrubHide()});
   svg.addEventListener('keydown',e=>{
     const c=olChart,cur=olScrubM??0,st=c.N>60?12:1;
